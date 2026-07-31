@@ -1,0 +1,133 @@
+{
+  "synced_at": "2026-07-10T23:00:00.000+0000",
+  "records": [
+    {
+      "Id": "a0j8for6a0VqnbNExI",
+      "Name": "SHP6743434",
+      "bos__Load_Status__c": "Paid",
+      "bos__Distance_Miles__c": 190.1,
+      "bos__Customer__c": "001OamA0b0WFeMTFj9",
+      "bos__Carrier__c": "0014kYSQ2MReXmEcSz",
+      "bos__Equipment_Type__c": "Reefer",
+      "bos__Customer_Rate__c": 1395.0,
+      "bos__Carrier_Rate__c": 905.0,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "001uhP4O4IHD7y91Y4",
+          "bos__Scheduled_Date__c": "2026-07-10",
+          "bos__Arrival_Time__c": "2026-07-10T13:25:00.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001QV8tr6xkhSk8vDR",
+          "bos__Scheduled_Date__c": "2026-07-11",
+          "bos__Arrival_Time__c": "2026-07-11T14:40:00.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Packaged foods",
+          "bos__Weight__c": 15200.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 11.0
+        }
+      ],
+      "CreatedDate": "2026-07-09T20:43:00.000+0000",
+      "LastModifiedDate": "2026-07-10T21:47:00.000+0000"
+    },
+    {
+      "Id": "a0jOYkSuUXWDsS3OjJ",
+      "Name": "SHP6743496",
+      "bos__Load_Status__c": "Booked",
+      "bos__Distance_Miles__c": 181.1,
+      "bos__Customer__c": "0013Q605MP7eXNcfrl",
+      "bos__Carrier__c": "00103OAV4p5bncSNEW",
+      "bos__Equipment_Type__c": "Flatbed",
+      "bos__Customer_Rate__c": 1195.0,
+      "bos__Carrier_Rate__c": 980.0,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "001YB4MskPFtFoguBl",
+          "bos__Scheduled_Date__c": "2026-07-11",
+          "bos__Arrival_Time__c": null
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001yU7anzSS42jlvAp",
+          "bos__Scheduled_Date__c": "2026-07-12",
+          "bos__Arrival_Time__c": null
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Lumber",
+          "bos__Weight__c": 28900.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 21.0
+        }
+      ],
+      "CreatedDate": "2026-07-10T14:43:00.000+0000",
+      "LastModifiedDate": "2026-07-10T21:47:00.000+0000"
+    }
+  ],
+  "referenced_records": {
+    "001uhP4O4IHD7y91Y4": {
+      "type": "Location",
+      "Name": "Sugar Land Distribution Ctr",
+      "bos__City__c": "Sugar Land",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77478"
+    },
+    "001QV8tr6xkhSk8vDR": {
+      "type": "Location",
+      "Name": "Seguin Cold Storage",
+      "bos__City__c": "Seguin",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78155"
+    },
+    "001OamA0b0WFeMTFj9": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Gulf Coast Foods"
+    },
+    "0014kYSQ2MReXmEcSz": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "ALAMO RIDGE CARRIERS LLC"
+    },
+    "001YB4MskPFtFoguBl": {
+      "type": "Location",
+      "Name": "Rosenberg Cold Storage",
+      "bos__City__c": "Rosenberg",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77471"
+    },
+    "001yU7anzSS42jlvAp": {
+      "type": "Location",
+      "Name": "San Marcos Distribution Ctr",
+      "bos__City__c": "San Marcos",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78666"
+    },
+    "0013Q605MP7eXNcfrl": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Alamo Building Supply"
+    },
+    "00103OAV4p5bncSNEW": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "STAR OF TEXAS FREIGHT LLC"
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "syncedAt": "2026-07-09T12:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127475176,
+      "status": "En Route",
+      "mileage": 260.4,
+      "totalSell": 1810.0,
+      "totalBuy": 1485.0,
+      "customer": {
+        "customerId": 889696,
+        "name": "Hill Valley Agricultural"
+      },
+      "carrier": {
+        "carrierMasterId": 835171,
+        "name": "RIO GRANDE HAULERS INC",
+        "mcNumber": "998271",
+        "dotNumber": "2884113",
+        "phoneNumber": "+12105550177"
+      },
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 27500.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "FORT WORTH",
+          "state": "TX",
+          "zipCode": "76106",
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-10T10:25:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "NEW BRAUNFELS",
+          "state": "TX",
+          "zipCode": "78130",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-08T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-09T10:47:00-05:00"
+    },
+    {
+      "shipmentId": 127475573,
+      "status": "Booking",
+      "mileage": 267.0,
+      "totalSell": 1765.0,
+      "totalBuy": null,
+      "customer": {
+        "customerId": 889696,
+        "name": "Hill Valley Agricultural"
+      },
+      "carrier": null,
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 25900.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "WAXAHACHIE",
+          "state": "TX",
+          "zipCode": "75165",
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "SCHERTZ",
+          "state": "TX",
+          "zipCode": "78154",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-09T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-09T10:47:00-05:00"
+    }
+  ]
+}

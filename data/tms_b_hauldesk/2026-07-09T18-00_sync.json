@@ -1,0 +1,82 @@
+{
+  "synced_at": "2026-07-09 18:00:00",
+  "loads": [
+    {
+      "load_num": "HD-2026-004485",
+      "status_code": 90,
+      "customer_code": "C-0077",
+      "customer_name": "Gulf Coast Foods",
+      "carrier_ref": 66401,
+      "equip": "V",
+      "weight_kg": 10704.8,
+      "dist_km": 304.2,
+      "pu_city": "San Antonio",
+      "pu_state": "TX",
+      "pu_zip": "78219",
+      "pu_date": "2026-07-09",
+      "pu_departed_at": "2026-07-09 10:25:00",
+      "del_city": "Katy",
+      "del_state": "TX",
+      "del_zip": "77449",
+      "del_date": "2026-07-10",
+      "del_arrived_at": "2026-07-10 09:40:00",
+      "entered_at": "2026-07-08 09:43:00",
+      "updated_at": "2026-07-09 16:47:00"
+    },
+    {
+      "load_num": "HD-2026-004502",
+      "status_code": 40,
+      "customer_code": "C-0067",
+      "customer_name": "Hill Valley Agricultural",
+      "carrier_ref": 66053,
+      "equip": "R",
+      "weight_kg": 11838.8,
+      "dist_km": 317.5,
+      "pu_city": "New Braunfels",
+      "pu_state": "TX",
+      "pu_zip": "78130",
+      "pu_date": "2026-07-10",
+      "pu_departed_at": "2026-07-10 10:25:00",
+      "del_city": "Rosenberg",
+      "del_state": "TX",
+      "del_zip": "77471",
+      "del_date": "2026-07-11",
+      "del_arrived_at": null,
+      "entered_at": "2026-07-09 03:43:00",
+      "updated_at": "2026-07-09 16:47:00"
+    },
+    {
+      "load_num": "HD-2026-004519",
+      "status_code": 20,
+      "customer_code": "C-0077",
+      "customer_name": "Gulf Coast Foods",
+      "carrier_ref": null,
+      "equip": "V",
+      "weight_kg": 9253.3,
+      "dist_km": 300.0,
+      "pu_city": "Pasadena",
+      "pu_state": "TX",
+      "pu_zip": "77502",
+      "pu_date": "2026-07-10",
+      "pu_departed_at": null,
+      "del_city": "Seguin",
+      "del_state": "TX",
+      "del_zip": "78155",
+      "del_date": "2026-07-11",
+      "del_arrived_at": null,
+      "entered_at": "2026-07-09 15:43:00",
+      "updated_at": "2026-07-09 16:47:00"
+    }
+  ],
+  "carriers": [],
+  "rates": [
+    {
+      "rate_id": 910016,
+      "load_num": "HD-2026-004519",
+      "side": "bill",
+      "code": "LINEHAUL",
+      "amount_usd": 1115.0,
+      "created_at": "2026-07-09 16:47:00"
+    }
+  ]
+}

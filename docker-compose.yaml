@@ -1,0 +1,24 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      # The sync files are mounted read-only: ingestion never writes to them.
+      CARRIER_POOL_DATA_DIR: /data
+    volumes:
+      - ./data:/data:ro
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\""]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy

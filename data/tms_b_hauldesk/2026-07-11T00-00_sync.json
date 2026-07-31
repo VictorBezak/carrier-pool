@@ -1,0 +1,29 @@
+{
+  "synced_at": "2026-07-11 00:00:00",
+  "loads": [
+    {
+      "load_num": "HD-2026-004536",
+      "status_code": 50,
+      "customer_code": "C-0063",
+      "customer_name": "Alamo Building Supply",
+      "carrier_ref": 66882,
+      "equip": "V",
+      "weight_kg": 9979.0,
+      "dist_km": 466.4,
+      "pu_city": "Schertz",
+      "pu_state": "TX",
+      "pu_zip": "78154",
+      "pu_date": "2026-07-11",
+      "pu_departed_at": "2026-07-11 10:25:00",
+      "del_city": "Grand Prairie",
+      "del_state": "TX",
+      "del_zip": "75050",
+      "del_date": "2026-07-12",
+      "del_arrived_at": "2026-07-12 09:40:00",
+      "entered_at": "2026-07-10 09:43:00",
+      "updated_at": "2026-07-10 22:47:00"
+    }
+  ],
+  "carriers": [],
+  "rates": []
+}

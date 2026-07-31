@@ -1,0 +1,38 @@
+{
+  "synced_at": "2026-07-12 00:00:00",
+  "loads": [
+    {
+      "load_num": "HD-2026-004420",
+      "status_code": 20,
+      "customer_code": "C-0063",
+      "customer_name": "Alamo Building Supply",
+      "carrier_ref": null,
+      "equip": "V",
+      "weight_kg": 11113.0,
+      "dist_km": 331.7,
+      "pu_city": "New Braunfels",
+      "pu_state": "TX",
+      "pu_zip": "78130",
+      "pu_date": "2026-07-13",
+      "pu_departed_at": null,
+      "del_city": "Pasadena",
+      "del_state": "TX",
+      "del_zip": "77502",
+      "del_date": "2026-07-14",
+      "del_arrived_at": null,
+      "entered_at": "2026-07-11 21:43:00",
+      "updated_at": "2026-07-11 22:47:00"
+    }
+  ],
+  "carriers": [],
+  "rates": [
+    {
+      "rate_id": 910020,
+      "load_num": "HD-2026-004420",
+      "side": "bill",
+      "code": "LINEHAUL",
+      "amount_usd": 1220.0,
+      "created_at": "2026-07-11 22:47:00"
+    }
+  ]
+}

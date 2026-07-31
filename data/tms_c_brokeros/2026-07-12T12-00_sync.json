@@ -1,0 +1,65 @@
+{
+  "synced_at": "2026-07-12T17:00:00.000+0000",
+  "records": [
+    {
+      "Id": "a0jftgHugyPQpNsi6y",
+      "Name": "SHP6743131",
+      "bos__Load_Status__c": "Ready to Book",
+      "bos__Distance_Miles__c": 178.5,
+      "bos__Customer__c": "001ZMJCpqieO0SNeP7",
+      "bos__Carrier__c": null,
+      "bos__Equipment_Type__c": null,
+      "bos__Customer_Rate__c": 1060.0,
+      "bos__Carrier_Rate__c": null,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "001hVavJVZbZogipp9",
+          "bos__Scheduled_Date__c": "2026-07-13",
+          "bos__Arrival_Time__c": null
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "0015Xy7fB3P8vZ51Nn",
+          "bos__Scheduled_Date__c": "2026-07-14",
+          "bos__Arrival_Time__c": null
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Consumer electronics",
+          "bos__Weight__c": 18700.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 14.0
+        }
+      ],
+      "CreatedDate": "2026-07-12T14:43:00.000+0000",
+      "LastModifiedDate": "2026-07-12T15:47:00.000+0000"
+    }
+  ],
+  "referenced_records": {
+    "001hVavJVZbZogipp9": {
+      "type": "Location",
+      "Name": "Baytown Warehouse",
+      "bos__City__c": "Baytown",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77520"
+    },
+    "0015Xy7fB3P8vZ51Nn": {
+      "type": "Location",
+      "Name": "Georgetown Terminal",
+      "bos__City__c": "Georgetown",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78626"
+    },
+    "001ZMJCpqieO0SNeP7": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Capital Electronics Group"
+    }
+  }
+}

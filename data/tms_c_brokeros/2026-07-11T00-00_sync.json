@@ -1,0 +1,70 @@
+{
+  "synced_at": "2026-07-11T05:00:00.000+0000",
+  "records": [
+    {
+      "Id": "a0jOYkSuUXWDsS3OjJ",
+      "Name": "SHP6743496",
+      "bos__Load_Status__c": "Delivered",
+      "bos__Distance_Miles__c": 181.1,
+      "bos__Customer__c": "0013Q605MP7eXNcfrl",
+      "bos__Carrier__c": "00103OAV4p5bncSNEW",
+      "bos__Equipment_Type__c": "Flatbed",
+      "bos__Customer_Rate__c": 1195.0,
+      "bos__Carrier_Rate__c": 980.0,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "001YB4MskPFtFoguBl",
+          "bos__Scheduled_Date__c": "2026-07-11",
+          "bos__Arrival_Time__c": "2026-07-11T13:25:00.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001yU7anzSS42jlvAp",
+          "bos__Scheduled_Date__c": "2026-07-12",
+          "bos__Arrival_Time__c": "2026-07-12T14:40:00.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Lumber",
+          "bos__Weight__c": 28900.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 21.0
+        }
+      ],
+      "CreatedDate": "2026-07-10T14:43:00.000+0000",
+      "LastModifiedDate": "2026-07-11T03:47:00.000+0000"
+    }
+  ],
+  "referenced_records": {
+    "001YB4MskPFtFoguBl": {
+      "type": "Location",
+      "Name": "Rosenberg Cold Storage",
+      "bos__City__c": "Rosenberg",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77471"
+    },
+    "001yU7anzSS42jlvAp": {
+      "type": "Location",
+      "Name": "San Marcos Distribution Ctr",
+      "bos__City__c": "San Marcos",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78666"
+    },
+    "0013Q605MP7eXNcfrl": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Alamo Building Supply"
+    },
+    "00103OAV4p5bncSNEW": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "STAR OF TEXAS FREIGHT LLC"
+    }
+  }
+}

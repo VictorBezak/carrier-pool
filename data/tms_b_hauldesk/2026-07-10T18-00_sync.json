@@ -1,0 +1,48 @@
+{
+  "synced_at": "2026-07-10 18:00:00",
+  "loads": [
+    {
+      "load_num": "HD-2026-004536",
+      "status_code": 30,
+      "customer_code": "C-0063",
+      "customer_name": "Alamo Building Supply",
+      "carrier_ref": 66882,
+      "equip": "V",
+      "weight_kg": 9979.0,
+      "dist_km": 466.4,
+      "pu_city": "Schertz",
+      "pu_state": "TX",
+      "pu_zip": "78154",
+      "pu_date": "2026-07-11",
+      "pu_departed_at": null,
+      "del_city": "Grand Prairie",
+      "del_state": "TX",
+      "del_zip": "75050",
+      "del_date": "2026-07-12",
+      "del_arrived_at": null,
+      "entered_at": "2026-07-10 09:43:00",
+      "updated_at": "2026-07-10 16:47:00"
+    }
+  ],
+  "carriers": [
+    {
+      "carrier_id": 66882,
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "mc_no": "1346382",
+      "dot_no": "3771394",
+      "home_city": "Mesquite",
+      "home_state": "TX",
+      "phone": "(571) 490-6959"
+    }
+  ],
+  "rates": [
+    {
+      "rate_id": 910019,
+      "load_num": "HD-2026-004536",
+      "side": "pay",
+      "code": "LINEHAUL",
+      "amount_usd": 1475.0,
+      "created_at": "2026-07-10 16:47:00"
+    }
+  ]
+}

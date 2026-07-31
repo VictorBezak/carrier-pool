@@ -1,0 +1,143 @@
+{
+  "synced_at": "2026-07-08T11:00:00.000+0000",
+  "records": [
+    {
+      "Id": "a0jMjR7SwbyAZKgG5T",
+      "Name": "SHP6743186",
+      "bos__Load_Status__c": "Paid",
+      "bos__Distance_Miles__c": 198.9,
+      "bos__Customer__c": "001DKJh96of8KwbhKO",
+      "bos__Carrier__c": "001ZfPmg3vxbKJ7Xwi",
+      "bos__Equipment_Type__c": "Dry Van",
+      "bos__Customer_Rate__c": 1230.0,
+      "bos__Carrier_Rate__c": 1010.0,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "001hVavJVZbZogipp9",
+          "bos__Scheduled_Date__c": "2026-07-08",
+          "bos__Arrival_Time__c": "2026-07-08T13:25:00.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001TjbLK2YCWC9Y65Q",
+          "bos__Scheduled_Date__c": "2026-07-09",
+          "bos__Arrival_Time__c": "2026-07-09T14:40:00.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Packaged chemicals",
+          "bos__Weight__c": 22600.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 17.0
+        }
+      ],
+      "CreatedDate": "2026-07-07T08:43:00.000+0000",
+      "LastModifiedDate": "2026-07-08T09:47:00.000+0000"
+    },
+    {
+      "Id": "a0jM3C6FfP0hAazjeh",
+      "Name": "SHP6743248",
+      "bos__Load_Status__c": "Ready to Book",
+      "bos__Distance_Miles__c": 241.3,
+      "bos__Customer__c": "001XBtI2gq9cxgvPhL",
+      "bos__Carrier__c": null,
+      "bos__Equipment_Type__c": "Dry Van",
+      "bos__Customer_Rate__c": 1525.0,
+      "bos__Carrier_Rate__c": null,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "001ni6dikFqDaywGmx",
+          "bos__Scheduled_Date__c": "2026-07-09",
+          "bos__Arrival_Time__c": null
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "001YB4MskPFtFoguBl",
+          "bos__Scheduled_Date__c": "2026-07-10",
+          "bos__Arrival_Time__c": null
+        },
+        {
+          "bos__Number__c": 3.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001E3OXmWQNxKvfkaA",
+          "bos__Scheduled_Date__c": "2026-07-10",
+          "bos__Arrival_Time__c": null
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Mixed retail",
+          "bos__Weight__c": 21300.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 16.0
+        }
+      ],
+      "CreatedDate": "2026-07-08T02:43:00.000+0000",
+      "LastModifiedDate": "2026-07-08T09:47:00.000+0000"
+    }
+  ],
+  "referenced_records": {
+    "001hVavJVZbZogipp9": {
+      "type": "Location",
+      "Name": "Baytown Warehouse",
+      "bos__City__c": "Baytown",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77520"
+    },
+    "001TjbLK2YCWC9Y65Q": {
+      "type": "Location",
+      "Name": "Converse Cold Storage",
+      "bos__City__c": "Converse",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78109"
+    },
+    "001DKJh96of8KwbhKO": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Brazos Chemical Co"
+    },
+    "001ZfPmg3vxbKJ7Xwi": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "BAYOU CITY LOGISTICS LLC"
+    },
+    "001ni6dikFqDaywGmx": {
+      "type": "Location",
+      "Name": "Stafford Warehouse",
+      "bos__City__c": "Stafford",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77477"
+    },
+    "001YB4MskPFtFoguBl": {
+      "type": "Location",
+      "Name": "Rosenberg Cold Storage",
+      "bos__City__c": "Rosenberg",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77471"
+    },
+    "001E3OXmWQNxKvfkaA": {
+      "type": "Location",
+      "Name": "New Braunfels Distribution Ctr",
+      "bos__City__c": "New Braunfels",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78130"
+    },
+    "001XBtI2gq9cxgvPhL": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Pecan Grove Retail"
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "syncedAt": "2026-07-06T12:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127472397,
+      "status": "En Route",
+      "mileage": 222.9,
+      "totalSell": 1250.0,
+      "totalBuy": 1025.0,
+      "customer": {
+        "customerId": 889877,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 835882,
+        "name": "IBRAHIM TRANSPORT INC",
+        "mcNumber": "1346382",
+        "dotNumber": "3771394",
+        "phoneNumber": "+15714906959"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-07T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-07T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-07T10:25:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-08T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-08T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-05T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-06T10:47:00-05:00"
+    },
+    {
+      "shipmentId": 127472794,
+      "status": "Booking",
+      "mileage": 254.9,
+      "totalSell": 1410.0,
+      "totalBuy": null,
+      "customer": {
+        "customerId": 889477,
+        "name": "Trinity Paper Products"
+      },
+      "carrier": null,
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 21500.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "MESQUITE",
+          "state": "TX",
+          "zipCode": "75149",
+          "estimatedReadyDateTime": "2026-07-07T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-07T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "PASADENA",
+          "state": "TX",
+          "zipCode": "77502",
+          "estimatedReadyDateTime": "2026-07-08T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-08T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-06T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-06T10:47:00-05:00"
+    }
+  ]
+}

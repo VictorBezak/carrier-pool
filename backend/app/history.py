@@ -1,0 +1,172 @@
+"""A read-only, single-broker view of history.
+
+This is the *only* thing the ranking engine is given. It is constructed from one
+broker id, so an engine physically cannot reach another tenant's loads - the
+isolation is structural rather than a filter somebody has to remember to apply.
+It is also the seam a shared carrier pool would be built at: a pooled view would
+be a different implementation of this same surface, with an explicit and
+inspectable list of what it exposes.
+
+Everything here is derived on demand from current load state. Nothing is cached,
+so a correction that landed thirty seconds ago is already reflected.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from statistics import median
+
+from . import geo
+from .domain import Carrier, Equipment, Load, LoadStatus
+from .store import Store
+
+
+@dataclass(frozen=True)
+class CarrierLaneHistory:
+    """What one broker knows about one carrier, relative to one load."""
+
+    carrier: Carrier
+    loads_total: int
+    loads_on_lane: int
+    loads_from_origin: int
+    loads_with_equipment: int
+    last_load_at: datetime | None
+    days_since_last_load: float | None
+    last_delivery_market: str | None
+    lane_rates_per_mile: tuple[float, ...]
+    on_time_ratio: float | None
+
+    @property
+    def median_lane_rate_per_mile(self) -> float | None:
+        return round(median(self.lane_rates_per_mile), 3) if self.lane_rates_per_mile else None
+
+
+class BrokerHistory:
+    def __init__(self, store: Store, broker_id: str, as_of: datetime | None = None) -> None:
+        self.broker_id = broker_id
+        self._store = store
+        self._loads = store.loads(broker_id)
+        self._carriers = {carrier.carrier_id: carrier for carrier in store.carriers(broker_id)}
+        # The latest sync we have seen, not wall-clock time: "days since this
+        # carrier last ran" must mean the same thing on every replay.
+        self.as_of = as_of or store.last_synced_at or datetime.now(timezone.utc)
+
+    # ---- corpora -------------------------------------------------------
+
+    @property
+    def all_loads(self) -> list[Load]:
+        return self._loads
+
+    @property
+    def priced_loads(self) -> list[Load]:
+        """Loads a carrier committed to at a known price - the only ones that
+        say anything about what this broker actually pays."""
+        return [
+            load
+            for load in self._loads
+            if load.is_booked and load.carrier_rate is not None and load.distance_miles
+        ]
+
+    @property
+    def carriers(self) -> list[Carrier]:
+        return list(self._carriers.values())
+
+    def carrier(self, carrier_id: str) -> Carrier | None:
+        return self._carriers.get(carrier_id)
+
+    def open_loads(self) -> list[Load]:
+        return [load for load in self._loads if load.status == LoadStatus.ACTIVE]
+
+    # ---- carrier-level history ----------------------------------------
+
+    def carrier_loads(self, carrier_id: str) -> list[Load]:
+        return [load for load in self._loads if load.carrier_id == carrier_id and load.is_booked]
+
+    def carrier_history_for(self, carrier_id: str, target: Load) -> CarrierLaneHistory | None:
+        carrier = self._carriers.get(carrier_id)
+        if carrier is None:
+            return None
+
+        loads = self.carrier_loads(carrier_id)
+        if not loads:
+            return None
+
+        lane = target.lane
+        origin_market = target.origin_market
+
+        on_lane = [load for load in loads if load.lane == lane]
+        from_origin = [load for load in loads if load.origin_market == origin_market]
+        with_equipment = [
+            load
+            for load in loads
+            if target.equipment is not Equipment.UNKNOWN and load.equipment == target.equipment
+        ]
+
+        dated = [(load.delivered_at or load.updated_at, load) for load in loads]
+        dated = [(when, load) for when, load in dated if when is not None]
+        dated.sort(key=lambda pair: pair[0])
+        last_load_at = dated[-1][0] if dated else None
+        last_delivery_market = dated[-1][1].destination_market if dated else None
+
+        days_since = None
+        if last_load_at is not None:
+            days_since = round((self.as_of - last_load_at).total_seconds() / 86400, 1)
+
+        lane_rates = tuple(
+            load.carrier_rate_per_mile
+            for load in on_lane
+            if load.carrier_rate_per_mile is not None
+        )
+
+        return CarrierLaneHistory(
+            carrier=carrier,
+            loads_total=len(loads),
+            loads_on_lane=len(on_lane),
+            loads_from_origin=len(from_origin),
+            loads_with_equipment=len(with_equipment),
+            last_load_at=last_load_at,
+            days_since_last_load=days_since,
+            last_delivery_market=last_delivery_market,
+            lane_rates_per_mile=lane_rates,
+            on_time_ratio=None,
+        )
+
+    # ---- lane-level history -------------------------------------------
+
+    def lane_loads(
+        self,
+        lane: str | None = None,
+        origin_market: str | None = None,
+        equipment: Equipment | None = None,
+    ) -> list[Load]:
+        result = self.priced_loads
+        if lane is not None:
+            result = [load for load in result if load.lane == lane]
+        if origin_market is not None:
+            result = [load for load in result if load.origin_market == origin_market]
+        if equipment is not None and equipment is not Equipment.UNKNOWN:
+            result = [load for load in result if load.equipment == equipment]
+        return result
+
+    def lane_summary(self) -> list[dict]:
+        """Per-lane volume and rate, for showing where history is thick or thin."""
+        buckets: dict[str, list[Load]] = {}
+        for load in self.priced_loads:
+            buckets.setdefault(load.lane, []).append(load)
+
+        summaries = []
+        for lane, loads in buckets.items():
+            rates = [load.carrier_rate_per_mile for load in loads if load.carrier_rate_per_mile]
+            origin, _, destination = lane.partition("->")
+            summaries.append(
+                {
+                    "lane": lane,
+                    "lane_label": geo.lane_label(origin, destination),
+                    "load_count": len(loads),
+                    "median_rate_per_mile": round(median(rates), 3) if rates else None,
+                    "carrier_count": len({load.carrier_id for load in loads if load.carrier_id}),
+                }
+            )
+        summaries.sort(key=lambda item: item["load_count"], reverse=True)
+        return summaries

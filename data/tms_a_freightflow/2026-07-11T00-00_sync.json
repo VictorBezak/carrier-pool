@@ -1,0 +1,89 @@
+{
+  "syncedAt": "2026-07-11T00:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127476367,
+      "status": "Completed",
+      "mileage": 245.6,
+      "totalSell": 1525.0,
+      "totalBuy": 1250.0,
+      "customer": {
+        "customerId": 889043,
+        "name": "Brazos Chemical Co"
+      },
+      "carrier": {
+        "carrierMasterId": 835618,
+        "name": "BLUEBONNET FREIGHT CO",
+        "mcNumber": "1500918",
+        "dotNumber": "3990441",
+        "phoneNumber": "+17135550196"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 20100.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "DENTON",
+          "state": "TX",
+          "zipCode": "76205",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T10:25:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "ROSENBERG",
+          "state": "TX",
+          "zipCode": "77471",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T09:40:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-10T03:43:00-05:00",
+      "lastModifiedDate": "2026-07-10T22:47:00-05:00"
+    },
+    {
+      "shipmentId": 127476764,
+      "status": "Delivered",
+      "mileage": 259.3,
+      "totalSell": 1640.0,
+      "totalBuy": 1345.0,
+      "customer": {
+        "customerId": 889877,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 835540,
+        "name": "TRINITY RIVER EXPRESS LLC",
+        "mcNumber": "1288440",
+        "dotNumber": "3612009",
+        "phoneNumber": "+14695550132"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 21200.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T10:25:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "MESQUITE",
+          "state": "TX",
+          "zipCode": "75149",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T09:40:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-10T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-10T22:47:00-05:00"
+    }
+  ]
+}

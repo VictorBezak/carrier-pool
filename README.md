@@ -118,3 +118,103 @@ Include a short `DECISIONS.md`:
 - The judgment calls you made and the alternatives you rejected.
 - What you'd do next with more time.
 - Honest limitations score better than hidden ones.
+
+---
+
+# How to run this submission
+
+## Quickest path
+
+```bash
+docker compose up --build
+```
+
+Then open **http://localhost:5173**. The API is on http://localhost:8000, with
+interactive docs at http://localhost:8000/docs.
+
+The backend ingests all 84 sync files on startup (about a second) and holds them
+in memory, so there is no database to migrate and no seed step. `data/` is
+mounted read-only — ingestion never writes to it.
+
+## Running without Docker
+
+Two terminals.
+
+```bash
+# terminal 1 - API on :8000
+cd backend
+python3 -m venv .venv && .venv/bin/pip install -e '.[dev]'
+.venv/bin/uvicorn app.main:app --reload --port 8000
+```
+
+```bash
+# terminal 2 - UI on :5173, proxying /api to :8000
+cd frontend
+npm install
+npm run dev
+```
+
+## Reproducing the dataset
+
+The sync files in `data/` are generated, deterministically — re-running produces
+byte-identical files.
+
+```bash
+python3 data_gen/generate.py     # stdlib only, no dependencies
+curl -X POST localhost:8000/api/reingest   # or just restart the backend
+```
+
+## The end-to-end check
+
+```bash
+cd backend && .venv/bin/python -m pytest -q
+```
+
+24 tests over the real data in `data/`. They assert the claims the system makes
+about itself rather than just exercising code paths: metric units are converted,
+a reefer is not read as a dry van, null equipment is not assumed to be a dry van,
+replaying the feed is idempotent, corrections are distinguished from progress,
+the same carrier has independent history under each broker, one broker's load ID
+404s under another, and every score equals the sum of the components shown to
+explain it.
+
+```bash
+cd frontend && npm run build   # typecheck + production build
+```
+
+## What to look at first
+
+1. **The load list** opens on the loads that need a carrier. The panel underneath
+   shows where this broker has thick and thin history, which is what makes the
+   estimates below explicable.
+2. **Open load `127472438`** (Redline / FreightFlow, Dallas–Fort Worth → Houston).
+   Deep lane, 8 comparables, high confidence. The top two carriers score within
+   1.5 points of each other for completely different reasons — one knows the lane
+   best, the other is already sitting in Dallas. Expand *Score breakdown* to see
+   the trade-off.
+3. **Open load `127473232`** (same broker, Dallas–Fort Worth → Austin, flatbed).
+   Thin lane. The estimate has to widen its comparison and says so, and the
+   best-fitting carrier is flagged *"Thin history: only one booked load ever"*
+   rather than being quietly presented as a safe bet.
+4. **Switch the broker to Summit Freight Solutions** and open `SHP6743131`. Its
+   source TMS never recorded an equipment type, so the load is scored with
+   equipment fit explicitly unknown instead of assumed.
+5. **Any completed load** — check *How this load arrived* in the right column for
+   the sync-by-sync change log, including which amounts were restated after the
+   fact and which file did it.
+
+## Where things live
+
+```
+data_gen/generate.py          designed, deterministic sync-file generator
+backend/app/adapters/         one file per TMS; all schema quirks stop here
+backend/app/geo.py            ZIP -> metro market; the definition of a "lane"
+backend/app/store.py          upsert-by-identity, diffing, change classification
+backend/app/history.py        the single-broker view an engine is allowed to see
+backend/app/ranking.py        scoring + price estimation  <-- the swappable part
+frontend/src/pages/           load list and load detail
+frontend/src/components/      price estimate card, ranked carrier cards
+```
+
+The ranking algorithm in this iteration is deliberately simple and is meant to be
+replaced; see `DECISIONS.md`.

@@ -1,0 +1,29 @@
+{
+  "synced_at": "2026-07-12 18:00:00",
+  "loads": [
+    {
+      "load_num": "HD-2026-004437",
+      "status_code": 20,
+      "customer_code": "C-0062",
+      "customer_name": "Capital Electronics Group",
+      "carrier_ref": null,
+      "equip": "V",
+      "weight_kg": 8709.0,
+      "dist_km": 108.3,
+      "pu_city": "San Antonio",
+      "pu_state": "TX",
+      "pu_zip": "78219",
+      "pu_date": "2026-07-13",
+      "pu_departed_at": null,
+      "del_city": "Austin",
+      "del_state": "TX",
+      "del_zip": "78744",
+      "del_date": "2026-07-14",
+      "del_arrived_at": null,
+      "entered_at": "2026-07-12 09:43:00",
+      "updated_at": "2026-07-12 16:47:00"
+    }
+  ],
+  "carriers": [],
+  "rates": []
+}

@@ -1,0 +1,83 @@
+{
+  "syncedAt": "2026-07-07T18:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127473588,
+      "status": "En Route",
+      "mileage": 234.0,
+      "totalSell": 1410.0,
+      "totalBuy": 1155.0,
+      "customer": {
+        "customerId": 889877,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 835540,
+        "name": "TRINITY RIVER EXPRESS LLC",
+        "mcNumber": "1288440",
+        "dotNumber": "3612009",
+        "phoneNumber": "+14695550132"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 19800.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GARLAND",
+          "state": "TX",
+          "zipCode": "75041",
+          "estimatedReadyDateTime": "2026-07-08T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-08T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-08T10:25:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "STAFFORD",
+          "state": "TX",
+          "zipCode": "77477",
+          "estimatedReadyDateTime": "2026-07-09T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-09T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-07T03:43:00-05:00",
+      "lastModifiedDate": "2026-07-07T16:47:00-05:00"
+    },
+    {
+      "shipmentId": 127473985,
+      "status": "Booking",
+      "mileage": 260.7,
+      "totalSell": 1545.0,
+      "totalBuy": null,
+      "customer": {
+        "customerId": 889043,
+        "name": "Brazos Chemical Co"
+      },
+      "carrier": null,
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 23100.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "ARLINGTON",
+          "state": "TX",
+          "zipCode": "76011",
+          "estimatedReadyDateTime": "2026-07-08T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-08T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "BAYTOWN",
+          "state": "TX",
+          "zipCode": "77520",
+          "estimatedReadyDateTime": "2026-07-09T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-09T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-07T15:43:00-05:00",
+      "lastModifiedDate": "2026-07-07T16:47:00-05:00"
+    }
+  ]
+}

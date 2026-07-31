@@ -1,0 +1,77 @@
+{
+  "syncedAt": "2026-07-12T12:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127472835,
+      "status": "Booking",
+      "mileage": 285.6,
+      "totalSell": 1905.0,
+      "totalBuy": null,
+      "customer": {
+        "customerId": 889696,
+        "name": "Hill Valley Agricultural"
+      },
+      "carrier": null,
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 26800.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "FORT WORTH",
+          "state": "TX",
+          "zipCode": "76106",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "CONVERSE",
+          "state": "TX",
+          "zipCode": "78109",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-12T03:43:00-05:00",
+      "lastModifiedDate": "2026-07-12T10:47:00-05:00"
+    },
+    {
+      "shipmentId": 127473232,
+      "status": "Quoting",
+      "mileage": 216.6,
+      "totalSell": 1475.0,
+      "totalBuy": null,
+      "customer": {
+        "customerId": 889602,
+        "name": "Alamo Building Supply"
+      },
+      "carrier": null,
+      "equipment": "48 ft Flatbed",
+      "weightTotal": 29500.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "ARLINGTON",
+          "state": "TX",
+          "zipCode": "76011",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "GEORGETOWN",
+          "state": "TX",
+          "zipCode": "78626",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-12T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-12T10:47:00-05:00"
+    }
+  ]
+}
