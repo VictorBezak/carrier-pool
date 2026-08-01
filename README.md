@@ -171,7 +171,7 @@ curl -X POST localhost:8000/api/reingest   # or just restart the backend
 cd backend && .venv/bin/python -m pytest -q
 ```
 
-47 tests over the real data in `data/`. They assert the claims the system makes
+48 tests over the real data in `data/`. They assert the claims the system makes
 about itself rather than exercising code paths: metric units are converted, a
 reefer is not read as a dry van, null equipment is not assumed to be a dry van,
 replaying the feed is idempotent, corrections are distinguished from progress and
@@ -190,6 +190,10 @@ pins the fact that dividing value by time inverts once the value is negative. An
 `test_repricing_targets_the_carrier_that_can_actually_haul_it` pins the reason the
 cover/reprice decision exists: on a losing load, raw expected value favours carriers
 *unlikely to accept*, so the decision has to be computed separately from the ranking.
+`test_the_published_curve_agrees_with_the_offer_it_explains` guards the rate dial: the
+curve the UI lets a broker drag has to be monotone in the rate and peak at the rate the
+engine actually recommended, or the interface would be inviting them to "correct" it
+toward a worse number.
 
 The most interesting one is `test_estimated_price_floor_recovers_the_hidden_reserve`.
 The generator gives each carrier a secret reservation price, never writes it to any
@@ -203,35 +207,50 @@ cd frontend && npm run build   # typecheck + production build
 
 ## What to look at first
 
-1. **Open load `127472438`** (Redline / FreightFlow, Dallas–Fort Worth → Houston).
-   Every carrier card leads with **what to offer and the odds it lands** — the rate
-   is chosen by the engine, not predicted, because it is the only lever a broker
-   actually controls. Expand *How the expected value was arrived at* to see the
-   arithmetic in dollars, including the two adjustments that turn expected value
-   into a call order.
-2. **Toggle *Ranked by* between the two engines on that same load.** `LONE OAK`
-   moves from 3rd to 5th. It has the lowest price floor of any Redline carrier and
-   delivers late half the time; a margin-only ranking likes it, expected value does
-   not. This is the whole argument for the approach, visible in one click.
-3. **Expand *What we predict, and how much we actually know*.** The `Own data`
-   column is how much of each estimate is this carrier versus the population.
-   `PANHANDLE` was late on its only load — a raw average would call it a 0% on-time
-   carrier, and shrinkage puts it near 60% while saying the number is mostly prior.
-4. **Look at *Who was ruled out, and what we could not check*.** Exclusions carry
-   their gate and reason. Underneath, five hard gates — authority, insurance,
-   safety, blocklists, truck availability — are declared **unevaluable**, because no
-   feed in this dataset carries them.
-5. **Check *Calls made on this load* in the right column.** This is the only panel
-   whose data comes from no TMS at all. Carriers who already refused a price get
-   recommended at a *higher* rate, and the reason says so.
-6. **Open load `127474779`** — a completed load where `BLUEBONNET` accepted and then
-   walked away. The change log shows it as *carrier fell off*, reconstructed from a
+The interface is built as a dispatcher's call sheet rather than a dashboard: one load,
+one answer, with the proof one click away behind **Show the work**. `DECISIONS.md`
+explains why, and what was traded away to get there.
+
+1. **Open load `127472835`** (Redline / FreightFlow, Dallas–Fort Worth → San Antonio).
+   The page answers in the order the decision is actually made: worth covering, then
+   who to ring, then what to open at. The phone number is the hero because a phone call
+   is what this system produces.
+2. **Drag the rate dial.** The curve is expected value across every rate you could
+   offer, sampled by the engine itself. Push the rate up and the odds climb toward
+   certainty while the value rolls over the peak, and the page tells you what the move
+   costs against its own pick. This is the argument for choosing the rate rather than
+   predicting it, and it is the fastest way to see that the recommendation is a maximum
+   rather than an opinion.
+3. **Open *Show the work* → *This call*.** The `From their own record` column is how
+   much of each estimate is this carrier versus the population. `PANHANDLE` was late on
+   its only load — a raw average would call it a 0% on-time carrier; shrinkage puts it
+   near 60% and says the number is mostly prior.
+4. **Switch engines under *Show the work* → *Engine*.** `LONE OAK` moves position. It
+   has the lowest price floor of any Redline carrier and delivers late half the time; a
+   margin-only ranking likes it, expected value does not. The switcher lives in the work
+   rather than the main view on purpose: which model ran is a question about the
+   product, not a choice a dispatcher should have to make to get an answer.
+5. **Open *Ruled out*.** Exclusions carry their gate and reason. Underneath, five hard
+   gates — authority, insurance, safety, blocklists, truck availability — are declared
+   **unevaluable**, because no feed in this dataset carries them. Nothing here is a
+   compliance check.
+6. **Open *Stops, offers, audit trail*.** The offers table is the only data on the page
+   that comes from no TMS at all. Carriers who already refused a price get recommended
+   at a *higher* rate, and the reason says so.
+7. **Open load `127473232`** (Dallas–Fort Worth → Austin, flatbed). The answer is not a
+   call list: every carrier who could haul it loses money at every rate they would
+   accept, so the page leads with the rate to take back to the customer — bills $1,385,
+   needs to bill $1,437, ask for $52. Note that the carrier named in the verdict is the
+   one shown on the card, which is *not* the top of the expected-value ranking; the two
+   differ by design and the reason is in `DECISIONS.md`.
+8. **Open load `127474779`** — a completed load where `BLUEBONNET` accepted and then
+   walked away. The audit trail shows it as *carrier fell off*, reconstructed from a
    status moving backwards, because no feed reports the event.
-7. **Open load `127473232`** (Dallas–Fort Worth → Austin, flatbed). Thin lane: the
-   estimate widens its comparison and says so.
-8. **Switch to Summit Freight Solutions** and open `SHP6743131`. Its TMS never
-   recorded an equipment type, so the trailer gate is skipped and the response says
-   why rather than assuming a dry van.
+9. **Switch to Summit Freight Solutions** and open its Houston → Austin load, shown as
+   `SHP6743131`. Its TMS never recorded an equipment type, so the trailer gate is
+   skipped and the response says why rather than assuming a dry van. (BrokerOS keys
+   loads by an opaque ID, so this one's URL is not its reference number — find it from
+   the list.)
 
 ## Where things live
 
@@ -253,7 +272,13 @@ backend/app/ranking/
   expected_value.py             Stage D: utility, offer-rate search, ranking
   heuristic.py                  the v1 weighted engine, kept as a control
   pricing.py                    lane price estimation, shared by both engines
-frontend/src/components/        carrier cards, price estimate, eligibility, offer log
+frontend/src/tokens.css         palette, type and spacing; the whole visual direction
+frontend/src/components/
+  Verdict.tsx                   cover or reprice, decided before who to call
+  CallCard.tsx                  the one answer, plus the bench of fallbacks
+  RateDial.tsx                  the engine's acceptance curve, as a lever
+  ShowTheWork.tsx               all the evidence, behind one entry point
+frontend/design-shots.mjs       screenshot harness for design review (not shipped)
 ```
 
 Why the offer log is a separate data source, and why that is the point rather than

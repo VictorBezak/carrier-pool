@@ -28,12 +28,20 @@ Confidence = Literal["high", "medium", "low"]
 
 class Reason(BaseModel):
     """One human-readable justification. `points` is how much this contributed
-    to the score, so the explanation and the arithmetic cannot drift apart."""
+    to the score, so the explanation and the arithmetic cannot drift apart.
+
+    `kind` separates what a dispatcher needs before dialling from what they need
+    only when arguing with the answer. The three sorts are genuinely different
+    questions: what to say on the call, where the estimate came from, and what this
+    carrier is actually like. A UI that renders all three at one weight ends up
+    restating its own headline in prose, which is most of how a page gets dense.
+    """
 
     label: str
     detail: str
     sentiment: Sentiment
     points: float | None = None
+    kind: Literal["offer", "basis", "carrier"] = "carrier"
 
 
 class ScoreComponent(BaseModel):
@@ -108,6 +116,20 @@ class ValueTerm(BaseModel):
     detail: str
 
 
+class RatePoint(BaseModel):
+    """One point on the acceptance curve, sampled from the engine's own model.
+
+    Sampled server-side rather than refitted in the browser. The curve is the
+    engine's central object, and a second implementation of it in JavaScript could
+    disagree with the one that produced the recommendation - which is the same class
+    of bug as having two notions of whether a carrier owns a reefer.
+    """
+
+    rate_usd: float
+    acceptance_probability: float
+    expected_value_usd: float
+
+
 class OfferPlan(BaseModel):
     """The recommendation's actual content: who to call, and what to say.
 
@@ -133,6 +155,12 @@ class OfferPlan(BaseModel):
     # load's actual revenue this is what the load is short by, which is the only
     # actionable number on a load that cannot be covered profitably.
     revenue_to_break_even_usd: float | None
+    # Where this carrier's price is estimated to start, which is what the offer is
+    # chosen relative to.
+    estimated_floor_usd: float
+    # The trade-off the offer was picked from, so a broker can see the shape of it
+    # rather than being handed a single number to trust.
+    rate_curve: list[RatePoint] = Field(default_factory=list)
 
 
 class RepricingTarget(BaseModel):

@@ -317,6 +317,70 @@ the UI rather than hypothetical. The heuristic engine returns no decision at all
 engine with no notion of value cannot tell a load worth covering from one that is not,
 and should not pretend to.
 
+## The interface is a call sheet, not a dashboard
+
+The first UI showed everything at once, which was the right instinct for an evaluator
+reading a justification and the wrong one for a broker being shown the product. One
+load detail screen carried roughly sixty data rows for the carrier list alone, plus a
+nine-column table, a sidebar of four panels, and eighteen separate disclosure toggles.
+Progressive disclosure was technically present and practically useless: a page full of
+collapsed summaries still reads as dense, because every summary line is one more thing
+to decide whether to read.
+
+The reframing is that **this product's output is a phone call.** Everything the engine
+computes exists to make one call better than the call a rep would have made from
+memory, so the page is built around the call rather than around metrics. The number is
+set large and dialable, the rate to open at is the second-biggest thing on the screen,
+and the two or three facts that would change a dispatcher's mind sit under it. That is
+the whole of the primary view.
+
+Three tiers, strictly enforced:
+
+- the verdict and the call, always visible;
+- everyone else, one line each, because a dispatcher makes one call at a time and six
+  fully-argued options is a way of declining to answer;
+- the proof, behind one entry point with five named doors instead of eighteen anonymous
+  toggles.
+
+**Nothing was deleted.** The prior shares, the unchecked gates, the audit trail, the
+comparables, the EV arithmetic and the engine comparison are all still reachable, and a
+check that every API field is still rendered somewhere is part of the review. What
+changed is that they stopped competing with the answer for attention.
+
+Two consequences worth recording. Reasons now carry a `kind` of `offer`, `basis` or
+`carrier`, because the call card renders the rate and the odds itself and was otherwise
+restating its own headline back in prose — the duplication was only visible once the
+page was quiet enough to notice. And on a load flagged for repricing the card follows
+the *verdict* rather than the ranking: they name different carriers on purpose, since
+expected value on a losing load favours whoever is least likely to accept while the
+repricing target is whoever is cheapest to make viable. Showing the ranking's leader
+beside a verdict naming someone else just read as the page contradicting itself.
+
+Colour and type come from the subject rather than from product convention. Interstate
+guide-sign green with every neutral tinted toward it, so the palette reads as one
+material; amber for "don't cover", which puts the verdict in the road's own signalling
+vocabulary rather than inventing one. Archivo for lanes and verdicts, and every figure —
+rate, reference, MC number, phone — set in IBM Plex Mono, because on a rate
+confirmation or a bill of lading the numbers *are* the document and a broker reads them
+by scanning columns. Fonts are self-hosted rather than pulled from a CDN so a demo
+survives a bad conference network.
+
+## The rate is a lever, not a prediction
+
+The one claim a broker will not take on faith is the rate, because negotiating is the
+part of the job they believe they are good at. Handing them a single figure invites an
+argument, so the interface hands them the curve it came from: drag the offer and watch
+the odds climb while expected value peaks and rolls over. Overpaying visibly buys
+certainty and visibly costs money, and the recommendation stops being an opinion and
+becomes the top of a hill.
+
+The curve is sampled by the engine and published on the offer plan, never refitted in
+the browser. A second implementation of the acceptance model could disagree with the one
+that chose the offer, and the page would then be inviting a broker to "correct" the
+engine toward a worse number — the same class of bug as having two notions of whether a
+carrier owns a reefer. A test asserts the published curve is monotone in the rate and
+that its maximum really is the recommended offer.
+
 ## Selection bias, stated rather than corrected
 
 The offer log only contains carriers somebody chose to call. A carrier never called

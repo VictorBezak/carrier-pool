@@ -383,6 +383,42 @@ def test_a_slower_carrier_never_outranks_a_better_one_on_a_losing_load(store: St
     assert seen_a_losing_load, "dataset no longer covers a load that loses money"
 
 
+def test_the_published_curve_agrees_with_the_offer_it_explains(store: Store) -> None:
+    """The rate curve is what the UI lets a broker drag, so it has to be the same
+    model that chose the offer rather than a redrawn approximation of it.
+
+    Two claims: acceptance rises with the rate (a logistic in the offer), and the
+    recommended rate really is the maximum of the curve. If the second ever fails the
+    UI would be inviting a broker to "correct" the engine toward a worse number.
+    """
+    history = BrokerHistory(store, "redline")
+    engine = ranking.get_engine("expected-value")
+
+    for load in history.open_loads():
+        for carrier in engine.recommend(load, history, limit=25).carriers:
+            plan = carrier.offer_plan
+            curve = plan.rate_curve
+            assert len(curve) > 10, "too few points to draw a shape from"
+
+            probabilities = [point.acceptance_probability for point in curve]
+            assert probabilities == sorted(probabilities)
+
+            # The offered rate is on the curve, and it is the peak of it.
+            at_offer = [p for p in curve if p.rate_usd == plan.offer_rate_usd]
+            assert at_offer, "the recommended rate is not among the published points"
+            assert at_offer[0].expected_value_usd == pytest.approx(
+                plan.expected_value_usd, abs=0.05
+            )
+            assert at_offer[0].acceptance_probability == pytest.approx(
+                plan.acceptance_probability, abs=0.0002
+            )
+            assert plan.expected_value_usd >= max(p.expected_value_usd for p in curve) - 0.05
+
+            # And the floor is below the offer, or the offer would be pointless.
+            assert plan.estimated_floor_usd > 0
+            assert plan.offer_rate_usd >= plan.estimated_floor_usd * 0.5
+
+
 def test_an_uncoverable_load_is_answered_with_a_price_not_a_ranking(store: Store) -> None:
     """A ranked list assumes the load is worth covering. When it is not, the output
     has to become the number that would change that."""

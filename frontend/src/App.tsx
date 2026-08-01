@@ -42,51 +42,53 @@ function Shell({ brokers }: { brokers: BrokerSummary[] }) {
 
   return (
     <div className="app">
-      <header className="topbar">
-        <div className="brand">
-          <span className="brand-mark">Carrier&nbsp;Pool</span>
-          <span className="brand-sub">carrier recommendations from a broker's own history</span>
-        </div>
+      <header className="masthead">
+        <span className="wordmark">
+          Carrier<span>Pool</span>
+        </span>
 
-        <label className="broker-select">
-          <span>Broker</span>
+        <label className="brokerpick">
+          <span className="eyebrow">Broker</span>
           <select
             value={brokerId ?? ""}
             onChange={(event) => navigate(`/brokers/${event.target.value}`)}
           >
             {brokers.map((broker) => (
               <option key={broker.broker_id} value={broker.broker_id}>
-                {broker.name} — {broker.tms_label}
+                {broker.name}
               </option>
             ))}
           </select>
         </label>
-      </header>
 
-      {active && (
-        <div className="broker-strip">
-          <span>
-            <strong>{active.active_load_count}</strong> load
-            {active.active_load_count === 1 ? "" : "s"} need a carrier
+        {/* The one number a broker cares about on arrival. Ingest counts - sync files
+            processed, carriers known - are engineering telemetry: true, verifiable, and
+            not what someone came to this screen to find out. They moved into the feed
+            summary below rather than leading the page. */}
+        {active && (
+          <span className="masthead-count">
+            <strong className="fig">{active.active_load_count}</strong> need a truck
           </span>
-          <span>
-            <strong>{active.load_count}</strong> loads ingested
-          </span>
-          <span>
-            <strong>{active.carrier_count}</strong> known carriers
-          </span>
-          <span>
-            <strong>{active.sync_file_count}</strong> sync files processed
-          </span>
-          <span className="muted">
-            {active.tms_style} · latest sync {dateTime(active.last_synced_at)}
-          </span>
-        </div>
-      )}
+        )}
+      </header>
 
       <main>
         <Outlet />
       </main>
+
+      {active && (
+        <footer className="feedfoot">
+          <span>
+            {active.name} · {active.tms_label}
+          </span>
+          <span className="feedfoot-stats">
+            <span className="fig">{active.load_count}</span> loads ·{" "}
+            <span className="fig">{active.carrier_count}</span> carriers ·{" "}
+            <span className="fig">{active.sync_file_count}</span> sync files · latest{" "}
+            {dateTime(active.last_synced_at)}
+          </span>
+        </footer>
+      )}
     </div>
   );
 }

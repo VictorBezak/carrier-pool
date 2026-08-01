@@ -129,6 +129,13 @@ export interface Reason {
   detail: string;
   sentiment: Sentiment;
   points: number | null;
+  /**
+   * `offer` restates what to say on the call, `basis` explains where the estimate
+   * came from, `carrier` is what this carrier is actually like. The call card shows
+   * only the last, because it renders the offer itself and would otherwise be
+   * repeating its own headline back in prose.
+   */
+  kind: "offer" | "basis" | "carrier";
 }
 
 export interface ScoreComponent {
@@ -200,6 +207,14 @@ export interface OfferPlan {
   rate_ceiling_usd: number;
   walk_away_rate_usd: number;
   revenue_to_break_even_usd: number | null;
+  estimated_floor_usd: number;
+  rate_curve: RatePoint[];
+}
+
+export interface RatePoint {
+  rate_usd: number;
+  acceptance_probability: number;
+  expected_value_usd: number;
 }
 
 export interface RepricingTarget {

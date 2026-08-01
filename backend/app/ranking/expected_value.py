@@ -30,6 +30,7 @@ automatic tendering.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from math import ceil
 
 from .. import geo
 from ..domain import Equipment, Load
@@ -44,6 +45,7 @@ from .contracts import (
     PriceEstimate,
     PriorOffer,
     Reason,
+    RatePoint,
     Recommendations,
     RepricingTarget,
     ScoreComponent,
@@ -59,6 +61,25 @@ RATE_STEP = 5.0
 OPTIMISM = 0.35
 # A call cannot resolve a load faster than this, so value-per-hour stays finite.
 MIN_RESOLUTION_HOURS = 0.25
+# Roughly how many points of the acceptance curve to publish.
+CURVE_POINTS = 40
+
+
+def _duration(minutes: float) -> str:
+    """Minutes are the model's unit and a poor way to say "most of a working day".
+
+    Nobody reads 443 minutes as seven hours, and a recommendation that has to be
+    converted in the reader's head is one they will skim past.
+    """
+    if minutes < 90:
+        return f"{minutes:.0f} minutes"
+    hours = minutes / 60
+    if hours < 10:
+        return f"{hours:.0f} hours" if abs(hours - round(hours)) < 0.15 else f"{hours:.1f} hours"
+    if hours < 24:
+        return f"{hours:.0f} hours"
+    days = hours / 24
+    return "about a day" if days < 1.5 else f"{days:.0f} days"
 
 
 class ExpectedValueEngine:
@@ -357,7 +378,7 @@ class ExpectedValueEngine:
             ),
             components.describe(
                 "reply_time", "Expected reply time", reply,
-                display=f"{reply.value:.0f} min",
+                display=_duration(reply.value),
                 note=f"{len(hist.offers)} logged offer{'s' if len(hist.offers) != 1 else ''}.",
             ),
             components.describe(
@@ -563,8 +584,30 @@ class ExpectedValueEngine:
                     break_even = required
             rate += RATE_STEP
 
+        # Thinned to a readable number of points: the curve is for showing the shape
+        # of the trade-off, and $5 resolution across a $1,000 span is more samples
+        # than any chart or slider can express.
+        stride = max(1, ceil((high - low) / RATE_STEP / CURVE_POINTS))
+        curve_points: list[RatePoint] = []
+        rate = low
+        index = 0
+        while rate <= high:
+            if index % stride == 0 or rate == best_rate:
+                value, probability, _ = value_at(rate)
+                curve_points.append(
+                    RatePoint(
+                        rate_usd=rate,
+                        acceptance_probability=round(probability, 4),
+                        expected_value_usd=round(value, 2),
+                    )
+                )
+            rate += RATE_STEP
+            index += 1
+
         resolution_hours = max(reply_hours, MIN_RESOLUTION_HOURS)
         return OfferPlan(
+            estimated_floor_usd=round(curve.floor_usd, 2),
+            rate_curve=curve_points,
             revenue_to_break_even_usd=round(break_even, 2) if break_even is not None else None,
             offer_rate_usd=best_rate,
             acceptance_probability=round(best_probability, 4),
@@ -592,6 +635,7 @@ class ExpectedValueEngine:
                 ),
                 sentiment="neutral",
                 points=round(plan.expected_value_usd, 1),
+                kind="offer",
             ),
             Reason(
                 label="Where the floor estimate comes from",
@@ -603,12 +647,18 @@ class ExpectedValueEngine:
                     else ""
                 ),
                 sentiment="neutral" if curve.prior_share < 0.5 else "negative",
+                kind="basis",
             ),
         ]
 
         if refusal_note:
             reasons.append(
-                Reason(label="Already asked", detail=refusal_note, sentiment="negative")
+                Reason(
+                    label="Already asked",
+                    detail=refusal_note,
+                    sentiment="negative",
+                    kind="offer",
+                )
             )
 
         # Silent when the trailer is proven, which is the common case. There is no
@@ -667,7 +717,7 @@ class ExpectedValueEngine:
             reasons.append(
                 Reason(
                     label="Answers quickly",
-                    detail=f"Typically replies in about {reply.value:.0f} minutes.",
+                    detail=f"Typically replies in about {_duration(reply.value)}.",
                     sentiment="positive",
                 )
             )
@@ -676,8 +726,8 @@ class ExpectedValueEngine:
                 Reason(
                     label="Slow to answer",
                     detail=(
-                        f"Typically takes about {reply.value:.0f} minutes to reply, which delays the "
-                        f"next call if they say no."
+                        f"Typically takes about {_duration(reply.value)} to reply, which delays "
+                        f"the next call if they say no."
                     ),
                     sentiment="negative",
                 )

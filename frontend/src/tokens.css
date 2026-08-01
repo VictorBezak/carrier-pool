@@ -1,0 +1,98 @@
+/* Design tokens.
+ *
+ * The direction is a dispatcher's call sheet, not a dashboard. Freight brokerage is
+ * a phone business: what this product actually produces is a phone call, so the page
+ * is built around the call rather than around metrics.
+ *
+ * Colour comes from the road itself. Interstate guide signs are a deep blue-leaning
+ * green, and every neutral here is tinted toward that green rather than being plain
+ * grey, so the palette reads as one material instead of an app with a green button.
+ * Amber is the caution accent, which makes the cover / reprice verdict use the
+ * road's own signalling vocabulary rather than arbitrary product colours.
+ *
+ * Type is drawn from freight paperwork. Archivo is a squarish grotesque with the
+ * character of highway signage, used tight and heavy for lanes and verdicts. Every
+ * figure - rate, reference, MC number, phone - is set in mono, because on a rate
+ * confirmation or a bill of lading the numbers *are* the document, and a broker
+ * reads them by scanning columns rather than by reading prose.
+ */
+
+:root {
+  /* ---- surface ------------------------------------------------------- */
+  /* Signage white: barely off-white, cooled toward the green rather than warmed
+     toward cream, which keeps the whole page in one temperature. */
+  --paper: #f7f9f7;
+  --card: #ffffff;
+  --haze: #eaefea;
+  --line: #d7ded9;
+  --line-strong: #b8c4bd;
+
+  /* ---- ink ----------------------------------------------------------- */
+  /* Asphalt rather than black: a blue cast, so text sits with the green. */
+  --ink: #1a211e;
+  --steel: #5d6a63;
+  --steel-light: #7d8a83;
+
+  /* ---- signage ------------------------------------------------------- */
+  --road: #0f3d2e;
+  --road-mid: #1a5c46;
+  --road-light: #dfeae4;
+  --amber: #a86206;
+  --amber-light: #fbf0dd;
+  --stop: #8f2f1c;
+  --stop-light: #fbe9e5;
+
+  /* ---- type ---------------------------------------------------------- */
+  --display: "Archivo Variable", "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* A deliberately short scale. Most of the old density came from six sizes of
+     small text competing; this has two body sizes and gets its hierarchy from
+     weight, case and colour instead. */
+  --t-mega: clamp(2rem, 5vw, 3.25rem);
+  --t-xl: clamp(1.5rem, 3vw, 2rem);
+  --t-lg: 1.125rem;
+  --t-md: 0.9375rem;
+  --t-sm: 0.8125rem;
+  --t-xs: 0.6875rem;
+
+  /* ---- space --------------------------------------------------------- */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+  --s8: 4rem;
+
+  --radius: 3px;
+  --radius-lg: 6px;
+
+  /* Shadows are almost absent by design: this is printed matter, and depth is
+     carried by rules and fills. The one exception is the call card, which is the
+     single element allowed to lift off the page. */
+  --lift: 0 1px 2px rgb(15 61 46 / 0.06), 0 8px 24px -8px rgb(15 61 46 / 0.14);
+
+  --measure: 62ch;
+}
+
+/* An eyebrow: small caps-ish label used for every field name in the interface.
+   One utility rather than a dozen ad-hoc font-size declarations. */
+.eyebrow {
+  font-family: var(--body);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--steel);
+}
+
+/* Figures. Applied to anything a broker would read off a document. */
+.fig {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "zero" 1;
+  letter-spacing: -0.01em;
+}
