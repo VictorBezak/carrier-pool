@@ -14,6 +14,13 @@ how a broker ends up tendering to a carrier whose insurance lapsed.
 The gates that *are* enforced are inferred from booking history, which is weaker
 than a capability record. Each one is therefore deliberately conservative: it
 fires only where the evidence is strong enough that a dispatcher would agree.
+
+The trailer gate is the clearest case of that weakness, and it is handled by
+admitting it rather than papering over it. Nothing here records what equipment a
+carrier owns, only what it has hauled, so the gate reads a *probability* computed
+in `components` and excludes below a threshold. The same estimate then flows into
+ranking, which means the gate and the score can never disagree about whether a
+carrier can pull a reefer.
 """
 
 from __future__ import annotations
@@ -23,11 +30,19 @@ from dataclasses import dataclass
 from .. import geo
 from ..domain import Equipment, Load
 from ..history import BrokerHistory
+from . import candidates, components
 from .contracts import Exclusion, UncheckedGate
 
-# A carrier needs at least this many booked loads before the *absence* of a
-# trailer type in its record counts as evidence it lacks that trailer.
-EQUIPMENT_EVIDENCE_MIN = 3
+# Below this estimated probability of having the required trailer, a carrier is
+# excluded rather than ranked low.
+#
+# A threshold on a probability rather than a rule about load counts, because the
+# amount of evidence "no reefer loads" represents depends on how many loads there
+# were and how often this broker even offers reefer work. At the volumes in this
+# dataset it happens to bite at around three contrary loads, but it tightens on its
+# own for a broker whose freight is mostly reefer, where two dry van loads already
+# say something.
+EQUIPMENT_MIN_CONFIDENCE = 0.12
 # Practical payload ceilings by trailer type, in pounds.
 #
 # Deliberately *not* derived from what a carrier has hauled before. Every dry van
@@ -93,33 +108,48 @@ UNCHECKED_GATES = [
 
 
 @dataclass(frozen=True)
-class Screened:
+class Screening:
+    """The candidate set every engine is given, and everything ruled out of it.
+
+    Produced once per request and shared by all engines. Eligibility is a property
+    of the load and the carrier, not of a scoring strategy, so leaving it inside an
+    engine meant whether a hard constraint got enforced depended on which engine
+    the caller happened to pick — the heuristic would happily rank a carrier the
+    expected-value engine excluded as unable to haul the freight.
+    """
+
     eligible: list[str]
+    surfaced_by: dict[str, list[str]]
     exclusions: list[Exclusion]
+    unchecked_gates: list[UncheckedGate]
 
 
-def screen(load: Load, history: BrokerHistory, carrier_ids: list[str]) -> Screened:
+def prepare(load: Load, history: BrokerHistory) -> Screening:
+    pool = candidates.generate(load, history)
+    surfaced_by = {item.carrier_id: item.surfaced_by for item in pool}
+
     eligible: list[str] = []
     exclusions: list[Exclusion] = []
 
-    for carrier_id in carrier_ids:
-        carrier = history.carrier(carrier_id)
+    for item in pool:
+        carrier = history.carrier(item.carrier_id)
         if carrier is None:
             continue
-        loads = history.carrier_loads(carrier_id)
+        carrier_history = history.carrier_history_for(item.carrier_id, load)
+        loads = history.carrier_loads(item.carrier_id)
         failure = (
-            _equipment_gate(load, loads)
+            _equipment_gate(load, carrier_history, history)
             or _weight_gate(load, loads)
             or _service_area_gate(load, loads, carrier.home_market)
             or _pickup_feasibility_gate(load, loads, history)
         )
         if failure is None:
-            eligible.append(carrier_id)
+            eligible.append(item.carrier_id)
         else:
             gate, gate_label, detail = failure
             exclusions.append(
                 Exclusion(
-                    carrier_id=carrier_id,
+                    carrier_id=item.carrier_id,
                     carrier_name=carrier.name,
                     gate=gate,
                     gate_label=gate_label,
@@ -127,26 +157,61 @@ def screen(load: Load, history: BrokerHistory, carrier_ids: list[str]) -> Screen
                 )
             )
 
-    return Screened(eligible=eligible, exclusions=exclusions)
+    surfaced = {item.carrier_id for item in pool}
+    exclusions.extend(
+        Exclusion(
+            carrier_id=carrier.carrier_id,
+            carrier_name=carrier.name,
+            gate="NO_HISTORY",
+            gate_label="No booking history",
+            detail=(
+                "Known to this broker but never booked and never offered a load, so no "
+                "component can be estimated for them. A carrier in this state needs "
+                "deliberate exploration, not a score."
+            ),
+        )
+        for carrier in history.carriers
+        if carrier.carrier_id not in surfaced
+    )
+
+    return Screening(
+        eligible=eligible,
+        surfaced_by=surfaced_by,
+        exclusions=exclusions,
+        unchecked_gates=UNCHECKED_GATES,
+    )
 
 
-def _equipment_gate(load: Load, loads: list[Load]) -> tuple[str, str, str] | None:
-    if load.equipment is Equipment.UNKNOWN:
+def _equipment_gate(
+    load: Load, carrier_history, history: BrokerHistory
+) -> tuple[str, str, str] | None:
+    """Exclude only when the carrier probably cannot cover the trailer.
+
+    The gate reads a probability rather than deciding one, so the same estimate the
+    ranking layer uses is the one that does the excluding. Letting a possibly
+    unequipped carrier through to be ranked low costs one evaluation; excluding one
+    that does own the trailer removes it permanently.
+    """
+    if load.equipment is Equipment.UNKNOWN or carrier_history is None:
         return None
-    hauled = {item.equipment for item in loads if item.equipment is not Equipment.UNKNOWN}
-    if load.equipment in hauled or not hauled:
+
+    confidence = components.equipment_confidence(load, carrier_history, history)
+    if confidence.value >= EQUIPMENT_MIN_CONFIDENCE:
         return None
-    if len(loads) < EQUIPMENT_EVIDENCE_MIN:
-        # Too little history to conclude anything. Letting a possibly-unequipped
-        # carrier through to be ranked low is the cheaper error: excluding one
-        # that does own the trailer removes it from consideration permanently.
-        return None
+
     needed = load.equipment.value.replace("_", " ").lower()
+    hauled = {
+        item.equipment
+        for item in history.carrier_loads(carrier_history.carrier.carrier_id)
+        if item.equipment is not Equipment.UNKNOWN
+    }
     had = ", ".join(sorted(item.value.replace("_", " ").lower() for item in hauled))
     return (
         "EQUIPMENT",
         "Trailer type",
-        f"Needs a {needed}. All {len(loads)} of its loads for this broker were {had}.",
+        f"Needs a {needed}, and roughly a {confidence.value * 100:.0f}% chance of having one: "
+        f"all {confidence.observations} of its loads for this broker were {had}. "
+        f"No feed records what equipment a carrier owns, so this is inferred.",
     )
 
 

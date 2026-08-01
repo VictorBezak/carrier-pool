@@ -11,6 +11,7 @@ admiring it.
 from __future__ import annotations
 
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -234,23 +235,254 @@ def test_equipment_gate_excludes_only_on_real_evidence(store: Store) -> None:
     reefer_load = next(
         load for load in history.open_loads() if load.equipment is Equipment.REEFER
     )
-    result = eligibility.screen(
-        reefer_load, history, [carrier.carrier_id for carrier in history.carriers]
-    )
+    result = eligibility.prepare(reefer_load, history)
     excluded = {
         exclusion.carrier_id for exclusion in result.exclusions if exclusion.gate == "EQUIPMENT"
     }
 
     for carrier_id in excluded:
         loads = history.carrier_loads(carrier_id)
-        assert len(loads) >= eligibility.EQUIPMENT_EVIDENCE_MIN
         assert Equipment.REEFER not in {load.equipment for load in loads}
+        # Never on a one- or two-load record: that is not enough contrary evidence
+        # to conclude anything, and excluding wrongly is the expensive error.
+        assert len(loads) >= 3
 
-    for carrier_id in {carrier.carrier_id for carrier in history.carriers} - excluded:
-        loads = history.carrier_loads(carrier_id)
-        if len(loads) >= eligibility.EQUIPMENT_EVIDENCE_MIN and loads:
-            hauled = {load.equipment for load in loads if load.equipment is not Equipment.UNKNOWN}
-            assert not hauled or Equipment.REEFER in hauled
+    for carrier_id in set(result.eligible):
+        hauled = {
+            load.equipment
+            for load in history.carrier_loads(carrier_id)
+            if load.equipment is not Equipment.UNKNOWN
+        }
+        if len(history.carrier_loads(carrier_id)) >= 3 and hauled:
+            assert Equipment.REEFER in hauled
+
+
+def test_equipment_confidence_is_a_capability_not_a_load_share(store: Store) -> None:
+    """The estimate answers "can they pull this trailer", which is not the same
+    question as "how often do they".
+
+    A carrier splitting its work between reefer and dry van would score ~0.5 on a
+    rate over loads while obviously owning a reefer, so a single load on the trailer
+    has to be close to conclusive.
+    """
+    history = BrokerHistory(store, "redline")
+    reefer_load = next(
+        load for load in history.open_loads() if load.equipment is Equipment.REEFER
+    )
+
+    proven = unproven = None
+    for carrier in history.carriers:
+        hist = history.carrier_history_for(carrier.carrier_id, reefer_load)
+        if hist is None:
+            continue
+        estimate = components.equipment_confidence(reefer_load, hist, history)
+        if hist.loads_with_equipment:
+            proven = estimate
+            # Even one reefer load settles it, regardless of how much dry van work
+            # sits alongside it.
+            assert estimate.value > 0.9
+        elif hist.loads_total >= 3:
+            unproven = estimate
+
+    assert proven is not None and unproven is not None
+    assert unproven.value < proven.value
+    # And the naive reading of the record is kept alongside, so the inference is
+    # visible as an inference.
+    assert unproven.raw == 0.0 and proven.raw == 1.0
+
+
+def test_absent_evidence_decays_with_the_number_of_chances_to_show_it(store: Store) -> None:
+    """Zero reefer loads out of two is weak evidence; out of twenty it is strong.
+
+    This is the property a load-count threshold cannot express, and the reason the
+    gate reads a probability rather than counting loads.
+    """
+    history = BrokerHistory(store, "redline")
+    reefer_load = next(
+        load for load in history.open_loads() if load.equipment is Equipment.REEFER
+    )
+    hist = next(
+        history.carrier_history_for(carrier.carrier_id, reefer_load)
+        for carrier in history.carriers
+        if (h := history.carrier_history_for(carrier.carrier_id, reefer_load)) is not None
+        and not h.loads_with_equipment
+    )
+
+    confidences = [
+        components.equipment_confidence(
+            reefer_load, replace(hist, loads_total=n, loads_with_equipment=0), history
+        ).value
+        for n in (1, 2, 5, 20)
+    ]
+    assert confidences == sorted(confidences, reverse=True)
+    assert confidences[0] > eligibility.EQUIPMENT_MIN_CONFIDENCE
+    assert confidences[-1] < eligibility.EQUIPMENT_MIN_CONFIDENCE
+
+
+@pytest.mark.parametrize("engine_key", sorted(ranking.ENGINES))
+def test_hard_gates_do_not_depend_on_the_chosen_engine(store: Store, engine_key: str) -> None:
+    """Eligibility is a fact about the load, not a scoring preference.
+
+    Regression test for a real bug: screening lived inside the expected-value engine,
+    so the heuristic engine ranked carriers that had no chance of pulling the trailer
+    while the other engine excluded them by name. Choosing an engine silently chose
+    whether hard constraints were enforced.
+    """
+    history = BrokerHistory(store, "redline")
+    engine = ranking.get_engine(engine_key)
+
+    for load in history.open_loads():
+        result = engine.recommend(load, history, limit=25)
+        recommended = {carrier.carrier_id for carrier in result.carriers}
+        excluded = {exclusion.carrier_id for exclusion in result.exclusions}
+
+        assert not (recommended & excluded), (
+            f"{engine_key} both ranked and excluded a carrier on {load.reference}"
+        )
+        # Every engine must account for every carrier it knows about.
+        assert recommended | excluded == {
+            carrier.carrier_id for carrier in history.carriers
+        }
+
+
+def test_a_slower_carrier_never_outranks_a_better_one_on_a_losing_load(store: Store) -> None:
+    """Value per hour inverts once the value is negative.
+
+    Dividing by time is meant to answer "how much value does an hour of broker time
+    buy", which has no meaning when the answer is a loss: a longer wait moves a
+    negative number toward zero, so the slowest carrier would win. A real case had a
+    carrier at -$45 over 7.4 hours score -6.1/hour and beat one at -$20 over 1.1
+    hours at -17.0/hour. On losing loads the ranking must fall back to expected value.
+    """
+    history = BrokerHistory(store, "redline")
+    engine = ranking.get_engine("expected-value")
+    seen_a_losing_load = False
+
+    for load in history.open_loads():
+        result = engine.recommend(load, history, limit=25)
+        losing = [c for c in result.carriers if c.offer_plan.expected_value_usd <= 0]
+        if len(losing) < 2:
+            continue
+        seen_a_losing_load = True
+        for carrier in losing:
+            plan = carrier.offer_plan
+            time_term = next(c for c in carrier.components if c.key == "time_to_resolve")
+            credit = next(c for c in carrier.components if c.key == "uncertainty_credit")
+
+            # No time normalisation at all, however slow the carrier is.
+            assert time_term.points == 0.0, (
+                f"{carrier.carrier_name} was normalised by {plan.expected_resolution_hours}h "
+                f"on a load with {plan.expected_value_usd} expected value"
+            )
+            # Which leaves expected value as the whole of the ranking, apart from the
+            # optimism credit, whose job is to reorder and which is asserted elsewhere.
+            assert carrier.score - credit.points == pytest.approx(
+                plan.expected_value_usd, abs=0.05
+            )
+
+    assert seen_a_losing_load, "dataset no longer covers a load that loses money"
+
+
+def test_an_uncoverable_load_is_answered_with_a_price_not_a_ranking(store: Store) -> None:
+    """A ranked list assumes the load is worth covering. When it is not, the output
+    has to become the number that would change that."""
+    history = BrokerHistory(store, "redline")
+    engine = ranking.get_engine("expected-value")
+
+    seen = {"COVER": False, "REPRICE": False}
+    for load in history.open_loads():
+        result = engine.recommend(load, history, limit=25)
+        coverage = result.coverage
+        assert coverage is not None
+        seen[coverage.decision] = True
+
+        best = max(c.offer_plan.expected_value_usd for c in result.carriers)
+        assert coverage.best_expected_value_usd == pytest.approx(best, abs=0.05)
+
+        if coverage.decision == "COVER":
+            assert best > 0
+            assert coverage.target is None
+            continue
+
+        assert best <= 0
+        target = coverage.target
+        assert target is not None
+        # The load has to bill more than it does now, or there would be nothing to ask
+        # the customer for.
+        assert target.required_revenue_usd > target.current_revenue_usd
+        assert target.shortfall_usd == pytest.approx(
+            target.required_revenue_usd - target.current_revenue_usd, abs=0.05
+        )
+        # And it is the cheapest route back to viability, across every eligible carrier.
+        assert target.required_revenue_usd == min(
+            c.offer_plan.revenue_to_break_even_usd for c in result.carriers
+        )
+
+    assert seen["COVER"], "no open load is worth covering, so the happy path is untested"
+    assert seen["REPRICE"], "dataset no longer covers an uncoverable load"
+
+
+def test_repricing_targets_the_carrier_that_can_actually_haul_it(store: Store) -> None:
+    """The perversity this stage exists to fix, pinned.
+
+    Raw expected value on a losing load favours carriers *unlikely to accept*, because
+    declining only costs a phone call - which ranked the one carrier with the right
+    trailer last. Break-even revenue inverts that correctly: low acceptance means most
+    calls are wasted, so `(1-p)/p` inflates the revenue needed to justify calling them.
+    The repricing target must therefore be a carrier that can actually take the load.
+    """
+    history = BrokerHistory(store, "redline")
+    engine = ranking.get_engine("expected-value")
+
+    checked = False
+    for load in history.open_loads():
+        result = engine.recommend(load, history, limit=25)
+        if result.coverage is None or result.coverage.decision != "REPRICE":
+            continue
+        checked = True
+        target_id = result.coverage.target.carrier_id
+        target = next(c for c in result.carriers if c.carrier_id == target_id)
+
+        # Proven on the trailer: no equipment prediction is emitted for a carrier whose
+        # capability is certain.
+        assert not any(p.key == "equipment" for p in target.predictions)
+        assert target.offer_plan.acceptance_probability > 0.5
+
+        # And it is *not* simply the top of the expected-value ranking, which is the
+        # whole point of computing the decision separately.
+        assert any(
+            c.offer_plan.expected_value_usd > target.offer_plan.expected_value_usd
+            for c in result.carriers
+        )
+
+    assert checked, "dataset no longer covers an uncoverable load"
+
+
+def test_a_rate_increase_cannot_buy_a_trailer(store: Store) -> None:
+    """Equipment enters as a multiplier on acceptance, so paying more must never
+    close an equipment gap the way it closes a price gap."""
+    history = BrokerHistory(store, "redline")
+    reefer_load = next(
+        load for load in history.open_loads() if load.equipment is Equipment.REEFER
+    )
+    result = ranking.get_engine("expected-value").recommend(reefer_load, history, limit=25)
+
+    unproven = [
+        carrier
+        for carrier in result.carriers
+        if any(term.key == "capability" for term in carrier.offer_plan.value_terms)
+    ]
+    assert unproven, "expected at least one carrier surviving the gate without proof"
+
+    for carrier in unproven:
+        capability = next(
+            term for term in carrier.offer_plan.value_terms if term.key == "capability"
+        )
+        # The discount is a cost, never a credit.
+        assert capability.amount_usd < 0
+        # And acceptance is capped by capability rather than by the rate alone.
+        assert carrier.offer_plan.acceptance_probability < 1.0
+        assert carrier.offer_plan.acceptance_probability <= 0.95
 
 
 def test_fall_offs_are_read_as_events_not_typos(store: Store) -> None:

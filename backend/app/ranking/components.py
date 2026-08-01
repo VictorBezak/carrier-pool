@@ -25,7 +25,7 @@ utility layer as zero with a stated reason rather than as invented constants.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import exp
+from math import exp, sqrt
 
 from ..domain import Equipment, Load, OfferOutcome
 from ..history import BrokerHistory, CarrierLaneHistory
@@ -230,6 +230,103 @@ def _floor_prior(
         PriorLevel(label="no offer history at all", total=UNKNOWN_FLOOR_INDEX, observations=1),
     ]
     return resolve_prior(levels, minimum=4)
+
+
+def equipment_confidence(
+    load: Load, hist: CarrierLaneHistory, history: BrokerHistory
+) -> Estimate:
+    """P(this carrier can actually cover this trailer type).
+
+    Equipment *should* be a hard gate, and in a real system it is: you look up the
+    carrier's fleet and either they have a reefer or they do not. Nothing in these
+    three feeds records a fleet. All we observe is what a carrier has hauled for
+    this broker, and "three dry van loads" is evidence of absence, not proof of it.
+
+    So the honest quantity is a probability, and it is deliberately *not* the share
+    of a carrier's loads that used this trailer. A carrier splitting its work evenly
+    between reefer and dry van would score 0.5 on that measure while obviously
+    owning a reefer. Capability is a latent yes/no, not a frequency:
+
+    - one load on this trailer proves the capability outright;
+    - zero loads is weak evidence when the carrier has hauled twice for this broker
+      and strong evidence when it has hauled twenty times, and it is weaker again
+      when the broker rarely offers this trailer type at all.
+
+    That last clause is what a load-count rule cannot express. Formally, with `p`
+    the base rate of owning the trailer, `q` the chance any given load would have
+    used it, and `n` loads none of which did:
+
+        P(owns | none of n) = p(1-q)^n / [ p(1-q)^n + (1-p) ]
+    """
+    if load.equipment is Equipment.UNKNOWN:
+        # No requirement to satisfy. Claiming certainty would be wrong in the other
+        # direction, but there is genuinely nothing to be uncertain *about*.
+        return Estimate(
+            value=1.0,
+            raw=None,
+            observations=0,
+            prior=1.0,
+            prior_label="no trailer type was recorded on this load, so nothing is required",
+            prior_share=0.0,
+            sd=0.0,
+        )
+
+    demonstrated = hist.loads_with_equipment
+    attempts = hist.loads_total
+    equipment_label = load.equipment.value.replace("_", " ").lower()
+
+    booked = [item for item in history.all_loads if item.is_booked]
+    with_equipment = [item for item in booked if item.equipment == load.equipment]
+
+    owners = {
+        item.carrier_id
+        for item in with_equipment
+        if item.carrier_id
+    }
+    active = {item.carrier_id for item in booked if item.carrier_id}
+    # Base rate: how many of this broker's carriers have ever shown this trailer.
+    base = len(owners) / len(active) if active else 0.25
+    base = min(max(base, 0.05), 0.90)
+    # Opportunity rate: how often a load of this type even comes up here. Clamped
+    # because at the extremes the update stops being informative.
+    opportunity = len(with_equipment) / len(booked) if booked else 0.25
+    opportunity = min(max(opportunity, 0.08), 0.60)
+
+    prior_label = (
+        f"{len(owners)} of this broker's {len(active)} active carriers have hauled a "
+        f"{equipment_label}, and {opportunity * 100:.0f}% of its loads need one"
+    )
+
+    if demonstrated:
+        # Proven, and treated as certain rather than as 0.97-for-safety. The residual
+        # doubt would be about a miscoded load record, which is a data-quality concern
+        # and not what this component measures; pricing it here would put a small
+        # trailer discount on every carrier the broker uses for this trailer every
+        # week, which is noise that never changes a decision. Exact certainty also
+        # lets the gate, the value term and the explanation all key off the same
+        # condition instead of three thresholds that can drift apart.
+        value = 1.0
+        prior_share = 0.0
+    elif attempts == 0:
+        value = base
+        prior_share = 1.0
+    else:
+        survives = base * (1 - opportunity) ** attempts
+        value = survives / (survives + (1 - base))
+        # With no positive observation the answer is inference rather than record,
+        # and how much of it is assumption falls off as contrary evidence piles up.
+        prior_share = 1.0 / (1.0 + attempts)
+
+    return Estimate(
+        value=value,
+        # What a naive reading of the record would assert, kept for contrast.
+        raw=1.0 if demonstrated else 0.0,
+        observations=attempts,
+        prior=base,
+        prior_label=prior_label,
+        prior_share=prior_share,
+        sd=sqrt(value * (1 - value)),
+    )
 
 
 def on_time_estimate(hist: CarrierLaneHistory, history: BrokerHistory) -> Estimate:

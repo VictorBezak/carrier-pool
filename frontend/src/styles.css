@@ -625,7 +625,7 @@ summary {
 .seg-lane_experience {
   background: #1f4ed8;
 }
-.seg-equipment_fit {
+.seg-equipment_confidence {
   background: #3f9bd6;
 }
 .seg-recency {
@@ -934,3 +934,61 @@ summary {
 .ontime-bad { color: var(--negative); }
 
 .change-fall_off { border-left-color: var(--negative); }
+
+/* Cover-or-reprice verdict, rendered above the call list. */
+.coverage {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-left-width: 4px;
+  background: var(--surface);
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.coverage-cover { border-left-color: var(--positive); }
+.coverage-reprice { border-left-color: var(--negative); background: var(--negative-bg); }
+
+.coverage-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+
+.coverage-head h2 {
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+.coverage-verdict {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 0.12rem 0.4rem;
+  border-radius: 3px;
+}
+
+.coverage-cover .coverage-verdict { color: var(--positive); background: var(--positive-bg); }
+.coverage-reprice .coverage-verdict { color: var(--negative); background: var(--surface); }
+
+.coverage-detail { font-size: 0.82rem; margin: 0.45rem 0 0; }
+
+.coverage-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.6rem;
+  margin: 0.8rem 0 0;
+}
+
+.coverage-numbers dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.coverage-numbers dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.coverage-required { color: var(--negative); }
+.coverage-note { font-size: 0.76rem; margin: 0.7rem 0 0; }

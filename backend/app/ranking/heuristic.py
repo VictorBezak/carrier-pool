@@ -32,6 +32,7 @@ from datetime import datetime, timezone
 from .. import geo
 from ..domain import Equipment, Load
 from ..history import BrokerHistory, CarrierLaneHistory
+from . import components, eligibility
 from .contracts import (
     CarrierRecommendation,
     EngineInfo,
@@ -46,7 +47,7 @@ from .pricing import estimate_price
 
 WEIGHTS: dict[str, tuple[str, float]] = {
     "lane_experience": ("Lane experience", 0.40),
-    "equipment_fit": ("Equipment fit", 0.20),
+    "equipment_confidence": ("Can pull this trailer", 0.20),
     "recency": ("Recently active", 0.15),
     "relationship_depth": ("Relationship depth", 0.15),
     "repositioning": ("Easy repositioning", 0.10),
@@ -61,12 +62,13 @@ class SimpleHeuristicEngine:
     info = EngineInfo(
         key="simple-heuristic",
         name="Transparent weighted heuristic",
-        version="1.1",
+        version="1.2",
         objective="Rank by a weighted sum of history signals. Ordinal, no units.",
         description=(
-            "Weighted sum of lane experience, equipment fit, recency, relationship depth and "
-            "repositioning. Price is the median rate per mile of the narrowest comparable set "
-            "with enough loads in it."
+            "Weighted sum of lane experience, trailer capability, recency, relationship depth "
+            "and repositioning, over the carriers that cleared the shared eligibility gates. "
+            "Price is the median rate per mile of the narrowest comparable set with enough "
+            "loads in it."
         ),
     )
 
@@ -79,21 +81,34 @@ class SimpleHeuristicEngine:
             )
         if load.equipment is Equipment.UNKNOWN:
             notes.append(
-                "The source TMS did not record an equipment type. Trailer fit was scored as "
-                "unknown rather than assumed to be a dry van."
+                "The source TMS did not record an equipment type, so no carrier was screened "
+                "out or credited on trailer fit, rather than assuming a dry van."
             )
 
         scored: list[CarrierRecommendation] = []
-        considered = 0
         estimate = estimate_price(load, history)
 
-        for carrier in history.carriers:
-            carrier_history = history.carrier_history_for(carrier.carrier_id, load)
+        # Screening is shared with every other engine rather than reimplemented here.
+        # Eligibility is a fact about the load and the carrier, so it cannot depend on
+        # which scoring strategy the caller asked for: before this was hoisted out,
+        # this engine ranked carriers the expected-value engine excluded as unable to
+        # haul the freight, and picking an engine silently picked whether hard
+        # constraints applied at all.
+        screened = eligibility.prepare(load, history)
+
+        for carrier_id in screened.eligible:
+            carrier_history = history.carrier_history_for(carrier_id, load)
             if carrier_history is None:
-                # Known to the broker but never booked: nothing to reason from.
                 continue
-            considered += 1
-            scored.append(self._score_carrier(load, carrier_history, estimate))
+            scored.append(
+                self._score_carrier(
+                    load,
+                    carrier_history,
+                    estimate,
+                    history,
+                    screened.surfaced_by.get(carrier_id, []),
+                )
+            )
 
         scored.sort(key=lambda item: (-item.score, -item.loads_on_lane, item.carrier_name))
         for index, recommendation in enumerate(scored[:limit], start=1):
@@ -108,7 +123,9 @@ class SimpleHeuristicEngine:
             as_of=history.as_of,
             price_estimate=estimate,
             carriers=scored[:limit],
-            carriers_considered=considered,
+            carriers_considered=len(screened.eligible),
+            exclusions=screened.exclusions,
+            unchecked_gates=screened.unchecked_gates,
             notes=notes,
         )
 
@@ -119,20 +136,22 @@ class SimpleHeuristicEngine:
         load: Load,
         carrier_history: CarrierLaneHistory,
         estimate: PriceEstimate | None,
+        history: BrokerHistory,
+        surfaced_by: list[str],
     ) -> CarrierRecommendation:
-        components: list[ScoreComponent] = []
+        breakdown: list[ScoreComponent] = []
         reasons: list[Reason] = []
 
-        for key, (value, reason) in self._signals(load, carrier_history).items():
+        for key, (value, reason) in self._signals(load, carrier_history, history).items():
             label, weight = WEIGHTS[key]
             points = round(weight * value * 100, 1)
-            components.append(
+            breakdown.append(
                 ScoreComponent(key=key, label=label, weight=weight, value=round(value, 3), points=points)
             )
             reason.points = points
             reasons.append(reason)
 
-        score = round(sum(component.points for component in components), 1)
+        score = round(sum(component.points for component in breakdown), 1)
         reasons.sort(key=lambda item: -(item.points or 0))
 
         carrier = carrier_history.carrier
@@ -147,8 +166,9 @@ class SimpleHeuristicEngine:
             mc_number=carrier.mc_number,
             phone=carrier.phone,
             score=score,
-            components=components,
+            components=breakdown,
             reasons=reasons,
+            surfaced_by=surfaced_by,
             history_depth=self._history_depth(carrier_history),
             loads_total=carrier_history.loads_total,
             loads_on_lane=carrier_history.loads_on_lane,
@@ -163,11 +183,11 @@ class SimpleHeuristicEngine:
         )
 
     def _signals(
-        self, load: Load, hist: CarrierLaneHistory
+        self, load: Load, hist: CarrierLaneHistory, history: BrokerHistory
     ) -> dict[str, tuple[float, Reason]]:
         return {
             "lane_experience": self._lane_experience(load, hist),
-            "equipment_fit": self._equipment_fit(load, hist),
+            "equipment_confidence": self._equipment_confidence(load, hist, history),
             "recency": self._recency(hist),
             "relationship_depth": self._relationship_depth(hist),
             "repositioning": self._repositioning(load, hist),
@@ -204,24 +224,48 @@ class SimpleHeuristicEngine:
         )
 
     @staticmethod
-    def _equipment_fit(load: Load, hist: CarrierLaneHistory) -> tuple[float, Reason]:
+    def _equipment_confidence(
+        load: Load, hist: CarrierLaneHistory, history: BrokerHistory
+    ) -> tuple[float, Reason]:
+        """Reads the same probability the trailer gate reads.
+
+        Carriers who probably cannot pull the trailer have already been excluded, so
+        this signal is not deciding eligibility - it is separating a carrier proven on
+        this trailer from one that survived the gate on a thin record. Sharing the
+        estimate with the gate is the point: two different notions of "has a reefer"
+        is how a carrier gets excluded by one part of the system and rewarded by
+        another.
+        """
         if load.equipment is Equipment.UNKNOWN:
             return 0.5, Reason(
                 label="Equipment unknown",
-                detail="The load has no trailer type recorded, so equipment fit could not be checked.",
+                detail=(
+                    "The load has no trailer type recorded, so nothing could be checked and "
+                    "no carrier was credited or penalised for it."
+                ),
                 sentiment="neutral",
             )
+
+        confidence = components.equipment_confidence(load, hist, history)
         equipment_label = load.equipment.value.replace("_", " ").lower()
         if hist.loads_with_equipment:
             plural = "s" if hist.loads_with_equipment != 1 else ""
-            return 1.0, Reason(
-                label="Right trailer",
-                detail=f"Has hauled {hist.loads_with_equipment} {equipment_label} load{plural} for this broker.",
+            return confidence.value, Reason(
+                label="Proven on this trailer",
+                detail=(
+                    f"Has hauled {hist.loads_with_equipment} {equipment_label} "
+                    f"load{plural} for this broker."
+                ),
                 sentiment="positive",
             )
-        return 0.2, Reason(
+        return confidence.value, Reason(
             label="Unproven on this trailer",
-            detail=f"Has never hauled a {equipment_label} load for this broker.",
+            detail=(
+                f"Has never hauled a {equipment_label} for this broker in "
+                f"{confidence.observations} load{'s' if confidence.observations != 1 else ''}, "
+                f"leaving roughly a {confidence.value * 100:.0f}% chance they can take it. "
+                f"No feed records what equipment a carrier owns."
+            ),
             sentiment="negative",
         )
 

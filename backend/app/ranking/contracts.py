@@ -129,6 +129,38 @@ class OfferPlan(BaseModel):
     value_per_hour_usd: float | None
     rate_ceiling_usd: float
     walk_away_rate_usd: float
+    # The customer rate at which calling this carrier becomes worth doing. Above the
+    # load's actual revenue this is what the load is short by, which is the only
+    # actionable number on a load that cannot be covered profitably.
+    revenue_to_break_even_usd: float | None
+
+
+class RepricingTarget(BaseModel):
+    """The cheapest way to turn an uncoverable load into a coverable one."""
+
+    carrier_id: str
+    carrier_name: str
+    current_revenue_usd: float
+    required_revenue_usd: float
+    shortfall_usd: float
+    shortfall_pct: float
+    offer_rate_usd: float
+    acceptance_probability: float
+
+
+class CoverageDecision(BaseModel):
+    """Whether to work this load at all, decided before deciding who to call.
+
+    A ranked list assumes the load is worth covering. When it is not, ordering
+    carriers answers the wrong question, so the decision is made explicitly and
+    published alongside the list rather than inferred from it.
+    """
+
+    decision: Literal["COVER", "REPRICE"]
+    headline: str
+    detail: str
+    best_expected_value_usd: float
+    target: RepricingTarget | None = None
 
 
 class PriorOffer(BaseModel):
@@ -215,6 +247,9 @@ class Recommendations(BaseModel):
     price_estimate: PriceEstimate | None
     carriers: list[CarrierRecommendation]
     carriers_considered: int
+    # Null for engines with no notion of value, which cannot tell a load worth
+    # covering from one that is not.
+    coverage: CoverageDecision | None = None
     notes: list[str] = Field(default_factory=list)
     exclusions: list[Exclusion] = Field(default_factory=list)
     unchecked_gates: list[UncheckedGate] = Field(default_factory=list)

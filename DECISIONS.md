@@ -199,11 +199,123 @@ plausible-sounding proxy is worse than no gate, because it is wrong in a way tha
 looks authoritative. It now checks the trailer type's payload ceiling, which binds
 rarely, and that is the correct behaviour rather than a sign it is useless.
 
-The trailer gate is still inferred from booking history, so it stays deliberately
-conservative: it fires only when a carrier has at least three loads for this broker
-and none of them used the required trailer. Letting a possibly-unequipped carrier
-through to be ranked low costs one evaluation; excluding one that does own the
-trailer removes it permanently.
+## The trailer "gate" is a probability, because the data cannot support a gate
+
+Equipment ought to be the cleanest hard filter in the system: look up the fleet,
+and either there is a reefer or there is not. None of the three feeds records a
+fleet. All that is observable is what a carrier has hauled for this broker, and
+three dry van loads is *evidence* of no reefer, not proof of one.
+
+So the honest quantity is `P(carrier can pull this trailer)`, and the gate is a
+threshold on it rather than a rule of its own. Two things fall out of that.
+
+First, it is a posterior over a latent capability, deliberately **not** the share
+of a carrier's loads that used the trailer. A carrier splitting work evenly between
+reefer and dry van would score 0.5 on a rate over loads while obviously owning a
+reefer. Capability is a yes/no: one load on the trailer settles it, and zero loads
+is weak evidence over two loads and strong evidence over twenty. It is weaker again
+when the broker rarely offers that trailer type at all — never hauling a flatbed for
+a broker that tenders one a month says much less than never hauling a dry van. With
+`p` the base rate of owning the trailer among this broker's carriers, `q` the chance
+any given load would have used it, and `n` loads none of which did:
+
+```
+P(owns | none of n) = p(1-q)^n / [ p(1-q)^n + (1-p) ]
+```
+
+The previous version of this gate fired at "three or more loads, none on this
+trailer". That is roughly where the probability version lands at this data volume,
+but the threshold now adapts to how much a silence is worth instead of asserting a
+load count, and it reports the number it acted on.
+
+Second, capability enters the utility as a **multiplier on acceptance**, not as a
+score bonus. That is the mechanism it actually acts through: a carrier without a
+reefer declines a reefer load at any price. Money buys willingness, never equipment.
+Modelling it this way also stops the rate search from trying to pay its way out of a
+capability problem, which a score penalty would quietly allow.
+
+The threshold stays conservative in the same direction as before: letting a possibly
+unequipped carrier through to be ranked low costs one evaluation, while excluding one
+that does own the trailer removes it permanently.
+
+A note on display, since it was the symptom that exposed all of this. The engines say
+nothing about equipment for a carrier that has proven the trailer — telling a
+dispatcher that the carrier they use for reefer freight every week has a reefer is
+noise. Proven capability is treated as exactly certain rather than 0.97-for-safety,
+so the gate, the dollar term and the explanation all key off one condition instead of
+three thresholds that drift apart. The informative case is the carrier that cleared
+the gate on a thin record, and that one is stated as a probability.
+
+## Eligibility cannot depend on which engine you picked
+
+Screening originally lived inside the expected-value engine. The heuristic engine had
+its own notion of equipment as a weighted signal and no gates at all, which meant it
+ranked carriers second and fourth on a reefer load that the other engine excluded by
+name as unable to haul it. Choosing an engine silently chose whether hard constraints
+were enforced.
+
+Eligibility and candidate generation are now a shared pre-stage that runs before any
+scoring, so both engines receive the same candidate set and publish the same
+exclusions. The rule this encodes: a gate is a fact about the load and the carrier,
+so it cannot live inside a scoring strategy. Anything an engine is allowed to define
+for itself is something the engines are allowed to disagree about.
+
+The heuristic's equipment signal now reads the same probability the gate reads. It is
+no longer deciding eligibility — it separates a carrier proven on the trailer from one
+that survived on a thin record — and sharing the estimate is the point, since two
+different notions of "has a reefer" is exactly how a carrier gets excluded by one part
+of the system and rewarded by another.
+
+## Ranking by value per hour, and where that stops working
+
+Carriers are ordered by expected value per hour of broker time, not raw expected
+value, because a $200 load that resolves in twenty minutes is worth more than a $220
+load that takes a day to hear back on. Reply time is a real cost and the offer log
+measures it.
+
+That normalisation inverts once the value being divided is negative. Dividing by time
+answers "how much value does an hour of broker time buy", which is meaningless when
+the answer is a loss — a longer wait moves a negative number *toward* zero, so the
+slowest carrier wins. A live case had a carrier at -$45 over 7.4 hours score -6.1/hour
+and outrank one at -$20 over 1.1 hours at -17.0/hour. The normalisation now applies
+only where expected value is positive, and losing loads rank on expected value alone.
+
+## Cover or reprice, decided before who to call
+
+Fixing the inversion above exposed the real problem underneath. On a load that loses
+money at every rate, maximising expected value rewards carriers who are *unlikely to
+accept*: one who declines costs only the phone call, while one who accepts locks in the
+loss. So the ordering becomes least-bad rather than best-to-call, and a dispatcher
+working down it spends the day on carriers who will say no. The old behaviour put the
+one capable carrier first, but only by accident of the negative-EV division.
+
+A ranked list quietly asserts the load is worth covering. So that premise is now
+checked first, and when it fails the output stops being a ranking and becomes the
+number that would change it: **what the load has to bill to be worth calling anyone
+about.** For a fixed offer rate the call is worth making when
+
+```
+p(R - r - service) > (1 - p) * call
+```
+
+so the revenue required is `r + service + call*(1-p)/p`, minimised over the offer
+rates available. Conceding more raises `r` but also raises `p`, which shrinks the
+wasted-call term, so the minimum is a genuine trade-off and not simply the cheapest
+offer.
+
+This also fixes the perversity rather than merely labelling it, and the mechanism is
+worth stating. Acceptance is capped by trailer capability, so for a carrier that
+probably lacks the trailer `(1-p)/p` explodes and the revenue needed to justify calling
+them goes with it — most of those calls are wasted. The cheapest route back to
+viability is therefore a carrier that can actually haul the freight. On the sample
+flatbed load the repricing target is the only carrier with a proven flatbed, needing
+$1,437 against the $1,385 it bills now, while raw expected value ranks that same
+carrier last of six. The decision and the ranking disagree, and the decision is right.
+
+One of the three open loads in the sample data is in this state, so this is visible in
+the UI rather than hypothetical. The heuristic engine returns no decision at all: an
+engine with no notion of value cannot tell a load worth covering from one that is not,
+and should not pretend to.
 
 ## Selection bias, stated rather than corrected
 

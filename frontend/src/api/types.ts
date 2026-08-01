@@ -199,6 +199,26 @@ export interface OfferPlan {
   value_per_hour_usd: number | null;
   rate_ceiling_usd: number;
   walk_away_rate_usd: number;
+  revenue_to_break_even_usd: number | null;
+}
+
+export interface RepricingTarget {
+  carrier_id: string;
+  carrier_name: string;
+  current_revenue_usd: number;
+  required_revenue_usd: number;
+  shortfall_usd: number;
+  shortfall_pct: number;
+  offer_rate_usd: number;
+  acceptance_probability: number;
+}
+
+export interface CoverageDecision {
+  decision: "COVER" | "REPRICE";
+  headline: string;
+  detail: string;
+  best_expected_value_usd: number;
+  target: RepricingTarget | null;
 }
 
 export interface PriorOffer {
@@ -277,6 +297,7 @@ export interface Recommendations {
   price_estimate: PriceEstimate | null;
   carriers: CarrierRecommendation[];
   carriers_considered: number;
+  coverage: CoverageDecision | null;
   notes: string[];
   exclusions: Exclusion[];
   unchecked_gates: UncheckedGate[];

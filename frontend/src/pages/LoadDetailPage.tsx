@@ -12,6 +12,7 @@ import {
   StatusPill,
 } from "../components/atoms";
 import { CarrierList } from "../components/CarrierList";
+import { Coverage } from "../components/Coverage";
 import { Eligibility } from "../components/Eligibility";
 import { OfferLog } from "../components/OfferLog";
 import { PriceEstimateCard } from "../components/PriceEstimateCard";
@@ -95,6 +96,10 @@ export function LoadDetailPage() {
               />
 
               <EngineSwitch engine={engine} onChange={setEngine} />
+              {/* Above the list deliberately: whether to cover is decided before who
+                  to call, and on a load that should not be covered the list below is
+                  the wrong thing to read first. */}
+              <Coverage result={recommendations.data} />
               <CarrierList result={recommendations.data} />
               <Eligibility result={recommendations.data} />
             </>

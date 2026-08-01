@@ -34,17 +34,18 @@ from datetime import datetime, timezone
 from .. import geo
 from ..domain import Equipment, Load
 from ..history import BrokerHistory, CarrierLaneHistory
-from . import candidates, components, costs, eligibility
+from . import components, costs, eligibility
 from .contracts import (
     CarrierRecommendation,
+    CoverageDecision,
     EngineInfo,
-    Exclusion,
     HistoryDepth,
     OfferPlan,
     PriceEstimate,
     PriorOffer,
     Reason,
     Recommendations,
+    RepricingTarget,
     ScoreComponent,
     ValueTerm,
 )
@@ -102,30 +103,7 @@ class ExpectedValueEngine:
                 "population prior. Ranking is driven by service risk and price alone."
             )
 
-        pool = candidates.generate(load, history)
-        surfaced_by = {item.carrier_id: item.surfaced_by for item in pool}
-        screened = eligibility.screen(load, history, [item.carrier_id for item in pool])
-
-        never_booked = [
-            carrier
-            for carrier in history.carriers
-            if not history.carrier_loads(carrier.carrier_id)
-        ]
-        exclusions = list(screened.exclusions) + [
-            Exclusion(
-                carrier_id=carrier.carrier_id,
-                carrier_name=carrier.name,
-                gate="NO_HISTORY",
-                gate_label="No booking history",
-                detail=(
-                    "Known to this broker but never booked and never offered a load, so no "
-                    "component can be estimated for them. A carrier in this state needs "
-                    "deliberate exploration, not a score."
-                ),
-            )
-            for carrier in never_booked
-        ]
-
+        screened = eligibility.prepare(load, history)
         market_rpm = components.market_rate(history, load.equipment)
         loads_by_id = {item.load_id: item for item in history.all_loads}
         prior_offers = history.offers_for_load(load.load_id)
@@ -143,7 +121,7 @@ class ExpectedValueEngine:
                     estimate=estimate,
                     market_rpm=market_rpm,
                     loads_by_id=loads_by_id,
-                    surfaced_by=surfaced_by.get(carrier_id, []),
+                    surfaced_by=screened.surfaced_by.get(carrier_id, []),
                     prior_offers=[
                         offer for offer in prior_offers if offer.carrier_id == carrier_id
                     ],
@@ -153,6 +131,8 @@ class ExpectedValueEngine:
         scored.sort(key=lambda item: (-item.score, item.carrier_name))
         for index, recommendation in enumerate(scored[:limit], start=1):
             recommendation.rank = index
+
+        coverage = self._coverage(load, scored, estimate)
 
         return Recommendations(
             load_id=load.load_id,
@@ -164,10 +144,95 @@ class ExpectedValueEngine:
             price_estimate=estimate,
             carriers=scored[:limit],
             carriers_considered=len(screened.eligible),
+            coverage=coverage,
             notes=notes,
-            exclusions=exclusions,
-            unchecked_gates=eligibility.UNCHECKED_GATES,
+            exclusions=screened.exclusions,
+            unchecked_gates=screened.unchecked_gates,
             limitations=self._limitations(history),
+        )
+
+    # ---- cover or reprice ---------------------------------------------
+
+    def _coverage(
+        self,
+        load: Load,
+        scored: list[CarrierRecommendation],
+        estimate: PriceEstimate | None,
+    ) -> CoverageDecision | None:
+        """Decide whether this load is worth working before deciding who to call.
+
+        Ranking carriers presupposes the load should be covered. When no carrier has
+        positive expected value that premise is false, and the ordering answers the
+        wrong question in a specifically misleading way: maximising expected value on
+        a load that loses money at every rate favours carriers *unlikely to accept*,
+        because a carrier who declines costs only the phone call while one who accepts
+        locks in the loss. Worked top-down, that list tells a dispatcher to spend the
+        day on carriers who will say no.
+
+        So the decision is made explicitly, and when the answer is "do not cover", the
+        output becomes the number that would change it - what the load has to bill to
+        be worth calling anyone about.
+        """
+        if not scored:
+            return None
+
+        best = max(item.offer_plan.expected_value_usd for item in scored)
+        if best > 0:
+            leader = scored[0]
+            return CoverageDecision(
+                decision="COVER",
+                headline=f"Worth covering. Open with {leader.carrier_name}.",
+                detail=(
+                    f"Best expected value is ${best:,.0f} at "
+                    f"${leader.offer_plan.offer_rate_usd:,.0f}."
+                ),
+                best_expected_value_usd=round(best, 2),
+            )
+
+        revenue = load.customer_rate or (estimate.point_usd * 1.18 if estimate else 0.0)
+        # Cheapest route back to viability, not the carrier that ranks first: the
+        # ranking is the thing we have just decided not to trust here.
+        candidates = [
+            item for item in scored if item.offer_plan.revenue_to_break_even_usd is not None
+        ]
+        target = None
+        if candidates and revenue > 0:
+            pick = min(candidates, key=lambda item: item.offer_plan.revenue_to_break_even_usd)
+            required = pick.offer_plan.revenue_to_break_even_usd
+            target = RepricingTarget(
+                carrier_id=pick.carrier_id,
+                carrier_name=pick.carrier_name,
+                current_revenue_usd=round(revenue, 2),
+                required_revenue_usd=round(required, 2),
+                shortfall_usd=round(required - revenue, 2),
+                shortfall_pct=round((required - revenue) / revenue * 100, 1),
+                offer_rate_usd=pick.offer_plan.offer_rate_usd,
+                acceptance_probability=pick.offer_plan.acceptance_probability,
+            )
+
+        detail = (
+            "Every eligible carrier loses money at every rate they would accept, so working "
+            "down the list below is the wrong move - it is ordered least-bad, and being "
+            "unlikely to accept is what makes a carrier look good on a load like this."
+        )
+        if target is not None:
+            detail += (
+                f" The cheapest way to make this coverable is {target.carrier_name}, who needs "
+                f"${target.required_revenue_usd:,.0f} against the ${target.current_revenue_usd:,.0f} "
+                f"it bills now."
+            )
+        headline = (
+            f"Reprice with the customer: ${target.shortfall_usd:,.0f} short "
+            f"({target.shortfall_pct:.0f}%)."
+            if target is not None
+            else "Reprice with the customer. No eligible carrier is worth calling at this rate."
+        )
+        return CoverageDecision(
+            decision="REPRICE",
+            headline=headline,
+            detail=detail,
+            best_expected_value_usd=round(best, 2),
+            target=target,
         )
 
     # ---- per-carrier evaluation ---------------------------------------
@@ -184,6 +249,7 @@ class ExpectedValueEngine:
         prior_offers: list,
     ) -> CarrierRecommendation:
         curve = components.build_acceptance_curve(load, hist, history, loads_by_id, market_rpm)
+        equipment = components.equipment_confidence(load, hist, history)
         on_time = components.on_time_estimate(hist, history)
         fall_off = components.fall_off_estimate(hist, history)
         reply = components.response_estimate(hist, history)
@@ -243,13 +309,28 @@ class ExpectedValueEngine:
             reply_hours=reply_hours,
             estimate=estimate,
             load=load,
+            capability=equipment.value,
         )
 
         # The two adjustments that turn expected value into a *call order* are kept
         # as explicit components rather than folded into the score, so the ranking
         # arithmetic stays reconstructable: a carrier that ranks above one with more
         # expected value should be able to show which adjustment did it.
-        per_hour = plan.value_per_hour_usd or plan.expected_value_usd
+        #
+        # Dividing by time only orders correctly while the value being divided is
+        # positive. On a load that loses money at every rate, a longer wait moves a
+        # negative value *toward* zero, so the slowest carrier wins: a carrier at
+        # -$45 over 7.4 hours scores -6.1/hour and beats one at -$20 over 1.1 hours
+        # at -17.0/hour, which is backwards. Rate per hour answers "how much value
+        # does an hour of broker time buy", and that question is meaningless when
+        # the answer is a loss - you are not buying value, you are choosing how
+        # quickly to find out. So the normalisation applies only to loads worth
+        # covering, and the rest rank on expected value alone, which still puts the
+        # least bad option first.
+        if plan.expected_value_usd > 0 and plan.value_per_hour_usd is not None:
+            per_hour = plan.value_per_hour_usd
+        else:
+            per_hour = plan.expected_value_usd
         time_adjustment = per_hour - plan.expected_value_usd
         upside = max(plan.optimistic_value_usd - plan.expected_value_usd, 0.0)
         uncertainty_credit = self.optimism * upside
@@ -285,7 +366,28 @@ class ExpectedValueEngine:
             ),
         ]
 
-        reasons = self._reasons(hist, curve, on_time, fall_off, reply, plan, refusal_note)
+        # Only worth a row when there is something to be uncertain about. Every
+        # carrier here cleared the trailer gate, so restating "has the right trailer"
+        # for a carrier that has demonstrably hauled twenty of them is noise; the
+        # informative case is the one that has never hauled this type and is being
+        # ranked on the possibility that it can.
+        if equipment.value < 1.0:
+            predictions.insert(
+                1,
+                components.describe(
+                    "equipment", f"Has a {load.equipment.value.replace('_', ' ').lower()}", equipment,
+                    display=f"{equipment.value * 100:.0f}%",
+                    note=(
+                        f"Never hauled one for this broker in {equipment.observations} "
+                        f"load{'s' if equipment.observations != 1 else ''}. No feed records "
+                        f"what a carrier owns, so this is inferred from what it has hauled."
+                    ),
+                ),
+            )
+
+        reasons = self._reasons(
+            hist, curve, on_time, fall_off, reply, plan, refusal_note, equipment, load
+        )
 
         # Components are dollars here rather than arbitrary points, and they still
         # sum to the score - which is the one invariant every engine must hold, or
@@ -300,7 +402,11 @@ class ExpectedValueEngine:
         breakdown.append(
             ScoreComponent(
                 key="time_to_resolve",
-                label="Adjusted for time to resolve",
+                label=(
+                    "Adjusted for time to resolve"
+                    if time_adjustment
+                    else "Not adjusted for time: this load loses money at every rate"
+                ),
                 weight=1.0,
                 value=round(plan.expected_resolution_hours or 0.0, 2),
                 points=round(time_adjustment, 2),
@@ -359,28 +465,40 @@ class ExpectedValueEngine:
         reply_hours: float,
         estimate: PriceEstimate | None,
         load: Load,
+        capability: float,
     ) -> OfferPlan:
         """Search the offer rate. The maximum is where conceding another $5 stops
-        buying enough acceptance probability to pay for itself."""
+        buying enough acceptance probability to pay for itself.
+
+        `capability` is P(the carrier can actually pull this trailer), and it enters
+        as a multiplier on acceptance rather than as a score adjustment, because that
+        is the mechanism it acts through: a carrier without a reefer says no to a
+        reefer load at any price. Money buys willingness, never equipment. Modelling
+        it this way also stops the rate search from trying to solve a capability
+        problem by paying more, which is what a score penalty would let it do.
+        """
         anchor = estimate.point_usd if estimate else (load.carrier_rate or curve.floor_usd)
         low = max(RATE_STEP, round(anchor * RATE_FLOOR_FACTOR / RATE_STEP) * RATE_STEP)
         high = round(anchor * RATE_CEILING_FACTOR / RATE_STEP) * RATE_STEP
 
-        def value_at(rate: float, floor_shift: float = 0.0) -> tuple[float, float]:
-            probability = curve.probability(rate, floor_shift)
+        def value_at(rate: float, floor_shift: float = 0.0) -> tuple[float, float, float]:
+            willing = curve.probability(rate, floor_shift)
+            probability = capability * willing
             margin = revenue - rate - service_cost
-            return probability * margin - (1 - probability) * call_cost, probability
+            return probability * margin - (1 - probability) * call_cost, probability, willing
 
-        best_rate, best_value, best_probability = low, float("-inf"), 0.0
+        best_rate, best_value = low, float("-inf")
+        best_probability = best_willing = 0.0
         rate = low
         while rate <= high:
-            value, probability = value_at(rate)
+            value, probability, willing = value_at(rate)
             if value > best_value:
-                best_rate, best_value, best_probability = rate, value, probability
+                best_rate, best_value = rate, value
+                best_probability, best_willing = probability, willing
             rate += RATE_STEP
 
-        optimistic, _ = value_at(best_rate, floor_shift=-1.0)
-        pessimistic, _ = value_at(best_rate, floor_shift=1.0)
+        optimistic, *_ = value_at(best_rate, floor_shift=-1.0)
+        pessimistic, *_ = value_at(best_rate, floor_shift=1.0)
 
         margin = revenue - best_rate - service_cost
         terms = [
@@ -397,17 +515,57 @@ class ExpectedValueEngine:
                 detail="Probability of a late delivery and of a fall-off, priced at their business cost.",
             ),
             ValueTerm(
-                key="acceptance", label="Weighted by acceptance", amount_usd=round(best_probability * margin - margin, 2),
-                detail=f"Margin of ${margin:,.0f} only materialises {best_probability * 100:.0f}% of the time.",
+                key="acceptance", label="Weighted by acceptance", amount_usd=round(best_willing * margin - margin, 2),
+                detail=f"Margin of ${margin:,.0f} only materialises {best_willing * 100:.0f}% of the time.",
             ),
+        ]
+        if capability < 1.0:
+            terms.append(
+                ValueTerm(
+                    key="capability",
+                    label="Discounted for trailer uncertainty",
+                    amount_usd=round((best_probability - best_willing) * margin, 2),
+                    detail=(
+                        f"{capability * 100:.0f}% chance they have the right trailer at all, "
+                        f"which no rate can change."
+                    ),
+                )
+            )
+        terms.append(
             ValueTerm(
                 key="call_cost", label="Cost of a failed call", amount_usd=round(-(1 - best_probability) * call_cost, 2),
                 detail=f"{reply_hours * 60:.0f} minutes of broker time at ${self.costs.broker_hourly_usd:.0f}/hour.",
-            ),
-        ]
+            )
+        )
+
+        # The customer rate at which this carrier becomes worth calling. At a fixed
+        # offer rate the call is worth making when
+        #
+        #     p(R - r - service) > (1 - p) * call
+        #
+        # so the revenue required is r + service + call*(1-p)/p, and the useful figure
+        # is the smallest such value over the rates on offer. Conceding a higher rate
+        # raises `r` but also raises `p`, which shrinks the wasted-call term, so the
+        # minimum is a real trade-off rather than just the cheapest offer.
+        #
+        # Note what this does to a carrier that probably lacks the trailer: `p` is
+        # capped by capability, so (1-p)/p explodes and the revenue it would take to
+        # justify the call goes with it. The carrier who can actually haul the freight
+        # comes out cheapest, which is the opposite of how raw expected value ranks
+        # them on a losing load.
+        break_even = None
+        rate = low
+        while rate <= high:
+            probability = capability * curve.probability(rate)
+            if probability > 0.01:
+                required = rate + service_cost + call_cost * (1 - probability) / probability
+                if break_even is None or required < break_even:
+                    break_even = required
+            rate += RATE_STEP
 
         resolution_hours = max(reply_hours, MIN_RESOLUTION_HOURS)
         return OfferPlan(
+            revenue_to_break_even_usd=round(break_even, 2) if break_even is not None else None,
             offer_rate_usd=best_rate,
             acceptance_probability=round(best_probability, 4),
             expected_value_usd=round(best_value, 2),
@@ -421,7 +579,8 @@ class ExpectedValueEngine:
         )
 
     def _reasons(
-        self, hist, curve, on_time, fall_off, reply, plan: OfferPlan, refusal_note: str | None
+        self, hist, curve, on_time, fall_off, reply, plan: OfferPlan,
+        refusal_note: str | None, equipment, load: Load,
     ) -> list[Reason]:
         reasons = [
             Reason(
@@ -450,6 +609,24 @@ class ExpectedValueEngine:
         if refusal_note:
             reasons.append(
                 Reason(label="Already asked", detail=refusal_note, sentiment="negative")
+            )
+
+        # Silent when the trailer is proven, which is the common case. There is no
+        # value in telling a dispatcher that a carrier they use for reefer freight
+        # every week has a reefer.
+        if equipment.value < 1.0:
+            needed = load.equipment.value.replace("_", " ").lower()
+            reasons.append(
+                Reason(
+                    label="Unproven on this trailer",
+                    detail=(
+                        f"Has never hauled a {needed} for this broker, across "
+                        f"{equipment.observations} load{'s' if equipment.observations != 1 else ''}. "
+                        f"That leaves roughly a {equipment.value * 100:.0f}% chance they can take it, "
+                        f"and it is worth confirming before negotiating."
+                    ),
+                    sentiment="negative",
+                )
             )
 
         if hist.service_known:

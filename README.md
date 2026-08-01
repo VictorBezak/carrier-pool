@@ -171,7 +171,7 @@ curl -X POST localhost:8000/api/reingest   # or just restart the backend
 cd backend && .venv/bin/python -m pytest -q
 ```
 
-39 tests over the real data in `data/`. They assert the claims the system makes
+47 tests over the real data in `data/`. They assert the claims the system makes
 about itself rather than exercising code paths: metric units are converted, a
 reefer is not read as a dry van, null equipment is not assumed to be a dry van,
 replaying the feed is idempotent, corrections are distinguished from progress and
@@ -179,6 +179,17 @@ from carrier fall-offs, no naive datetime survives normalisation, the same carri
 has independent history under each broker, one broker's load ID 404s under
 another, and every score equals the sum of the components shown to explain it —
 for *every* registered engine, not just the default.
+
+A few guard bugs worth naming. `test_hard_gates_do_not_depend_on_the_chosen_engine`
+asserts no engine can both rank and exclude the same carrier, because screening used
+to live inside one engine and the other would happily recommend a carrier that could
+not haul the freight. `test_a_rate_increase_cannot_buy_a_trailer` asserts that trailer
+capability caps acceptance, since paying more closes a price gap but never an
+equipment one. `test_a_slower_carrier_never_outranks_a_better_one_on_a_losing_load`
+pins the fact that dividing value by time inverts once the value is negative. And
+`test_repricing_targets_the_carrier_that_can_actually_haul_it` pins the reason the
+cover/reprice decision exists: on a losing load, raw expected value favours carriers
+*unlikely to accept*, so the decision has to be computed separately from the ranking.
 
 The most interesting one is `test_estimated_price_floor_recovers_the_hidden_reserve`.
 The generator gives each carrier a secret reservation price, never writes it to any
