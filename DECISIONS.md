@@ -1,5 +1,7 @@
 # Decisions
 
+> This version of DECISIONS.md was generated entirely by our coding agent
+
 ## What this iteration is
 
 The platform end to end — ingestion, normalisation, tenancy, API, UI — plus **two
