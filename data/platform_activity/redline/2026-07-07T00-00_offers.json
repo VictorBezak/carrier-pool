@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-07T00:00:00-05:00",
+  "broker_id": "redline",
+  "offers": [
+    {
+      "offer_id": "OF-59-00007",
+      "load_ref": "127473191",
+      "carrier_ref": "835122",
+      "carrier_mc": "1450022",
+      "carrier_name": "PANHANDLE LOGISTICS LLC",
+      "offered_at": "2026-07-06T20:20:00-05:00",
+      "offered_rate_usd": 985.0,
+      "outcome": "no_response",
+      "counter_rate_usd": null,
+      "responded_at": null,
+      "decline_reason": null
+    },
+    {
+      "offer_id": "OF-59-00008",
+      "load_ref": "127473191",
+      "carrier_ref": "835618",
+      "carrier_mc": "1500918",
+      "carrier_name": "BLUEBONNET FREIGHT CO",
+      "offered_at": "2026-07-06T21:20:00-05:00",
+      "offered_rate_usd": 950.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-06T21:45:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00009",
+      "load_ref": "127473191",
+      "carrier_ref": "835882",
+      "carrier_mc": "1346382",
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "offered_at": "2026-07-06T23:20:00-05:00",
+      "offered_rate_usd": 1060.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-07T00:22:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-09T18:00:00-05:00",
+  "broker_id": "redline",
+  "offers": [
+    {
+      "offer_id": "OF-59-00028",
+      "load_ref": "127475573",
+      "carrier_ref": "835618",
+      "carrier_mc": "1500918",
+      "carrier_name": "BLUEBONNET FREIGHT CO",
+      "offered_at": "2026-07-09T14:20:00-05:00",
+      "offered_rate_usd": 1265.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T14:47:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00029",
+      "load_ref": "127475573",
+      "carrier_ref": "835540",
+      "carrier_mc": "1288440",
+      "carrier_name": "TRINITY RIVER EXPRESS LLC",
+      "offered_at": "2026-07-09T15:20:00-05:00",
+      "offered_rate_usd": 1360.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T15:59:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00030",
+      "load_ref": "127475573",
+      "carrier_ref": "835171",
+      "carrier_mc": "998271",
+      "carrier_name": "RIO GRANDE HAULERS INC",
+      "offered_at": "2026-07-09T17:20:00-05:00",
+      "offered_rate_usd": 1480.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T18:18:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

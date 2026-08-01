@@ -6,7 +6,7 @@
       "status": "Completed",
       "mileage": 260.7,
       "totalSell": 1545.0,
-      "totalBuy": 1265.0,
+      "totalBuy": 1230.0,
       "customer": {
         "customerId": 889043,
         "name": "Brazos Chemical Co"
@@ -47,8 +47,8 @@
       "shipmentId": 127474382,
       "status": "En Route",
       "mileage": 227.2,
-      "totalSell": 1255.0,
-      "totalBuy": 1030.0,
+      "totalSell": 1345.0,
+      "totalBuy": 975.0,
       "customer": {
         "customerId": 889477,
         "name": "Trinity Paper Products"
@@ -70,7 +70,7 @@
           "zipCode": "75050",
           "estimatedReadyDateTime": "2026-07-09T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-09T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-09T10:25:00-05:00"
+          "actualDepartureDateTime": "2026-07-10T07:20:00-05:00"
         },
         {
           "stopType": "Last Drop",
@@ -89,18 +89,18 @@
       "shipmentId": 127474779,
       "status": "Dispatched",
       "mileage": 229.4,
-      "totalSell": 1275.0,
-      "totalBuy": 1045.0,
+      "totalSell": 1355.0,
+      "totalBuy": 1005.0,
       "customer": {
         "customerId": 889040,
         "name": "Pecan Grove Retail"
       },
       "carrier": {
-        "carrierMasterId": 835540,
-        "name": "TRINITY RIVER EXPRESS LLC",
-        "mcNumber": "1288440",
-        "dotNumber": "3612009",
-        "phoneNumber": "+14695550132"
+        "carrierMasterId": 835618,
+        "name": "BLUEBONNET FREIGHT CO",
+        "mcNumber": "1500918",
+        "dotNumber": "3990441",
+        "phoneNumber": "+17135550196"
       },
       "equipment": "53 ft Van | Dry",
       "weightTotal": 18600.0,

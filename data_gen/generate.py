@@ -127,31 +127,79 @@ def distance_miles(pickup: str, delivery: str) -> float:
 
 @dataclass(frozen=True)
 class Carrier:
+    """A carrier plus the latent behaviour that generates its observable record.
+
+    `reserve_mult` is the carrier's true price floor as a multiple of the market
+    rate for the equipment: 0.88 means it will go 12% below market, 1.06 means it
+    is expensive and declines most offers. `response_min` is how long it takes to
+    answer. Neither is ever written into the data - they only shape it.
+
+    That is the point. The platform has to *recover* these from offers and
+    outcomes, so the estimated acceptance curve can be checked against a known
+    truth instead of merely looking plausible.
+    """
+
     key: str
     name: str
     mc: str
     dot: str
     home: str
     phone: str
+    reserve_mult: float
+    response_min: int
+    # Some carriers simply do not call back. Modelled as behaviour, not as noise,
+    # because "no response" is a distinct outcome a broker plans around.
+    ghosts: bool = False
+    # Counters instead of declining outright, which leaks its true floor.
+    counters: bool = False
 
 
 CARRIERS: dict[str, Carrier] = {
     c.key: c
     for c in [
-        Carrier("ibrahim", "IBRAHIM TRANSPORT INC", "1346382", "3771394", "mesquite", "+15714906959"),
-        Carrier("lone_oak", "LONE OAK CARRIERS LLC", "1102938", "3210945", "waxahachie", "+19725550118"),
-        Carrier("rio_grande", "RIO GRANDE HAULERS INC", "998271", "2884113", "san_antonio_e", "+12105550177"),
-        Carrier("panhandle", "PANHANDLE LOGISTICS LLC", "1450022", "3902117", "fort_worth", "+18175550143"),
-        Carrier("bluebonnet", "BLUEBONNET FREIGHT CO", "1500918", "3990441", "katy", "+17135550196"),
-        Carrier("trinity", "TRINITY RIVER EXPRESS LLC", "1288440", "3612009", "garland", "+14695550132"),
-        Carrier("delta_prime", "DELTA PRIME LLC", "884201", "2551377", "seguin", "+18305550144"),
-        Carrier("hill_country", "HILL COUNTRY TRUCKING INC", "1201553", "3455120", "new_braunfels", "+18305550171"),
-        Carrier("gulf_breeze", "GULF BREEZE TRANSPORT LLC", "1390221", "3801442", "pasadena", "+17135550188"),
-        Carrier("alamo_ridge", "ALAMO RIDGE CARRIERS LLC", "1177342", "3390118", "converse", "+12105550109"),
-        Carrier("bayou_city", "BAYOU CITY LOGISTICS LLC", "1420990", "3877221", "baytown", "+18325550155"),
-        Carrier("star_of_texas", "STAR OF TEXAS FREIGHT LLC", "1533201", "4010993", "round_rock", "+15125550122"),
+        # Broker A (FreightFlow)
+        Carrier("ibrahim", "IBRAHIM TRANSPORT INC", "1346382", "3771394", "mesquite",
+                "+15714906959", reserve_mult=0.94, response_min=45, counters=True),
+        Carrier("lone_oak", "LONE OAK CARRIERS LLC", "1102938", "3210945", "waxahachie",
+                "+19725550118", reserve_mult=0.88, response_min=115),
+        Carrier("rio_grande", "RIO GRANDE HAULERS INC", "998271", "2884113", "san_antonio_e",
+                "+12105550177", reserve_mult=0.93, response_min=55, counters=True),
+        Carrier("panhandle", "PANHANDLE LOGISTICS LLC", "1450022", "3902117", "fort_worth",
+                "+18175550143", reserve_mult=1.06, response_min=185, ghosts=True),
+        Carrier("bluebonnet", "BLUEBONNET FREIGHT CO", "1500918", "3990441", "katy",
+                "+17135550196", reserve_mult=0.90, response_min=15),
+        Carrier("trinity", "TRINITY RIVER EXPRESS LLC", "1288440", "3612009", "garland",
+                "+14695550132", reserve_mult=0.97, response_min=20),
+        # Broker B (HaulDesk)
+        Carrier("delta_prime", "DELTA PRIME LLC", "884201", "2551377", "seguin",
+                "+18305550144", reserve_mult=0.92, response_min=35),
+        Carrier("hill_country", "HILL COUNTRY TRUCKING INC", "1201553", "3455120", "new_braunfels",
+                "+18305550171", reserve_mult=0.98, response_min=95, counters=True),
+        Carrier("gulf_breeze", "GULF BREEZE TRANSPORT LLC", "1390221", "3801442", "pasadena",
+                "+17135550188", reserve_mult=0.95, response_min=25),
+        # Broker C (BrokerOS)
+        Carrier("alamo_ridge", "ALAMO RIDGE CARRIERS LLC", "1177342", "3390118", "converse",
+                "+12105550109", reserve_mult=0.92, response_min=40),
+        Carrier("bayou_city", "BAYOU CITY LOGISTICS LLC", "1420990", "3877221", "baytown",
+                "+18325550155", reserve_mult=0.96, response_min=65),
+        Carrier("star_of_texas", "STAR OF TEXAS FREIGHT LLC", "1533201", "4010993", "round_rock",
+                "+15125550122", reserve_mult=1.03, response_min=200, ghosts=True),
     ]
 }
+
+# Which carriers each broker can call. Scoped per broker so the offer log cannot
+# accidentally reference a carrier its broker has never heard of.
+BROKER_ROSTERS: dict[str, tuple[str, ...]] = {
+    "tms_a_freightflow": ("ibrahim", "lone_oak", "rio_grande", "panhandle", "bluebonnet", "trinity"),
+    "tms_b_hauldesk": ("delta_prime", "hill_country", "gulf_breeze", "ibrahim"),
+    "tms_c_brokeros": ("alamo_ridge", "bayou_city", "rio_grande", "star_of_texas"),
+}
+
+
+def reserve_usd(carrier_key: str, equipment: str | None, miles: float) -> float:
+    """The lowest the carrier would truly accept for this load."""
+    base = RATE_PER_MILE[equipment or "DRY_VAN"]
+    return round(base * CARRIERS[carrier_key].reserve_mult * miles, 2)
 
 CUSTOMERS: dict[str, str] = {
     "lone_star_bev": "Lone Star Beverages",
@@ -190,6 +238,29 @@ class Correction:
 
 
 @dataclass
+class FallOff:
+    """A carrier that accepted and then bailed.
+
+    The load goes back to looking for a truck, then books with somebody else. In
+    the TMS this shows up only as a status moving *backwards* and the carrier
+    field changing - there is no "fall off" event anywhere. Detecting it is the
+    platform's job.
+    """
+
+    offset: int  # appearance index where the load returns to ACTIVE
+    original: str  # carrier key that fell off
+
+
+# Service outcomes. Late means the truck missed the appointment *day*, not just
+# the hour, because BrokerOS records scheduled dates without times - so anything
+# finer than a day is invisible in one of the three feeds.
+ON_TIME = "ON_TIME"
+LATE_PICKUP = "LATE_PICKUP"
+LATE_DELIVERY = "LATE_DELIVERY"
+LATE_BOTH = "LATE_BOTH"
+
+
+@dataclass
 class LoadSpec:
     key: str
     pickup: str
@@ -201,34 +272,61 @@ class LoadSpec:
     lifecycle: list[str]
     commodity: str = "General freight"
     mid_stop: str | None = None
-    rate_per_mile: float | None = None
     margin: float = 1.22
     corrections: list[Correction] = field(default_factory=list)
     weight_in_kg: bool = False
+    service: str = ON_TIME
+    fall_off: FallOff | None = None
     start_slot: int = -1
     miles: float = 0.0
     customer_rate: float = 0.0
     carrier_rate: float = 0.0
+    original_carrier_rate: float = 0.0
 
     def finalize(self) -> None:
         self.miles = distance_miles(self.pickup, self.delivery)
         if self.mid_stop is not None:
             self.miles = round(self.miles + RNG.uniform(25, 55), 1)
-        equip = self.equipment or "DRY_VAN"
-        if self.rate_per_mile is not None:
-            rpm = self.rate_per_mile
+
+        # The booked rate is what the winning carrier would actually accept:
+        # its own floor plus whatever the broker had to concede above it. Deriving
+        # it this way rather than from a market average keeps the rate consistent
+        # with that carrier's behaviour in the offer log - otherwise the data
+        # would show a carrier accepting a rate it is documented to refuse.
+        if self.carrier is not None:
+            floor = reserve_usd(self.carrier, self.equipment, self.miles)
+            self.carrier_rate = round(floor * RNG.uniform(1.0, 1.07) / 5) * 5.0
         else:
-            # A real lane has spread, so a median over it is a judgement call
-            # rather than a lookup. Seeded, so the spread is reproducible.
-            rpm = RATE_PER_MILE[equip] * RNG.uniform(0.93, 1.08)
-        self.carrier_rate = round(self.miles * rpm / 5) * 5.0
-        self.customer_rate = round(self.carrier_rate * self.margin / 5) * 5.0
+            market = RATE_PER_MILE[self.equipment or "DRY_VAN"] * self.miles
+            self.carrier_rate = round(market / 5) * 5.0
+
+        if self.fall_off is not None:
+            first_floor = reserve_usd(self.fall_off.original, self.equipment, self.miles)
+            self.original_carrier_rate = round(first_floor * RNG.uniform(1.0, 1.05) / 5) * 5.0
+
+        # The customer rate is agreed before a carrier is found, so it is set off
+        # the market rate rather than off what the carrier happened to accept.
+        market = RATE_PER_MILE[self.equipment or "DRY_VAN"] * self.miles
+        self.customer_rate = round(market * self.margin / 5) * 5.0
 
     @property
     def appearances(self) -> int:
         return len(self.lifecycle)
 
-    def carrier_rate_at(self, offset: int) -> float:
+    def carrier_at(self, offset: int) -> str | None:
+        """Who is on the hook at this appearance, accounting for a fall-off."""
+        if self.lifecycle[offset] not in ("COVERED", "IN_TRANSIT", "DELIVERED", "COMPLETED"):
+            return None
+        if self.fall_off is not None and offset < self.fall_off.offset:
+            return self.fall_off.original
+        return self.carrier
+
+    def carrier_rate_at(self, offset: int) -> float | None:
+        acting = self.carrier_at(offset)
+        if acting is None:
+            return None
+        if self.fall_off is not None and offset < self.fall_off.offset:
+            return self.original_carrier_rate
         total = self.carrier_rate
         for corr in self.corrections:
             if corr.offset <= offset:
@@ -254,13 +352,19 @@ def broker_a_loads() -> list[LoadSpec]:
     (one load) so we can see what a low-confidence answer looks like.
     IBRAHIM is the veteran, TRINITY is strong but only recently active,
     BLUEBONNET has exactly one load ever - the fairness case.
+
+    Service outcomes are assigned deliberately, not sprinkled. LONE OAK is the
+    cheap-but-unreliable carrier: it books below everyone and delivers late half
+    the time, which is exactly the case a margin-only ranking gets wrong.
+    PANHANDLE is late on its single load, so shrinkage has to decide whether one
+    failure means a 0% on-time carrier (it must not).
     """
     return [
         # --- deep lane: DFW -> HOU, dry van ---
         LoadSpec("A-H01", "grand_prairie", "katy", "DRY_VAN", 24000, "lone_star_bev", "ibrahim", LIFECYCLE_FULL,
                  commodity="Bottled beverages"),
         LoadSpec("A-H02", "mesquite", "pasadena", "DRY_VAN", 21500, "trinity_paper", "lone_oak", LIFECYCLE_FULL,
-                 commodity="Paper goods"),
+                 commodity="Paper goods", service=LATE_DELIVERY),
         LoadSpec("A-H03", "lancaster", "sugar_land", "DRY_VAN", 26200, "pecan_grove_retail", "ibrahim", LIFECYCLE_FAST,
                  commodity="Mixed retail",
                  corrections=[Correction(3, 145.0, "ACCESSORIAL", "Detention at receiver, 2h over")]),
@@ -269,19 +373,24 @@ def broker_a_loads() -> list[LoadSpec]:
         LoadSpec("A-H05", "arlington", "baytown", "DRY_VAN", 23100, "brazos_chemical", "ibrahim", LIFECYCLE_FULL,
                  commodity="Drummed lubricants"),
         LoadSpec("A-H06", "grand_prairie", "houston_north", "DRY_VAN", 22400, "trinity_paper", "lone_oak",
-                 LIFECYCLE_QUOTED, commodity="Paper goods",
+                 LIFECYCLE_QUOTED, commodity="Paper goods", service=LATE_BOTH,
                  corrections=[Correction(4, -85.0, "ADJUSTMENT", "Linehaul was keyed 85 too high at booking")]),
-        LoadSpec("A-H07", "plano", "spring", "DRY_VAN", 18600, "pecan_grove_retail", "trinity", LIFECYCLE_FAST,
-                 commodity="Mixed retail"),
+        # BLUEBONNET accepts, then bails, and TRINITY covers it instead. Visible in
+        # the feed only as the status going backwards and the carrier changing.
+        LoadSpec("A-H07", "plano", "spring", "DRY_VAN", 18600, "pecan_grove_retail", "trinity",
+                 ["ACTIVE", "COVERED", "ACTIVE", "COVERED", "IN_TRANSIT", "DELIVERED", "COMPLETED"],
+                 commodity="Mixed retail", fall_off=FallOff(offset=2, original="bluebonnet")),
         # --- reefer, DFW <-> SAT ---
         LoadSpec("A-H08", "fort_worth", "new_braunfels", "REEFER", 27500, "hill_valley_ag", "rio_grande",
                  LIFECYCLE_FULL, commodity="Fresh produce"),
         LoadSpec("A-H09", "waxahachie", "schertz", "REEFER", 25900, "hill_valley_ag", "rio_grande", LIFECYCLE_FAST,
                  commodity="Dairy"),
         # --- flatbed, DFW -> AUS: the thin lane ---
+        # PANHANDLE is expensive AND late on its only load. One observation must
+        # not be read as "0% on-time".
         LoadSpec("A-H10", "alliance", "austin_se", "FLATBED", 31000, "alamo_building", "panhandle", LIFECYCLE_FULL,
-                 commodity="Steel coil", rate_per_mile=5.95),
-        # --- BLUEBONNET's single load ever ---
+                 commodity="Steel coil", service=LATE_DELIVERY),
+        # --- BLUEBONNET's only completed load (it also fell off A-H07) ---
         LoadSpec("A-H11", "denton", "rosenberg", "DRY_VAN", 20100, "brazos_chemical", "bluebonnet", LIFECYCLE_FAST,
                  commodity="Packaged chemicals"),
         # --- IBRAHIM's most recent run ends in Houston, right where the
@@ -310,13 +419,17 @@ def broker_b_loads() -> list[LoadSpec]:
                  corrections=[Correction(3, 210.0, "FUEL", "Fuel surcharge billed at delivery")]),
         LoadSpec("B-H04", "converse", "baytown", "DRY_VAN", 21900, "brazos_chemical", "gulf_breeze", LIFECYCLE_FULL,
                  commodity="Packaged chemicals"),
+        # The credit here is the money side of a real service failure, so the
+        # lateness and the adjustment tell the same story.
         LoadSpec("B-H05", "san_antonio_e", "katy", "DRY_VAN", 23600, "gulf_coast_foods", "delta_prime",
-                 LIFECYCLE_QUOTED, commodity="Canned goods",
+                 LIFECYCLE_QUOTED, commodity="Canned goods", service=LATE_DELIVERY,
                  corrections=[Correction(4, -120.0, "ADJUSTMENT", "Credit: carrier missed the delivery window")]),
         LoadSpec("B-H06", "new_braunfels", "rosenberg", "REEFER", 26100, "hill_valley_ag", "hill_country",
                  LIFECYCLE_FULL, commodity="Fresh produce"),
-        LoadSpec("B-H07", "pasadena", "seguin", "DRY_VAN", 20400, "gulf_coast_foods", "gulf_breeze", LIFECYCLE_FAST,
-                 commodity="Empty packaging"),
+        # HILL COUNTRY takes it, falls off, GULF BREEZE covers it.
+        LoadSpec("B-H07", "pasadena", "seguin", "DRY_VAN", 20400, "gulf_coast_foods", "gulf_breeze",
+                 ["ACTIVE", "COVERED", "ACTIVE", "COVERED", "DELIVERED", "COMPLETED"],
+                 commodity="Empty packaging", fall_off=FallOff(offset=2, original="hill_country")),
         # IBRAHIM under a second broker: same MC as broker A's veteran, but with
         # thin history *here*. Broker B must not benefit from broker A's data.
         LoadSpec("B-H08", "schertz", "grand_prairie", "DRY_VAN", 22000, "alamo_building", "ibrahim", LIFECYCLE_FAST,
@@ -338,7 +451,7 @@ def broker_c_loads() -> list[LoadSpec]:
                  LIFECYCLE_FAST, commodity="Frozen foods",
                  corrections=[Correction(2, 175.0, "ACCESSORIAL", "Layover, receiver closed on arrival")]),
         LoadSpec("C-H03", "baytown", "converse", "DRY_VAN", 22600, "brazos_chemical", "bayou_city", LIFECYCLE_FULL,
-                 commodity="Packaged chemicals"),
+                 commodity="Packaged chemicals", service=LATE_DELIVERY),
         LoadSpec("C-H04", "stafford", "new_braunfels", "DRY_VAN", 21300, "pecan_grove_retail", "bayou_city",
                  LIFECYCLE_QUOTED, commodity="Mixed retail", mid_stop="rosenberg"),
         LoadSpec("C-H05", "spring", "austin_se", "REEFER", 16800, "gulf_coast_foods", "rio_grande", LIFECYCLE_FULL,
@@ -351,7 +464,7 @@ def broker_c_loads() -> list[LoadSpec]:
                  commodity="Packaged foods",
                  corrections=[Correction(4, -240.0, "ADJUSTMENT", "Carrier rate restated at settlement")]),
         LoadSpec("C-H08", "rosenberg", "san_marcos", "FLATBED", 28900, "alamo_building", "star_of_texas",
-                 LIFECYCLE_FAST, commodity="Lumber"),
+                 LIFECYCLE_FAST, commodity="Lumber", service=LATE_PICKUP),
         LoadSpec("C-N01", "sugar_land", "schertz", "REEFER", 15100, "gulf_coast_foods", None, ["ACTIVE", "ACTIVE"],
                  commodity="Packaged foods"),
         LoadSpec("C-N02", "baytown", "georgetown", None, 18700, "capital_electronics", None, ["ACTIVE", "ACTIVE"],
@@ -438,27 +551,38 @@ def appearance_context(spec: LoadSpec, offset: int) -> dict:
     slot = spec.start_slot + offset
     sync_dt = slot_datetime(slot)
     status = spec.lifecycle[offset]
-    reached = set(spec.lifecycle[: offset + 1])
     pickup_date, delivery_date = load_dates(spec)
     booked = status in ("COVERED", "IN_TRANSIT", "DELIVERED", "COMPLETED")
     rolling = status in ("IN_TRANSIT", "DELIVERED", "COMPLETED")
     delivered = status in ("DELIVERED", "COMPLETED")
+
+    # A late truck misses the appointment day entirely. Same-day lateness would be
+    # invisible in BrokerOS, which records scheduled dates without times.
+    late_pickup = spec.service in (LATE_PICKUP, LATE_BOTH)
+    late_delivery = spec.service in (LATE_DELIVERY, LATE_BOTH)
+    departed_dt = datetime.combine(pickup_date, datetime.min.time()) + (
+        timedelta(days=1, hours=7, minutes=20) if late_pickup else timedelta(hours=10, minutes=25)
+    )
+    arrived_dt = datetime.combine(delivery_date, datetime.min.time()) + (
+        timedelta(days=1, hours=6, minutes=35) if late_delivery else timedelta(hours=9, minutes=40)
+    )
+
+    acting = spec.carrier_at(offset)
     return {
         "slot": slot,
         "sync_dt": sync_dt,
         "status": status,
-        "reached": reached,
         "created_dt": slot_datetime(spec.start_slot) - timedelta(hours=2, minutes=17),
         "modified_dt": sync_dt - timedelta(hours=1, minutes=13),
         "pickup_date": pickup_date,
         "delivery_date": delivery_date,
-        "departed_dt": datetime.combine(pickup_date, datetime.min.time()) + timedelta(hours=10, minutes=25),
-        "arrived_dt": datetime.combine(delivery_date, datetime.min.time()) + timedelta(hours=9, minutes=40),
+        "departed_dt": departed_dt,
+        "arrived_dt": arrived_dt,
         "booked": booked,
         "rolling": rolling,
         "delivered": delivered,
-        "carrier": CARRIERS[spec.carrier] if (booked and spec.carrier) else None,
-        "carrier_rate": spec.carrier_rate_at(offset) if booked else None,
+        "carrier": CARRIERS[acting] if acting else None,
+        "carrier_rate": spec.carrier_rate_at(offset),
         "customer_rate": spec.customer_rate_at(offset),
     }
 
@@ -624,9 +748,17 @@ def hauldesk_rate_rows(spec: LoadSpec, offset: int, seq: list[int]) -> list[dict
     # exists once a carrier says yes.
     if offset == 0:
         add("bill", "LINEHAUL", spec.customer_rate)
+
     became_covered = ctx["status"] == "COVERED" and (offset == 0 or spec.lifecycle[offset - 1] != "COVERED")
     if became_covered:
-        add("pay", "LINEHAUL", spec.carrier_rate)
+        add("pay", "LINEHAUL", spec.carrier_rate_at(offset) or 0.0)
+
+    # A carrier falling off does not delete its linehaul row - HaulDesk never
+    # deletes. The row is reversed by appending its negative, so the ledger still
+    # nets to what the replacement carrier is owed.
+    if spec.fall_off is not None and offset == spec.fall_off.offset:
+        add("pay", "ADJUSTMENT", -spec.original_carrier_rate)
+
     for corr in spec.corrections:
         if corr.offset == offset:
             add("pay", corr.code, corr.delta)
@@ -786,6 +918,148 @@ def write_brokeros(loads: list[LoadSpec], out_dir: Path) -> None:
 
 
 # --------------------------------------------------------------------------
+# The platform's own offer log
+#
+# None of the three TMSs record a tender, an offer, a decline, or a response
+# time. They only ever show the carrier that ended up on the load. That makes
+# acceptance behaviour unidentifiable from TMS data alone: there is no negative
+# class, and no record of the rate that was refused.
+#
+# So this is the platform's own log - what it asked, of whom, at what price, and
+# what came back. It is a separate data source on purpose, because the fact that
+# it *has* to be separate is the important design finding.
+# --------------------------------------------------------------------------
+
+# How the load's TMS-native identifiers are built, per feed.
+LOAD_REF_BUILDERS = {
+    "tms_a_freightflow": lambda key: str(ff_shipment_id(key)),
+    "tms_b_hauldesk": hd_load_num,
+    "tms_c_brokeros": bos_load_id,
+}
+
+
+def carrier_ref_for(tms: str, carrier: Carrier) -> str:
+    """The carrier id as that broker's TMS knows it, so the log joins to the
+    carriers the platform already ingested."""
+    if tms == "tms_a_freightflow":
+        return str(835000 + int(carrier.mc) % 900)
+    if tms == "tms_b_hauldesk":
+        return str(hd_carrier_id(carrier))
+    return bos_id("001", f"acct:{carrier.key}")
+
+
+def _outcome_for(carrier: Carrier, offered: float, floor: float) -> tuple[str, float | None, str | None]:
+    """What comes back when this carrier is offered this much.
+
+    A carrier accepts at or above its floor. Below it, the interesting part is
+    *how* it says no: some counter (which leaks their floor), some decline, and
+    some never answer at all.
+    """
+    if offered >= floor:
+        return "accepted", None, None
+    if carrier.ghosts:
+        return "no_response", None, None
+    if carrier.counters:
+        return "countered", round(floor * 1.02 / 5) * 5.0, "rate below our floor"
+    return "declined", None, "rate too low"
+
+
+def build_offers(loads: list[LoadSpec], tms: str) -> list[dict]:
+    """One offer sequence per load: the calls that were made before it covered.
+
+    Callees are rotated deterministically through the broker's roster so the same
+    carrier is not always the one refusing, which would make the acceptance curve
+    trivially separable.
+    """
+    roster = BROKER_ROSTERS[tms]
+    load_ref_of = LOAD_REF_BUILDERS[tms]
+    offers: list[dict] = []
+    sequence = 0
+
+    def emit(spec: LoadSpec, carrier_key: str, offered: float, at: datetime, slot: int) -> None:
+        nonlocal sequence
+        sequence += 1
+        carrier = CARRIERS[carrier_key]
+        floor = reserve_usd(carrier_key, spec.equipment, spec.miles)
+        outcome, counter, reason = _outcome_for(carrier, offered, floor)
+        responded = None
+        if outcome != "no_response":
+            responded = at + timedelta(minutes=carrier.response_min + (sequence * 7) % 23)
+        offers.append(
+            {
+                "offer_id": f"OF-{stable_hash(tms) % 90:02d}-{sequence:05d}",
+                "load_ref": load_ref_of(spec.key),
+                "carrier_ref": carrier_ref_for(tms, carrier),
+                "carrier_mc": carrier.mc,
+                "carrier_name": carrier.name,
+                "offered_at": central(at),
+                "offered_rate_usd": round(offered, 2),
+                "outcome": outcome,
+                "counter_rate_usd": counter,
+                "responded_at": central(responded) if responded else None,
+                "decline_reason": reason,
+                "_slot": slot,
+            }
+        )
+
+    def call_round(spec: LoadSpec, winner: str | None, win_rate: float | None, book_slot: int,
+                   rotation: int) -> None:
+        """Two speculative calls at a low rate, then the accept if there was one."""
+        others = [key for key in roster if key != winner]
+        callees = [others[(rotation + i) % len(others)] for i in range(2)]
+        book_time = slot_datetime(book_slot) - timedelta(minutes=40)
+
+        for index, callee in enumerate(callees):
+            floor = reserve_usd(callee, spec.equipment, spec.miles)
+            # Brokers open low. Below this callee's floor by construction, which is
+            # what makes the refusal informative rather than random.
+            ceiling = win_rate if win_rate is not None else floor
+            offered = round(min(ceiling * 0.93, floor * 0.94) / 5) * 5.0
+            emit(spec, callee, offered, book_time - timedelta(hours=3 - index), book_slot)
+
+        if winner is not None and win_rate is not None:
+            emit(spec, winner, win_rate, book_time, book_slot)
+
+    for index, spec in enumerate(loads):
+        first_covered = next((i for i, s in enumerate(spec.lifecycle) if s == "COVERED"), None)
+
+        if spec.fall_off is not None and first_covered is not None:
+            call_round(spec, spec.fall_off.original, spec.original_carrier_rate,
+                       spec.start_slot + first_covered, index)
+            recovered = next(
+                (i for i, s in enumerate(spec.lifecycle) if s == "COVERED" and i > spec.fall_off.offset),
+                None,
+            )
+            if recovered is not None:
+                call_round(spec, spec.carrier, spec.carrier_rate, spec.start_slot + recovered, index + 3)
+        elif first_covered is not None:
+            call_round(spec, spec.carrier, spec.carrier_rate, spec.start_slot + first_covered, index)
+        else:
+            # Still looking for a truck. The calls already made are the most
+            # useful thing the platform knows about it: somebody has refused a
+            # price, so the floor is now known to be higher than that.
+            call_round(spec, None, None, spec.start_slot + 1, index)
+
+    return offers
+
+
+def write_offers(loads: list[LoadSpec], tms: str, broker_id: str, out_dir: Path) -> int:
+    offers = build_offers(loads, tms)
+    by_slot: dict[int, list[dict]] = {}
+    for offer in offers:
+        by_slot.setdefault(offer.pop("_slot"), []).append(offer)
+
+    for slot, batch in sorted(by_slot.items()):
+        payload = {
+            "logged_at": central(slot_datetime(slot)),
+            "broker_id": broker_id,
+            "offers": batch,
+        }
+        write_json(out_dir / slot_filename(slot).replace("_sync", "_offers"), payload)
+    return len(offers)
+
+
+# --------------------------------------------------------------------------
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -793,27 +1067,46 @@ def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n")
 
 
-def clear_generated(out_dir: Path) -> None:
-    for existing in out_dir.glob("*_sync.json"):
+def clear_generated(out_dir: Path, pattern: str = "*_sync.json") -> None:
+    for existing in out_dir.glob(pattern):
         existing.unlink()
 
 
+FEEDS = (
+    ("tms_a_freightflow", "redline", broker_a_loads, "write_freightflow"),
+    ("tms_b_hauldesk", "anchor", broker_b_loads, "write_hauldesk"),
+    ("tms_c_brokeros", "summit", broker_c_loads, "write_brokeros"),
+)
+
+
 def main() -> None:
-    feeds = [
-        ("tms_a_freightflow", broker_a_loads(), write_freightflow),
-        ("tms_b_hauldesk", broker_b_loads(), write_hauldesk),
-        ("tms_c_brokeros", broker_c_loads(), write_brokeros),
-    ]
-    for name, loads, writer in feeds:
+    writers = {
+        "write_freightflow": write_freightflow,
+        "write_hauldesk": write_hauldesk,
+        "write_brokeros": write_brokeros,
+    }
+    for tms, broker_id, build_loads, writer_name in FEEDS:
+        loads = build_loads()
         for spec in loads:
             spec.finalize()
         pack(loads)
-        out_dir = DATA_ROOT / name
+
+        out_dir = DATA_ROOT / tms
         clear_generated(out_dir)
-        writer(loads, out_dir)
-        history = sum(1 for s in loads if "-H" in s.key)
-        answer = len(loads) - history
-        print(f"{name}: {TOTAL_SLOTS} sync files, {history} history loads, {answer} loads awaiting a carrier")
+        writers[writer_name](loads, out_dir)
+
+        activity_dir = DATA_ROOT / "platform_activity" / broker_id
+        clear_generated(activity_dir, "*_offers.json")
+        offer_count = write_offers(loads, tms, broker_id, activity_dir)
+
+        history = sum(1 for spec in loads if "-H" in spec.key)
+        late = sum(1 for spec in loads if spec.service != ON_TIME)
+        fell_off = sum(1 for spec in loads if spec.fall_off is not None)
+        print(
+            f"{tms}: {TOTAL_SLOTS} sync files, {history} history loads, "
+            f"{len(loads) - history} awaiting a carrier, {late} with service failures, "
+            f"{fell_off} fall-offs, {offer_count} logged offers"
+        )
 
 
 if __name__ == "__main__":

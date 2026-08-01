@@ -736,3 +736,201 @@ summary {
   font-size: 11px;
   margin-top: 2px;
 }
+
+/* ---------------------------------------------------------------------------
+   Expected-value ranking
+   --------------------------------------------------------------------------- */
+
+.engine-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.85rem;
+}
+
+.engine-switch-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.engine-tab {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.28rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.engine-tab:hover { border-color: var(--accent); }
+
+.engine-tab-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.engine-objective {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.carrier-numbers .sub {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 0.1rem;
+}
+
+.carrier-numbers .value.negative { color: var(--negative); }
+.numeric.negative { color: var(--negative); }
+
+/* Expected value shown as a range: the width is the cost of thin evidence, and a
+   wide bar is an argument for calling rather than against it. */
+.value-bar {
+  position: relative;
+  height: 10px;
+  margin: 0.6rem 0 0.75rem;
+  background: var(--neutral-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.value-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.value-point {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.value-zero {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--muted);
+}
+
+.prior-offers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+  font-size: 0.8rem;
+}
+
+.prior-offers-label {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.prior-offer {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.12rem 0.55rem;
+  background: var(--neutral-bg);
+}
+
+.prior-offer.outcome-declined,
+.prior-offer.outcome-no_response { border-color: color-mix(in srgb, var(--negative) 45%, var(--border)); }
+.prior-offer.outcome-countered { border-color: color-mix(in srgb, var(--warn) 55%, var(--border)); }
+.prior-offer.outcome-accepted { border-color: color-mix(in srgb, var(--positive) 50%, var(--border)); }
+
+.prior-heavy { color: var(--warn); }
+.small { font-size: 0.78rem; }
+
+.rule-list { margin: 0.2rem 0 0.6rem 1.1rem; font-size: 0.85rem; }
+.rule-list li { margin: 0.15rem 0; }
+
+/* ---------------------------------------------------------------------------
+   Eligibility: exclusions and the gates we cannot evaluate
+   --------------------------------------------------------------------------- */
+
+.exclusions { list-style: none; margin: 0; padding: 0; }
+
+.exclusion {
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) minmax(0, 9rem) 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.86rem;
+}
+
+.exclusion:last-child { border-bottom: none; }
+
+.exclusion-unchecked { grid-template-columns: minmax(0, 14rem) 1fr; }
+
+.exclusion-name { font-weight: 600; }
+
+.exclusion-gate {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--negative);
+}
+
+.exclusion-detail { color: var(--muted); }
+
+.limitations { margin: 0.3rem 0 0 1.1rem; font-size: 0.85rem; color: var(--muted); }
+.limitations li { margin: 0.3rem 0; }
+
+/* ---------------------------------------------------------------------------
+   Offer log and service outcomes
+   --------------------------------------------------------------------------- */
+
+.offer-log { list-style: none; margin: 0; padding: 0; }
+
+.offer {
+  padding: 0.55rem 0 0.55rem 0.7rem;
+  border-left: 3px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.offer:last-child { border-bottom: none; }
+.offer.outcome-accepted { border-left-color: var(--positive); }
+.offer.outcome-declined { border-left-color: var(--negative); }
+.offer.outcome-countered { border-left-color: var(--warn); }
+.offer.outcome-no_response { border-left-color: var(--muted); }
+
+.offer-head { display: flex; justify-content: space-between; gap: 0.5rem; }
+.offer-carrier { font-weight: 600; }
+
+.offer-outcome {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.offer-meta { font-size: 0.76rem; margin-top: 0.15rem; }
+
+.ontime {
+  font-size: 0.76rem;
+  margin-top: 0.2rem;
+  font-weight: 600;
+}
+
+.ontime-good { color: var(--positive); }
+.ontime-bad { color: var(--negative); }
+
+.change-fall_off { border-left-color: var(--negative); }

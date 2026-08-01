@@ -18,9 +18,14 @@ The traps here:
 from __future__ import annotations
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from ..domain import Carrier, Equipment, Load, LoadStatus, Stop
 from .base import SyncBatch
+
+# Appointment dates carry no time and no offset. They are wall-clock dates at the
+# stop, and this broker's freight is all Texas, so Central is the correct reading.
+CENTRAL = ZoneInfo("America/Chicago")
 
 KG_TO_LBS = 2.20462262
 
@@ -53,7 +58,15 @@ def parse_dt(value: str | None) -> datetime | None:
 
 
 def parse_date(value: str | None) -> datetime | None:
-    return datetime.fromisoformat(value) if value else None
+    """A bare appointment date, anchored to Central.
+
+    Every datetime in the canonical model must be timezone-aware. Letting one
+    naive value through does not fail here - it fails much later, wherever
+    something first tries to compare it against a real timestamp.
+    """
+    if not value:
+        return None
+    return datetime.fromisoformat(value).replace(tzinfo=CENTRAL)
 
 
 class BrokerOSAdapter:

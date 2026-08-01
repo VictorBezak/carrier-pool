@@ -18,7 +18,16 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from .domain import Carrier, ChangeKind, FieldChange, Load, LoadStatus, SyncFileRecord
+from .domain import (
+    BOOKED_STATUSES,
+    Carrier,
+    ChangeKind,
+    FieldChange,
+    Load,
+    LoadStatus,
+    Offer,
+    SyncFileRecord,
+)
 
 # Fields worth telling the user about when they change between syncs.
 _TRACKED_FIELDS = (
@@ -35,15 +44,30 @@ _MONEY_FIELDS = frozenset({"customer_rate", "carrier_rate"})
 _STATUS_ORDER = {status: index for index, status in enumerate(LoadStatus)}
 
 
+_SEARCHING = frozenset({LoadStatus.PLANNED, LoadStatus.ACTIVE})
+
+
 def _classify(field: str, old, new) -> ChangeKind:
     if field == "status":
         old_rank = _STATUS_ORDER.get(old, -1)
         new_rank = _STATUS_ORDER.get(new, -1)
-        # Freight moves forward; a status going backwards is somebody fixing a
-        # mistake, not a truck reversing.
-        return "PROGRESS" if new_rank > old_rank else "CORRECTION"
+        if new_rank > old_rank:
+            return "PROGRESS"
+        # A load that was covered and is now looking for a truck again is a
+        # carrier walking away, which is a business event with a real cost - not
+        # a data-entry mistake. No feed reports it as anything; the regression is
+        # the only evidence there is.
+        if old in BOOKED_STATUSES and new in _SEARCHING:
+            return "FALL_OFF"
+        return "CORRECTION"
     if old is None:
         return "REVEALED"
+    if field == "carrier_name":
+        # The carrier on a booked load changing means the first one came off it.
+        # Strictly this is indistinguishable from someone fixing a mistyped
+        # carrier, and we prefer the business reading because it is far more
+        # common and far more expensive to miss.
+        return "FALL_OFF"
     if field in _MONEY_FIELDS:
         return "CORRECTION"
     return "DETAIL"
@@ -63,6 +87,8 @@ class Store:
         self._carriers: dict[str, dict[str, Carrier]] = {}
         self._changes: list[FieldChange] = []
         self._sync_files: list[SyncFileRecord] = []
+        # Offers are keyed by id so replaying a log file cannot duplicate them.
+        self._offers: dict[str, dict[str, Offer]] = {}
 
     # ---- writes --------------------------------------------------------
 
@@ -109,6 +135,9 @@ class Store:
             carrier.first_seen_at = existing.first_seen_at or carrier.first_seen_at
         bucket[carrier.carrier_id] = carrier
 
+    def record_offer(self, offer: Offer) -> None:
+        self._offers.setdefault(offer.broker_id, {})[offer.offer_id] = offer
+
     def record_sync_file(self, record: SyncFileRecord) -> None:
         self._sync_files.append(record)
 
@@ -135,6 +164,15 @@ class Store:
 
     def changes(self, broker_id: str) -> list[FieldChange]:
         return [change for change in self._changes if change.broker_id == broker_id]
+
+    def offers(self, broker_id: str) -> list[Offer]:
+        return list(self._offers.get(broker_id, {}).values())
+
+    def offers_for_load(self, broker_id: str, load_id: str) -> list[Offer]:
+        return sorted(
+            (offer for offer in self.offers(broker_id) if offer.load_id == load_id),
+            key=lambda offer: offer.offered_at,
+        )
 
     def sync_files(self, broker_id: str | None = None) -> list[SyncFileRecord]:
         if broker_id is None:

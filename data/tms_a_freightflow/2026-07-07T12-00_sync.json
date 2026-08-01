@@ -5,8 +5,8 @@
       "shipmentId": 127472794,
       "status": "Completed",
       "mileage": 254.9,
-      "totalSell": 1410.0,
-      "totalBuy": 1155.0,
+      "totalSell": 1510.0,
+      "totalBuy": 1090.0,
       "customer": {
         "customerId": 889477,
         "name": "Trinity Paper Products"
@@ -37,7 +37,7 @@
           "zipCode": "77502",
           "estimatedReadyDateTime": "2026-07-08T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-08T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-08T09:40:00-05:00"
+          "actualDepartureDateTime": "2026-07-09T06:35:00-05:00"
         }
       ],
       "createdDate": "2026-07-06T09:43:00-05:00",
@@ -47,8 +47,8 @@
       "shipmentId": 127473191,
       "status": "Completed",
       "mileage": 231.5,
-      "totalSell": 1451.75,
-      "totalBuy": 1200.0,
+      "totalSell": 1536.75,
+      "totalBuy": 1205.0,
       "customer": {
         "customerId": 889040,
         "name": "Pecan Grove Retail"
@@ -89,8 +89,8 @@
       "shipmentId": 127473588,
       "status": "Dispatched",
       "mileage": 234.0,
-      "totalSell": 1410.0,
-      "totalBuy": 1155.0,
+      "totalSell": 1385.0,
+      "totalBuy": 1145.0,
       "customer": {
         "customerId": 889877,
         "name": "Lone Star Beverages"

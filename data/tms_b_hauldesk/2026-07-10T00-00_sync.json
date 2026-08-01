@@ -9,7 +9,7 @@
       "carrier_ref": 66053,
       "equip": "R",
       "weight_kg": 11838.8,
-      "dist_km": 317.5,
+      "dist_km": 315.8,
       "pu_city": "New Braunfels",
       "pu_state": "TX",
       "pu_zip": "78130",
@@ -28,10 +28,10 @@
       "status_code": 30,
       "customer_code": "C-0077",
       "customer_name": "Gulf Coast Foods",
-      "carrier_ref": 66621,
+      "carrier_ref": 66053,
       "equip": "V",
       "weight_kg": 9253.3,
-      "dist_km": 300.0,
+      "dist_km": 294.3,
       "pu_city": "Pasadena",
       "pu_state": "TX",
       "pu_zip": "77502",
@@ -53,7 +53,7 @@
       "load_num": "HD-2026-004519",
       "side": "pay",
       "code": "LINEHAUL",
-      "amount_usd": 915.0,
+      "amount_usd": 895.0,
       "created_at": "2026-07-09 22:47:00"
     }
   ]

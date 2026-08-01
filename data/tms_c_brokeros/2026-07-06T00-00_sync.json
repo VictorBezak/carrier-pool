@@ -5,11 +5,11 @@
       "Id": "a0jylRUuNGwelgNdS1",
       "Name": "SHP6743062",
       "bos__Load_Status__c": "Ready to Book",
-      "bos__Distance_Miles__c": 199.8,
+      "bos__Distance_Miles__c": 184.3,
       "bos__Customer__c": "001OamA0b0WFeMTFj9",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1415.0,
+      "bos__Customer_Rate__c": 1260.0,
       "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {

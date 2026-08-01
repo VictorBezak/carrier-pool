@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-07T00:00:00-05:00",
+  "broker_id": "summit",
+  "offers": [
+    {
+      "offer_id": "OF-11-00004",
+      "load_ref": "a0jO3X7qeZ7neZEvvj",
+      "carrier_ref": "00194TuN78HnhRZ60X",
+      "carrier_mc": "998271",
+      "carrier_name": "RIO GRANDE HAULERS INC",
+      "offered_at": "2026-07-06T20:20:00-05:00",
+      "offered_rate_usd": 980.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1060.0,
+      "responded_at": "2026-07-06T21:20:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-11-00005",
+      "load_ref": "a0jO3X7qeZ7neZEvvj",
+      "carrier_ref": "00103OAV4p5bncSNEW",
+      "carrier_mc": "1533201",
+      "carrier_name": "STAR OF TEXAS FREIGHT LLC",
+      "offered_at": "2026-07-06T21:20:00-05:00",
+      "offered_rate_usd": 1005.0,
+      "outcome": "no_response",
+      "counter_rate_usd": null,
+      "responded_at": null,
+      "decline_reason": null
+    },
+    {
+      "offer_id": "OF-11-00006",
+      "load_ref": "a0jO3X7qeZ7neZEvvj",
+      "carrier_ref": "0014kYSQ2MReXmEcSz",
+      "carrier_mc": "1177342",
+      "carrier_name": "ALAMO RIDGE CARRIERS LLC",
+      "offered_at": "2026-07-06T23:20:00-05:00",
+      "offered_rate_usd": 1080.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-07T00:19:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

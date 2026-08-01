@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-10T00:00:00-05:00",
+  "broker_id": "anchor",
+  "offers": [
+    {
+      "offer_id": "OF-86-00019",
+      "load_ref": "HD-2026-004519",
+      "carrier_ref": "66401",
+      "carrier_mc": "884201",
+      "carrier_name": "DELTA PRIME LLC",
+      "offered_at": "2026-07-09T20:20:00-05:00",
+      "offered_rate_usd": 765.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T21:13:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-86-00020",
+      "load_ref": "HD-2026-004519",
+      "carrier_ref": "66621",
+      "carrier_mc": "1390221",
+      "carrier_name": "GULF BREEZE TRANSPORT LLC",
+      "offered_at": "2026-07-09T21:20:00-05:00",
+      "offered_rate_usd": 790.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T21:47:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-86-00021",
+      "load_ref": "HD-2026-004519",
+      "carrier_ref": "66053",
+      "carrier_mc": "1201553",
+      "carrier_name": "HILL COUNTRY TRUCKING INC",
+      "offered_at": "2026-07-09T23:20:00-05:00",
+      "offered_rate_usd": 895.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-10T01:04:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "logged_at": "2026-07-12T06:00:00-05:00",
+  "broker_id": "redline",
+  "offers": [
+    {
+      "offer_id": "OF-59-00040",
+      "load_ref": "127472438",
+      "carrier_ref": "835882",
+      "carrier_mc": "1346382",
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "offered_at": "2026-07-12T02:20:00-05:00",
+      "offered_rate_usd": 1065.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1165.0,
+      "responded_at": "2026-07-12T03:09:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-59-00041",
+      "load_ref": "127472438",
+      "carrier_ref": "835438",
+      "carrier_mc": "1102938",
+      "carrier_name": "LONE OAK CARRIERS LLC",
+      "offered_at": "2026-07-12T03:20:00-05:00",
+      "offered_rate_usd": 995.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-12T05:26:00-05:00",
+      "decline_reason": "rate too low"
+    }
+  ]
+}

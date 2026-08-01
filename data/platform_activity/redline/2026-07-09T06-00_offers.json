@@ -1,0 +1,84 @@
+{
+  "logged_at": "2026-07-09T06:00:00-05:00",
+  "broker_id": "redline",
+  "offers": [
+    {
+      "offer_id": "OF-59-00022",
+      "load_ref": "127474779",
+      "carrier_ref": "835618",
+      "carrier_mc": "1500918",
+      "carrier_name": "BLUEBONNET FREIGHT CO",
+      "offered_at": "2026-07-09T02:20:00-05:00",
+      "offered_rate_usd": 940.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T02:51:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00023",
+      "load_ref": "127474779",
+      "carrier_ref": "835882",
+      "carrier_mc": "1346382",
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "offered_at": "2026-07-09T03:20:00-05:00",
+      "offered_rate_usd": 985.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1065.0,
+      "responded_at": "2026-07-09T04:05:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-59-00024",
+      "load_ref": "127474779",
+      "carrier_ref": "835540",
+      "carrier_mc": "1288440",
+      "carrier_name": "TRINITY RIVER EXPRESS LLC",
+      "offered_at": "2026-07-09T05:20:00-05:00",
+      "offered_rate_usd": 1085.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T05:47:00-05:00",
+      "decline_reason": null
+    },
+    {
+      "offer_id": "OF-59-00025",
+      "load_ref": "127475176",
+      "carrier_ref": "835122",
+      "carrier_mc": "1450022",
+      "carrier_name": "PANHANDLE LOGISTICS LLC",
+      "offered_at": "2026-07-09T02:20:00-05:00",
+      "offered_rate_usd": 1380.0,
+      "outcome": "no_response",
+      "counter_rate_usd": null,
+      "responded_at": null,
+      "decline_reason": null
+    },
+    {
+      "offer_id": "OF-59-00026",
+      "load_ref": "127475176",
+      "carrier_ref": "835618",
+      "carrier_mc": "1500918",
+      "carrier_name": "BLUEBONNET FREIGHT CO",
+      "offered_at": "2026-07-09T03:20:00-05:00",
+      "offered_rate_usd": 1325.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T03:56:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00027",
+      "load_ref": "127475176",
+      "carrier_ref": "835171",
+      "carrier_mc": "998271",
+      "carrier_name": "RIO GRANDE HAULERS INC",
+      "offered_at": "2026-07-09T05:20:00-05:00",
+      "offered_rate_usd": 1485.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T06:20:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

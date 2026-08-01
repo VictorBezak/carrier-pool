@@ -11,7 +11,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from .domain import Equipment, FieldChange, Load, LoadStatus, Stop
+from .domain import Equipment, FieldChange, Load, LoadStatus, Offer, Stop
 
 
 class BrokerSummary(BaseModel):
@@ -83,9 +83,15 @@ class LoadDetail(LoadSummary):
     first_seen_sync: datetime | None
     last_seen_sync: datetime | None
     history: list[FieldChange]
+    # Service outcome, where it is knowable. Tri-state on purpose: a load still in
+    # transit is not "on time", it is not yet decided.
+    pickup_on_time: bool | None
+    delivery_on_time: bool | None
+    # The platform's own call record for this load, which no TMS provides.
+    offers: list[Offer]
 
     @classmethod
-    def of_load(cls, load: Load, history: list[FieldChange]) -> "LoadDetail":
+    def of_load(cls, load: Load, history: list[FieldChange], offers: list[Offer]) -> "LoadDetail":
         corrections = sum(1 for change in history if change.kind == "CORRECTION")
         base = LoadSummary.of(load, corrections).model_dump()
         return cls(
@@ -98,6 +104,9 @@ class LoadDetail(LoadSummary):
             first_seen_sync=load.first_seen_sync,
             last_seen_sync=load.last_seen_sync,
             history=history,
+            pickup_on_time=load.pickup_on_time,
+            delivery_on_time=load.delivery_on_time,
+            offers=offers,
         )
 
 

@@ -5,12 +5,12 @@
       "Id": "a0jMjR7SwbyAZKgG5T",
       "Name": "SHP6743186",
       "bos__Load_Status__c": "In Transit",
-      "bos__Distance_Miles__c": 198.9,
+      "bos__Distance_Miles__c": 202.3,
       "bos__Customer__c": "001DKJh96of8KwbhKO",
       "bos__Carrier__c": "001ZfPmg3vxbKJ7Xwi",
       "bos__Equipment_Type__c": "Dry Van",
-      "bos__Customer_Rate__c": 1230.0,
-      "bos__Carrier_Rate__c": 1010.0,
+      "bos__Customer_Rate__c": 1195.0,
+      "bos__Carrier_Rate__c": 1000.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,

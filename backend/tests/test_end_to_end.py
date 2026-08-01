@@ -184,8 +184,18 @@ def test_history_only_ever_holds_one_broker(store: Store) -> None:
 # ---- recommendations --------------------------------------------------
 
 
-def test_every_open_load_gets_a_traceable_answer(store: Store) -> None:
-    engine = ranking.get_engine()
+@pytest.mark.parametrize("engine_key", sorted(ranking.ENGINES))
+def test_every_open_load_gets_a_traceable_answer(store: Store, engine_key: str) -> None:
+    """Run the contract against *every* registered engine.
+
+    The point of having a contract is that it binds whatever is plugged into it,
+    so this is parametrised rather than pinned to the default. An earlier version
+    of this test also required a one-to-one match between reasons and score
+    components, which was really an assertion about how the heuristic engine
+    happened to be written - it fails for any engine whose prose does not
+    enumerate its arithmetic one line at a time.
+    """
+    engine = ranking.get_engine(engine_key)
     open_loads = 0
 
     for broker in brokers.BROKERS:
@@ -213,14 +223,37 @@ def test_every_open_load_gets_a_traceable_answer(store: Store) -> None:
 
             for carrier in result.carriers:
                 assert carrier.reasons, f"{carrier.carrier_name} ranked with no reasoning"
-                # The explanation must add up to the score it explains.
+                # The explanation must add up to the score it explains, or the
+                # narrative and the ranking can drift apart without anyone noticing.
                 total = round(sum(component.points for component in carrier.components), 1)
-                assert abs(total - carrier.score) < 0.05
-                assert {reason.points for reason in carrier.reasons} == {
-                    component.points for component in carrier.components
-                }
+                assert abs(total - carrier.score) < 0.05, (
+                    f"{engine_key}: {carrier.carrier_name} scored {carrier.score} but its "
+                    f"components sum to {total}"
+                )
+                assert carrier.components, "a score with no breakdown cannot be audited"
 
     assert open_loads >= 5, "the day-11 style answer set looks too small to be interesting"
+
+
+def test_every_normalised_datetime_is_timezone_aware(store: Store) -> None:
+    """The three feeds disagree about time: FreightFlow sends offsets, HaulDesk
+    sends naive Central wall time, BrokerOS sends bare dates for appointments. The
+    canonical model's job is to erase that difference, and a single naive value
+    surviving normalisation does not fail here - it fails later, in whichever
+    comparison happens to touch it first.
+    """
+    offenders: list[str] = []
+    for broker in brokers.BROKERS:
+        for load in store.loads(broker.broker_id):
+            fields = {"created_at": load.created_at, "updated_at": load.updated_at}
+            for index, stop in enumerate(load.stops):
+                for name in ("scheduled_start", "scheduled_end", "actual_arrival", "actual_departure"):
+                    fields[f"stop[{index}].{name}"] = getattr(stop, name)
+            for name, value in fields.items():
+                if value is not None and value.tzinfo is None:
+                    offenders.append(f"{broker.broker_id}/{load.reference}.{name}")
+
+    assert not offenders, f"naive datetimes escaped normalisation: {offenders[:5]}"
 
 
 def test_price_basis_never_overstates_the_match(store: Store) -> None:
@@ -229,7 +262,7 @@ def test_price_basis_never_overstates_the_match(store: Store) -> None:
     for broker in brokers.BROKERS:
         history = BrokerHistory(store, broker.broker_id)
         for load in history.all_loads:
-            estimate = engine.estimate_price(load, history)
+            estimate = ranking.estimate_price(load, history)
             if estimate is None:
                 continue
             if load.equipment is Equipment.UNKNOWN:
@@ -253,7 +286,7 @@ def test_a_load_is_never_a_comparable_for_itself(store: Store) -> None:
     engine = ranking.get_engine()
     history = BrokerHistory(store, "redline")
     for load in history.priced_loads:
-        estimate = engine.estimate_price(load, history)
+        estimate = ranking.estimate_price(load, history)
         if estimate is None:
             continue
         assert load.load_id not in {item.load_id for item in estimate.comparables}

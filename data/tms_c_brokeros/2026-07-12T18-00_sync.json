@@ -5,11 +5,11 @@
       "Id": "a0jftgHugyPQpNsi6y",
       "Name": "SHP6743131",
       "bos__Load_Status__c": "Ready to Book",
-      "bos__Distance_Miles__c": 178.5,
+      "bos__Distance_Miles__c": 174.5,
       "bos__Customer__c": "001ZMJCpqieO0SNeP7",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": null,
-      "bos__Customer_Rate__c": 1060.0,
+      "bos__Customer_Rate__c": 1035.0,
       "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {

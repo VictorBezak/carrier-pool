@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-08T00:00:00-05:00",
+  "broker_id": "redline",
+  "offers": [
+    {
+      "offer_id": "OF-59-00013",
+      "load_ref": "127473985",
+      "carrier_ref": "835540",
+      "carrier_mc": "1288440",
+      "carrier_name": "TRINITY RIVER EXPRESS LLC",
+      "offered_at": "2026-07-07T20:20:00-05:00",
+      "offered_rate_usd": 1145.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-07T21:02:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00014",
+      "load_ref": "127473985",
+      "carrier_ref": "835438",
+      "carrier_mc": "1102938",
+      "carrier_name": "LONE OAK CARRIERS LLC",
+      "offered_at": "2026-07-07T21:20:00-05:00",
+      "offered_rate_usd": 1045.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-07T23:21:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00015",
+      "load_ref": "127473985",
+      "carrier_ref": "835882",
+      "carrier_mc": "1346382",
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "offered_at": "2026-07-07T23:20:00-05:00",
+      "offered_rate_usd": 1230.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-08T00:18:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

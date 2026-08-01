@@ -5,12 +5,12 @@
       "Id": "a0jOYkSuUXWDsS3OjJ",
       "Name": "SHP6743496",
       "bos__Load_Status__c": "Delivered",
-      "bos__Distance_Miles__c": 181.1,
+      "bos__Distance_Miles__c": 158.1,
       "bos__Customer__c": "0013Q605MP7eXNcfrl",
       "bos__Carrier__c": "00103OAV4p5bncSNEW",
       "bos__Equipment_Type__c": "Flatbed",
-      "bos__Customer_Rate__c": 1195.0,
-      "bos__Carrier_Rate__c": 980.0,
+      "bos__Customer_Rate__c": 1015.0,
+      "bos__Carrier_Rate__c": 915.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
@@ -18,7 +18,7 @@
           "bos__Is_Dropoff__c": false,
           "bos__Location__c": "001YB4MskPFtFoguBl",
           "bos__Scheduled_Date__c": "2026-07-11",
-          "bos__Arrival_Time__c": "2026-07-11T13:25:00.000+0000"
+          "bos__Arrival_Time__c": "2026-07-12T10:20:00.000+0000"
         },
         {
           "bos__Number__c": 2.0,

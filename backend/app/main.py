@@ -191,7 +191,8 @@ def get_load(
     changes = sorted(
         store.changes_for_load(broker.broker_id, load_id), key=lambda change: change.observed_at
     )
-    return LoadDetail.of_load(load, changes)
+    offers = store.offers_for_load(broker.broker_id, load_id)
+    return LoadDetail.of_load(load, changes, offers)
 
 
 @app.get(

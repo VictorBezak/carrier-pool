@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-07T00:00:00-05:00",
+  "broker_id": "anchor",
+  "offers": [
+    {
+      "offer_id": "OF-86-00004",
+      "load_ref": "HD-2026-004434",
+      "carrier_ref": "66621",
+      "carrier_mc": "1390221",
+      "carrier_name": "GULF BREEZE TRANSPORT LLC",
+      "offered_at": "2026-07-06T20:20:00-05:00",
+      "offered_rate_usd": 815.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-06T20:50:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-86-00005",
+      "load_ref": "HD-2026-004434",
+      "carrier_ref": "66882",
+      "carrier_mc": "1346382",
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "offered_at": "2026-07-06T21:20:00-05:00",
+      "offered_rate_usd": 815.0,
+      "outcome": "countered",
+      "counter_rate_usd": 890.0,
+      "responded_at": "2026-07-06T22:17:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-86-00006",
+      "load_ref": "HD-2026-004434",
+      "carrier_ref": "66401",
+      "carrier_mc": "884201",
+      "carrier_name": "DELTA PRIME LLC",
+      "offered_at": "2026-07-06T23:20:00-05:00",
+      "offered_rate_usd": 875.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-07T00:14:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

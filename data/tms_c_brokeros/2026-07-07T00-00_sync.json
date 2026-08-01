@@ -5,12 +5,12 @@
       "Id": "a0jylRUuNGwelgNdS1",
       "Name": "SHP6743062",
       "bos__Load_Status__c": "Paid",
-      "bos__Distance_Miles__c": 199.8,
+      "bos__Distance_Miles__c": 184.3,
       "bos__Customer__c": "001OamA0b0WFeMTFj9",
       "bos__Carrier__c": "0014kYSQ2MReXmEcSz",
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1415.0,
-      "bos__Carrier_Rate__c": 1160.0,
+      "bos__Customer_Rate__c": 1260.0,
+      "bos__Carrier_Rate__c": 990.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
@@ -44,12 +44,12 @@
       "Id": "a0jO3X7qeZ7neZEvvj",
       "Name": "SHP6743124",
       "bos__Load_Status__c": "Booked",
-      "bos__Distance_Miles__c": 202.3,
+      "bos__Distance_Miles__c": 199.8,
       "bos__Customer__c": "001OamA0b0WFeMTFj9",
       "bos__Carrier__c": "0014kYSQ2MReXmEcSz",
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1470.0,
-      "bos__Carrier_Rate__c": 1205.0,
+      "bos__Customer_Rate__c": 1365.0,
+      "bos__Carrier_Rate__c": 1080.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,

@@ -5,12 +5,12 @@
       "Id": "a0jM3C6FfP0hAazjeh",
       "Name": "SHP6743248",
       "bos__Load_Status__c": "Delivered",
-      "bos__Distance_Miles__c": 241.3,
+      "bos__Distance_Miles__c": 247.0,
       "bos__Customer__c": "001XBtI2gq9cxgvPhL",
       "bos__Carrier__c": "001ZfPmg3vxbKJ7Xwi",
       "bos__Equipment_Type__c": "Dry Van",
-      "bos__Customer_Rate__c": 1525.0,
-      "bos__Carrier_Rate__c": 1250.0,
+      "bos__Customer_Rate__c": 1460.0,
+      "bos__Carrier_Rate__c": 1195.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
@@ -52,12 +52,12 @@
       "Id": "a0jvhefBE3WGmOWLiq",
       "Name": "SHP6743310",
       "bos__Load_Status__c": "In Transit",
-      "bos__Distance_Miles__c": 186.1,
+      "bos__Distance_Miles__c": 168.0,
       "bos__Customer__c": "001OamA0b0WFeMTFj9",
       "bos__Carrier__c": "00194TuN78HnhRZ60X",
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1190.0,
-      "bos__Carrier_Rate__c": 975.0,
+      "bos__Customer_Rate__c": 1150.0,
+      "bos__Carrier_Rate__c": 930.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,

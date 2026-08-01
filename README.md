@@ -132,9 +132,10 @@ docker compose up --build
 Then open **http://localhost:5173**. The API is on http://localhost:8000, with
 interactive docs at http://localhost:8000/docs.
 
-The backend ingests all 84 sync files on startup (about a second) and holds them
-in memory, so there is no database to migrate and no seed step. `data/` is
-mounted read-only — ingestion never writes to it.
+The backend ingests 84 TMS sync files plus 35 platform offer-log files on
+startup (about a second) and holds everything in memory, so there is no database
+to migrate and no seed step. `data/` is mounted read-only — ingestion never writes
+to it.
 
 ## Running without Docker
 
@@ -170,13 +171,20 @@ curl -X POST localhost:8000/api/reingest   # or just restart the backend
 cd backend && .venv/bin/python -m pytest -q
 ```
 
-24 tests over the real data in `data/`. They assert the claims the system makes
-about itself rather than just exercising code paths: metric units are converted,
-a reefer is not read as a dry van, null equipment is not assumed to be a dry van,
-replaying the feed is idempotent, corrections are distinguished from progress,
-the same carrier has independent history under each broker, one broker's load ID
-404s under another, and every score equals the sum of the components shown to
-explain it.
+39 tests over the real data in `data/`. They assert the claims the system makes
+about itself rather than exercising code paths: metric units are converted, a
+reefer is not read as a dry van, null equipment is not assumed to be a dry van,
+replaying the feed is idempotent, corrections are distinguished from progress and
+from carrier fall-offs, no naive datetime survives normalisation, the same carrier
+has independent history under each broker, one broker's load ID 404s under
+another, and every score equals the sum of the components shown to explain it —
+for *every* registered engine, not just the default.
+
+The most interesting one is `test_estimated_price_floor_recovers_the_hidden_reserve`.
+The generator gives each carrier a secret reservation price, never writes it to any
+file, and derives both the offer log and the booked rates from it. So the test can
+check the estimated price floors against a **known truth** instead of eyeballing
+them for plausibility. They currently land within 3.6% on average.
 
 ```bash
 cd frontend && npm run build   # typecheck + production build
@@ -184,37 +192,59 @@ cd frontend && npm run build   # typecheck + production build
 
 ## What to look at first
 
-1. **The load list** opens on the loads that need a carrier. The panel underneath
-   shows where this broker has thick and thin history, which is what makes the
-   estimates below explicable.
-2. **Open load `127472438`** (Redline / FreightFlow, Dallas–Fort Worth → Houston).
-   Deep lane, 8 comparables, high confidence. The top two carriers score within
-   1.5 points of each other for completely different reasons — one knows the lane
-   best, the other is already sitting in Dallas. Expand *Score breakdown* to see
-   the trade-off.
-3. **Open load `127473232`** (same broker, Dallas–Fort Worth → Austin, flatbed).
-   Thin lane. The estimate has to widen its comparison and says so, and the
-   best-fitting carrier is flagged *"Thin history: only one booked load ever"*
-   rather than being quietly presented as a safe bet.
-4. **Switch the broker to Summit Freight Solutions** and open `SHP6743131`. Its
-   source TMS never recorded an equipment type, so the load is scored with
-   equipment fit explicitly unknown instead of assumed.
-5. **Any completed load** — check *How this load arrived* in the right column for
-   the sync-by-sync change log, including which amounts were restated after the
-   fact and which file did it.
+1. **Open load `127472438`** (Redline / FreightFlow, Dallas–Fort Worth → Houston).
+   Every carrier card leads with **what to offer and the odds it lands** — the rate
+   is chosen by the engine, not predicted, because it is the only lever a broker
+   actually controls. Expand *How the expected value was arrived at* to see the
+   arithmetic in dollars, including the two adjustments that turn expected value
+   into a call order.
+2. **Toggle *Ranked by* between the two engines on that same load.** `LONE OAK`
+   moves from 3rd to 5th. It has the lowest price floor of any Redline carrier and
+   delivers late half the time; a margin-only ranking likes it, expected value does
+   not. This is the whole argument for the approach, visible in one click.
+3. **Expand *What we predict, and how much we actually know*.** The `Own data`
+   column is how much of each estimate is this carrier versus the population.
+   `PANHANDLE` was late on its only load — a raw average would call it a 0% on-time
+   carrier, and shrinkage puts it near 60% while saying the number is mostly prior.
+4. **Look at *Who was ruled out, and what we could not check*.** Exclusions carry
+   their gate and reason. Underneath, five hard gates — authority, insurance,
+   safety, blocklists, truck availability — are declared **unevaluable**, because no
+   feed in this dataset carries them.
+5. **Check *Calls made on this load* in the right column.** This is the only panel
+   whose data comes from no TMS at all. Carriers who already refused a price get
+   recommended at a *higher* rate, and the reason says so.
+6. **Open load `127474779`** — a completed load where `BLUEBONNET` accepted and then
+   walked away. The change log shows it as *carrier fell off*, reconstructed from a
+   status moving backwards, because no feed reports the event.
+7. **Open load `127473232`** (Dallas–Fort Worth → Austin, flatbed). Thin lane: the
+   estimate widens its comparison and says so.
+8. **Switch to Summit Freight Solutions** and open `SHP6743131`. Its TMS never
+   recorded an equipment type, so the trailer gate is skipped and the response says
+   why rather than assuming a dry van.
 
 ## Where things live
 
 ```
-data_gen/generate.py          designed, deterministic sync-file generator
-backend/app/adapters/         one file per TMS; all schema quirks stop here
-backend/app/geo.py            ZIP -> metro market; the definition of a "lane"
-backend/app/store.py          upsert-by-identity, diffing, change classification
-backend/app/history.py        the single-broker view an engine is allowed to see
-backend/app/ranking.py        scoring + price estimation  <-- the swappable part
-frontend/src/pages/           load list and load detail
-frontend/src/components/      price estimate card, ranked carrier cards
+data_gen/generate.py            designed, deterministic generator for feeds + offer log
+data/tms_*/                     sync files, exactly as each TMS produced them
+data/platform_activity/         the platform's own offer log - NOT from any TMS
+backend/app/adapters/           one file per TMS; all schema quirks stop here
+backend/app/geo.py              ZIP -> metro market; the definition of a "lane"
+backend/app/store.py            upsert-by-identity, diffing, change classification
+backend/app/history.py          the single-broker view an engine is allowed to see
+backend/app/stats.py            empirical-Bayes shrinkage and prior hierarchies
+backend/app/ranking/
+  contracts.py                  the shape every engine answers in
+  eligibility.py                Stage A: hard gates, and the gates we cannot close
+  candidates.py                 Stage B: recall-oriented candidate generation
+  components.py                 Stage C: acceptance curve, on-time, fall-off, reply time
+  costs.py                      what each bad outcome is worth, in dollars
+  expected_value.py             Stage D: utility, offer-rate search, ranking
+  heuristic.py                  the v1 weighted engine, kept as a control
+  pricing.py                    lane price estimation, shared by both engines
+frontend/src/components/        carrier cards, price estimate, eligibility, offer log
 ```
 
-The ranking algorithm in this iteration is deliberately simple and is meant to be
-replaced; see `DECISIONS.md`.
+Why the offer log is a separate data source, and why that is the point rather than
+a shortcut: see `data/platform_activity/README.md`. The reasoning behind the whole
+staged design is in `DECISIONS.md`.

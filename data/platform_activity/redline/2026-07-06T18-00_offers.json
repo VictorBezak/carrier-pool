@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-06T18:00:00-05:00",
+  "broker_id": "redline",
+  "offers": [
+    {
+      "offer_id": "OF-59-00004",
+      "load_ref": "127472794",
+      "carrier_ref": "835171",
+      "carrier_mc": "998271",
+      "carrier_name": "RIO GRANDE HAULERS INC",
+      "offered_at": "2026-07-06T14:20:00-05:00",
+      "offered_rate_usd": 1015.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1175.0,
+      "responded_at": "2026-07-06T15:20:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-59-00005",
+      "load_ref": "127472794",
+      "carrier_ref": "835122",
+      "carrier_mc": "1450022",
+      "carrier_name": "PANHANDLE LOGISTICS LLC",
+      "offered_at": "2026-07-06T15:20:00-05:00",
+      "offered_rate_usd": 1015.0,
+      "outcome": "no_response",
+      "counter_rate_usd": null,
+      "responded_at": null,
+      "decline_reason": null
+    },
+    {
+      "offer_id": "OF-59-00006",
+      "load_ref": "127472794",
+      "carrier_ref": "835438",
+      "carrier_mc": "1102938",
+      "carrier_name": "LONE OAK CARRIERS LLC",
+      "offered_at": "2026-07-06T17:20:00-05:00",
+      "offered_rate_usd": 1090.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-06T19:34:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "logged_at": "2026-07-10T12:00:00-05:00",
+  "broker_id": "redline",
+  "offers": [
+    {
+      "offer_id": "OF-59-00031",
+      "load_ref": "127475970",
+      "carrier_ref": "835540",
+      "carrier_mc": "1288440",
+      "carrier_name": "TRINITY RIVER EXPRESS LLC",
+      "offered_at": "2026-07-10T08:20:00-05:00",
+      "offered_rate_usd": 960.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-10T08:50:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00032",
+      "load_ref": "127475970",
+      "carrier_ref": "835882",
+      "carrier_mc": "1346382",
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "offered_at": "2026-07-10T09:20:00-05:00",
+      "offered_rate_usd": 930.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1010.0,
+      "responded_at": "2026-07-10T10:22:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-59-00033",
+      "load_ref": "127475970",
+      "carrier_ref": "835122",
+      "carrier_mc": "1450022",
+      "carrier_name": "PANHANDLE LOGISTICS LLC",
+      "offered_at": "2026-07-10T11:20:00-05:00",
+      "offered_rate_usd": 1180.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-10T14:26:00-05:00",
+      "decline_reason": null
+    },
+    {
+      "offer_id": "OF-59-00034",
+      "load_ref": "127476367",
+      "carrier_ref": "835882",
+      "carrier_mc": "1346382",
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "offered_at": "2026-07-10T08:20:00-05:00",
+      "offered_rate_usd": 1110.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1205.0,
+      "responded_at": "2026-07-10T09:13:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-59-00035",
+      "load_ref": "127476367",
+      "carrier_ref": "835438",
+      "carrier_mc": "1102938",
+      "carrier_name": "LONE OAK CARRIERS LLC",
+      "offered_at": "2026-07-10T09:20:00-05:00",
+      "offered_rate_usd": 1040.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-10T11:30:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-59-00036",
+      "load_ref": "127476367",
+      "carrier_ref": "835618",
+      "carrier_mc": "1500918",
+      "carrier_name": "BLUEBONNET FREIGHT CO",
+      "offered_at": "2026-07-10T11:20:00-05:00",
+      "offered_rate_usd": 1205.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-10T11:57:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

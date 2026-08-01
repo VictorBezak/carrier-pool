@@ -20,7 +20,32 @@ export type Sentiment = "positive" | "neutral" | "negative";
 
 export type Confidence = "high" | "medium" | "low";
 
-export type ChangeKind = "PROGRESS" | "REVEALED" | "CORRECTION" | "DETAIL";
+export type ChangeKind =
+  | "PROGRESS"
+  | "REVEALED"
+  | "CORRECTION"
+  /** A carrier came off a load after accepting it. No TMS reports this; the
+   * backend infers it from a status moving backwards out of COVERED. */
+  | "FALL_OFF"
+  | "DETAIL";
+
+export type OfferOutcome = "ACCEPTED" | "DECLINED" | "COUNTERED" | "NO_RESPONSE";
+
+/** One thing the platform asked a carrier. Comes from the platform's own log,
+ * not from any TMS - see the backend's `domain.Offer`. */
+export interface Offer {
+  broker_id: string;
+  offer_id: string;
+  load_id: string;
+  carrier_id: string;
+  carrier_name: string;
+  offered_at: string;
+  offered_rate: number;
+  outcome: OfferOutcome;
+  counter_rate: number | null;
+  responded_at: string | null;
+  decline_reason: string | null;
+}
 
 export interface BrokerSummary {
   broker_id: string;
@@ -93,6 +118,10 @@ export interface LoadDetail extends LoadSummary {
   first_seen_sync: string | null;
   last_seen_sync: string | null;
   history: FieldChange[];
+  /** Tri-state: null means the outcome is not yet knowable, not that it was fine. */
+  pickup_on_time: boolean | null;
+  delivery_on_time: boolean | null;
+  offers: Offer[];
 }
 
 export interface Reason {
@@ -117,6 +146,69 @@ export interface HistoryDepth {
   is_thin: boolean;
 }
 
+/** A carrier ruled out before scoring, with the gate that did it. */
+export interface Exclusion {
+  carrier_id: string;
+  carrier_name: string;
+  gate: string;
+  gate_label: string;
+  detail: string;
+}
+
+/** A hard constraint that should be enforced and cannot be, because no feed
+ * carries the data. Rendered so the gap is visible rather than assumed away. */
+export interface UncheckedGate {
+  gate: string;
+  gate_label: string;
+  detail: string;
+}
+
+/** One component estimate. `prior_share` is how much of it came from the
+ * population rather than this carrier - a prediction that is 80% prior is a
+ * statement about carriers in general. */
+export interface Prediction {
+  key: string;
+  label: string;
+  value: number;
+  display: string;
+  observations: number;
+  prior_share: number;
+  prior_label: string;
+  uncertainty: number;
+  note: string | null;
+}
+
+/** One line of the expected-value arithmetic, in dollars. */
+export interface ValueTerm {
+  key: string;
+  label: string;
+  amount_usd: number;
+  detail: string;
+}
+
+/** What to offer, and what it is worth. The rate is chosen by the engine, not
+ * predicted: it is the value that maximises expected value. */
+export interface OfferPlan {
+  offer_rate_usd: number;
+  acceptance_probability: number;
+  expected_value_usd: number;
+  value_terms: ValueTerm[];
+  optimistic_value_usd: number;
+  pessimistic_value_usd: number;
+  expected_resolution_hours: number | null;
+  value_per_hour_usd: number | null;
+  rate_ceiling_usd: number;
+  walk_away_rate_usd: number;
+}
+
+export interface PriorOffer {
+  offered_rate_usd: number;
+  outcome: OfferOutcome;
+  counter_rate_usd: number | null;
+  response_minutes: number | null;
+  offered_at: string;
+}
+
 export interface CarrierRecommendation {
   rank: number;
   carrier_id: string;
@@ -133,6 +225,11 @@ export interface CarrierRecommendation {
   last_delivery_market_label: string | null;
   median_lane_rate_per_mile: number | null;
   suggested_rate_usd: number | null;
+  /** Present only for expected-value engines; the heuristic leaves it null. */
+  offer_plan: OfferPlan | null;
+  predictions: Prediction[];
+  prior_offers: PriorOffer[];
+  surfaced_by: string[];
 }
 
 export interface Comparable {
@@ -167,6 +264,7 @@ export interface EngineInfo {
   name: string;
   version: string;
   description: string;
+  objective: string | null;
 }
 
 export interface Recommendations {
@@ -180,6 +278,9 @@ export interface Recommendations {
   carriers: CarrierRecommendation[];
   carriers_considered: number;
   notes: string[];
+  exclusions: Exclusion[];
+  unchecked_gates: UncheckedGate[];
+  limitations: string[];
 }
 
 export interface LaneSummary {

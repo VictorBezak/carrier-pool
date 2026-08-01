@@ -4,8 +4,8 @@
     {
       "shipmentId": 127472438,
       "status": "Booking",
-      "mileage": 248.4,
-      "totalSell": 1470.0,
+      "mileage": 250.6,
+      "totalSell": 1485.0,
       "totalBuy": null,
       "customer": {
         "customerId": 889877,
@@ -40,8 +40,8 @@
     {
       "shipmentId": 127472835,
       "status": "Booking",
-      "mileage": 285.6,
-      "totalSell": 1905.0,
+      "mileage": 269.4,
+      "totalSell": 1840.0,
       "totalBuy": null,
       "customer": {
         "customerId": 889696,

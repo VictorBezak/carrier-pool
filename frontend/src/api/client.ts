@@ -40,9 +40,15 @@ export const api = {
   },
   load: (brokerId: string, sourceRef: string, signal?: AbortSignal) =>
     request<LoadDetail>(`/brokers/${brokerId}/loads/${encodeURIComponent(sourceRef)}`, signal),
-  recommendations: (brokerId: string, sourceRef: string, signal?: AbortSignal) =>
+  recommendations: (
+    brokerId: string,
+    sourceRef: string,
+    engine?: string,
+    signal?: AbortSignal,
+  ) =>
     request<Recommendations>(
-      `/brokers/${brokerId}/loads/${encodeURIComponent(sourceRef)}/recommendations?limit=8`,
+      `/brokers/${brokerId}/loads/${encodeURIComponent(sourceRef)}/recommendations?limit=8` +
+        (engine ? `&engine=${encodeURIComponent(engine)}` : ""),
       signal,
     ),
   lanes: (brokerId: string, signal?: AbortSignal) =>

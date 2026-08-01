@@ -5,8 +5,8 @@
       "shipmentId": 127474382,
       "status": "Delivered",
       "mileage": 227.2,
-      "totalSell": 1255.0,
-      "totalBuy": 945.0,
+      "totalSell": 1345.0,
+      "totalBuy": 890.0,
       "customer": {
         "customerId": 889477,
         "name": "Trinity Paper Products"
@@ -28,7 +28,7 @@
           "zipCode": "75050",
           "estimatedReadyDateTime": "2026-07-09T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-09T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-09T10:25:00-05:00"
+          "actualDepartureDateTime": "2026-07-10T07:20:00-05:00"
         },
         {
           "stopType": "Last Drop",
@@ -37,7 +37,7 @@
           "zipCode": "77032",
           "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-10T09:40:00-05:00"
+          "actualDepartureDateTime": "2026-07-11T06:35:00-05:00"
         }
       ],
       "createdDate": "2026-07-07T21:43:00-05:00",
@@ -45,21 +45,15 @@
     },
     {
       "shipmentId": 127474779,
-      "status": "Delivered",
+      "status": "Booking",
       "mileage": 229.4,
-      "totalSell": 1275.0,
-      "totalBuy": 1045.0,
+      "totalSell": 1355.0,
+      "totalBuy": null,
       "customer": {
         "customerId": 889040,
         "name": "Pecan Grove Retail"
       },
-      "carrier": {
-        "carrierMasterId": 835540,
-        "name": "TRINITY RIVER EXPRESS LLC",
-        "mcNumber": "1288440",
-        "dotNumber": "3612009",
-        "phoneNumber": "+14695550132"
-      },
+      "carrier": null,
       "equipment": "53 ft Van | Dry",
       "weightTotal": 18600.0,
       "stops": [
@@ -70,7 +64,7 @@
           "zipCode": "75074",
           "estimatedReadyDateTime": "2026-07-09T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-09T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-09T10:25:00-05:00"
+          "actualDepartureDateTime": null
         },
         {
           "stopType": "Last Drop",
@@ -79,7 +73,7 @@
           "zipCode": "77373",
           "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-10T09:40:00-05:00"
+          "actualDepartureDateTime": null
         }
       ],
       "createdDate": "2026-07-08T09:43:00-05:00",
@@ -88,8 +82,8 @@
     {
       "shipmentId": 127475176,
       "status": "Booking",
-      "mileage": 260.4,
-      "totalSell": 1810.0,
+      "mileage": 280.2,
+      "totalSell": 1915.0,
       "totalBuy": null,
       "customer": {
         "customerId": 889696,

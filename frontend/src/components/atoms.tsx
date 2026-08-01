@@ -17,6 +17,9 @@ export function ChangeKindPill({ kind }: { kind: ChangeKind }) {
     PROGRESS: "progressed",
     REVEALED: "became known",
     CORRECTION: "corrected",
+    // Named for the business event rather than the mechanism. The feed only shows
+    // a status going backwards, but what happened is a carrier walking away.
+    FALL_OFF: "carrier fell off",
     DETAIL: "detail changed",
   };
   return <span className={`pill pill-change pill-${kind.toLowerCase()}`}>{labels[kind]}</span>;

@@ -73,6 +73,35 @@ class Stop(BaseModel):
     def place_label(self) -> str:
         return f"{self.city.title()}, {self.state}"
 
+    @property
+    def actual_time(self) -> datetime | None:
+        """When the truck was demonstrably here.
+
+        The three feeds disagree about which timestamp they record: FreightFlow
+        stamps departures, HaulDesk stamps a departure at the shipper and an
+        arrival at the receiver, BrokerOS stamps arrivals. Either one proves the
+        truck showed up, so either will do.
+        """
+        return self.actual_arrival or self.actual_departure
+
+    @property
+    def appointment(self) -> datetime | None:
+        return self.scheduled_end or self.scheduled_start
+
+    @property
+    def on_time(self) -> bool | None:
+        """None means not yet known, not "fine".
+
+        Compared at *date* granularity deliberately. BrokerOS records scheduled
+        dates with no time of day, so an hours-late truck is invisible in that
+        feed and a finer comparison would make the same carrier look reliable
+        under one broker and late under another.
+        """
+        actual, appointment = self.actual_time, self.appointment
+        if actual is None or appointment is None:
+            return None
+        return actual.date() <= appointment.date()
+
 
 class Carrier(BaseModel):
     """A carrier as one broker knows them.
@@ -174,10 +203,27 @@ class Load(BaseModel):
         dest = self.destination
         if not dest:
             return None
-        return dest.actual_arrival or dest.scheduled_start
+        return dest.actual_time or dest.scheduled_start
+
+    @property
+    def pickup_on_time(self) -> bool | None:
+        return self.origin.on_time if self.origin else None
+
+    @property
+    def delivery_on_time(self) -> bool | None:
+        return self.destination.on_time if self.destination else None
+
+    @property
+    def service_failed(self) -> bool | None:
+        """Did this load fail on service at all? None while still unknown."""
+        outcomes = [self.pickup_on_time, self.delivery_on_time]
+        known = [value for value in outcomes if value is not None]
+        if not known:
+            return None
+        return not all(known)
 
 
-ChangeKind = Literal["PROGRESS", "REVEALED", "CORRECTION", "DETAIL"]
+ChangeKind = Literal["PROGRESS", "REVEALED", "CORRECTION", "FALL_OFF", "DETAIL"]
 
 
 class FieldChange(BaseModel):
@@ -201,6 +247,52 @@ class FieldChange(BaseModel):
     source_file: str
 
 
+class OfferOutcome(StrEnum):
+    ACCEPTED = "ACCEPTED"
+    DECLINED = "DECLINED"
+    COUNTERED = "COUNTERED"
+    NO_RESPONSE = "NO_RESPONSE"
+
+
+class Offer(BaseModel):
+    """One thing the platform asked a carrier, and what came back.
+
+    This does not come from any TMS. No TMS in this dataset records a tender, a
+    refusal, or a response time - they only show which carrier ended up on the
+    load. Without this log, acceptance behaviour has no negative class and is
+    unidentifiable no matter how good the model is, so capturing it is a
+    prerequisite rather than an enhancement.
+    """
+
+    broker_id: str
+    offer_id: str
+    load_id: str
+    carrier_id: str
+    carrier_name: str
+    offered_at: datetime
+    offered_rate: float
+    outcome: OfferOutcome
+    counter_rate: float | None = None
+    responded_at: datetime | None = None
+    decline_reason: str | None = None
+
+    @property
+    def accepted(self) -> bool:
+        return self.outcome is OfferOutcome.ACCEPTED
+
+    @property
+    def response_minutes(self) -> float | None:
+        if self.responded_at is None:
+            return None
+        return round((self.responded_at - self.offered_at).total_seconds() / 60, 1)
+
+    @property
+    def revealed_floor(self) -> float | None:
+        """A counter-offer states the carrier's price outright; a decline only
+        proves the floor is somewhere above what was offered."""
+        return self.counter_rate if self.outcome is OfferOutcome.COUNTERED else None
+
+
 class SyncFileRecord(BaseModel):
     """Provenance for one ingested sync file."""
 
@@ -211,6 +303,7 @@ class SyncFileRecord(BaseModel):
     loads_seen: int
     carriers_seen: int
     changes_recorded: int
+    offers_seen: int = 0
 
 
 class Broker(BaseModel):

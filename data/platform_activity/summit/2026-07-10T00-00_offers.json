@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-10T00:00:00-05:00",
+  "broker_id": "summit",
+  "offers": [
+    {
+      "offer_id": "OF-11-00019",
+      "load_ref": "a0j8for6a0VqnbNExI",
+      "carrier_ref": "001ZfPmg3vxbKJ7Xwi",
+      "carrier_mc": "1420990",
+      "carrier_name": "BAYOU CITY LOGISTICS LLC",
+      "offered_at": "2026-07-09T20:20:00-05:00",
+      "offered_rate_usd": 980.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-09T21:43:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-11-00020",
+      "load_ref": "a0j8for6a0VqnbNExI",
+      "carrier_ref": "00194TuN78HnhRZ60X",
+      "carrier_mc": "998271",
+      "carrier_name": "RIO GRANDE HAULERS INC",
+      "offered_at": "2026-07-09T21:20:00-05:00",
+      "offered_rate_usd": 980.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1085.0,
+      "responded_at": "2026-07-09T22:17:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-11-00021",
+      "load_ref": "a0j8for6a0VqnbNExI",
+      "carrier_ref": "0014kYSQ2MReXmEcSz",
+      "carrier_mc": "1177342",
+      "carrier_name": "ALAMO RIDGE CARRIERS LLC",
+      "offered_at": "2026-07-09T23:20:00-05:00",
+      "offered_rate_usd": 1055.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-10T00:09:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

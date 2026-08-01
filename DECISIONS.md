@@ -2,206 +2,360 @@
 
 ## What this iteration is
 
-The platform end to end — ingestion, normalisation, tenancy, API, UI — with a
-**deliberately simple ranking algorithm**. The scoring is a transparent weighted
-sum and the price is a median of comparables. That is a placeholder, and it is
-meant to be replaced.
+The platform end to end — ingestion, normalisation, tenancy, API, UI — plus **two
+ranking engines behind one contract**:
 
-The reason for building it in this order is that the interesting risk in this
-problem is not the formula. It is everything around it: three incompatible
-schemas, amounts that change after the fact, what a "lane" even is, and keeping
-three brokers' data apart. Those constraints shape the interfaces the algorithm
-has to live inside, so they were worth settling first. The scoring engine sits
-behind one interface (`RecommendationEngine`) with one registration point
-(`ENGINES` in `backend/app/ranking.py`), so replacing it does not touch
-ingestion, the API or the frontend.
+- `simple-heuristic`: a transparent weighted sum of history signals. Ordinal, no
+  units, needs no data beyond the TMS feeds.
+- `expected-value`: a staged pipeline — hard eligibility gates, candidate
+  generation, per-outcome predictions shrunk toward contextual priors, combined
+  into expected margin per hour of broker time, with the offered rate chosen as
+  part of the decision.
 
-## The judgment calls
+Both are exposed at once, switchable in the UI and via `?engine=`, on identical
+data. Keeping the simple one after building the better one is deliberate: it is
+the control that makes "this is an improvement" checkable rather than asserted,
+and it still answers for a tenant whose offer log is empty.
+
+The build order was pipeline first, algorithm second. The interesting risk in this
+problem is not the formula — it is three incompatible schemas, amounts that change
+after the fact, what a "lane" even is, and keeping three brokers' data apart.
+Those constraints shape the interfaces the algorithm has to live inside.
+
+## The central reframing
+
+The recommendation does not answer *"how good is this carrier?"* It answers:
+
+> Given this load, what is the economic value of calling this carrier next, and
+> what should we offer them?
+
+Three consequences fall out of taking that literally.
+
+### Price and acceptance are one surface, not two predictions
+
+The obvious decomposition has an "expected carrier rate" model and an "acceptance
+probability" model. That loses the only variable the broker actually controls.
+What a carrier costs is not a property of the carrier — it is the outcome of a
+negotiation whose input is the number you say first.
+
+So the engine estimates a **reservation price** per carrier and models acceptance
+as a function of the rate offered:
+
+```
+P(accept | carrier, load, offered_rate) = logistic((offered − floor) / width)
+```
+
+The rate is then a **decision variable**: the engine searches it and keeps the
+value that maximises expected value. That is what makes the output actionable —
+"offer $1,250, 81% likely to land, $1,340 would make it 90%" is a sentence a
+dispatcher can use, where "expected rate: $1,205" is not.
+
+`width` grows with the uncertainty in the floor, so a carrier we know little about
+gets a flatter curve rather than a confident guess in the wrong place.
+
+**Why a structural model instead of logistic regression.** With five to nine
+offers per carrier, a fitted logistic is noise with standard errors. A
+reservation-price model uses the shape of the actual mechanism, degrades into a
+population average rather than into garbage, and produces a parameter — "we think
+their floor is $1,178 ± $64" — that a broker can disagree with specifically.
+
+### Ranking is by value per hour, not by value
+
+If a dispatcher works down a list making calls, the value of a call includes the
+option to call the next person when it fails. A carrier that answers in twenty
+minutes resolves the load sooner than one that takes three hours, and time to
+cover is a real cost.
+
+Ranking purely by expected value systematically over-prefers the safe, cheap, slow
+carrier in exactly the workflow that is most common. So the score is expected value
+divided by expected hours to resolve, and the time adjustment is a visible line in
+the breakdown rather than a hidden normalisation.
+
+This is a partial answer. The full version is an optimal-search problem — the
+value of calling someone depends on the whole remaining sequence, not just their
+own resolution time. Value-per-hour is a defensible one-step approximation of it.
+
+### Optimism under uncertainty, not pessimism
+
+The standard move is to rank by `E[U] − λσ`, penalising uncertain predictions. That
+is correct when the downside of being wrong is a committed load. It is wrong when
+the downside is a wasted phone call — and it creates a feedback loop where
+unfamiliar carriers never get called, so they stay unfamiliar forever.
+
+A call is cheap and it *produces the data that resolves the uncertainty*. So the
+sign follows the workflow: for a human calling down a list the engine credits part
+of the upside (`+λσ`, default 35%), and for automatic tendering it should subtract
+it. Exploration stops being a bolted-on 5% quota and becomes a property of the
+objective.
+
+The UI reflects this: expected value renders as a *range*, and a wide range on a
+thin-history carrier is presented as a reason to call them.
+
+## The data problem that had to be solved first
+
+**No TMS in this dataset records a tender, an offer, a refusal, a counter, or a
+response time.** They record the carrier that ended up on the load.
+
+That makes acceptance unidentifiable from TMS data — not sparse, *absent*. There is
+no negative class, and the rate that was refused is never written down, so even the
+positive examples are missing their most important feature.
+
+So the platform keeps its own log, in `data/platform_activity/`, deliberately
+separate from the feeds. The fact that it *has* to be separate is the design
+finding, and it is why decision logging is a prerequisite rather than an
+enhancement: it is the mechanism by which the training data for every learned
+component comes into existence at all.
+
+Two other signals were missing and were added to the generator, because a model
+that consumes a constant feature looks like it works while doing nothing:
+
+- **Service failures.** Earlier every load hit its appointment — zero variance, so
+  a reliability term would have been decorative. Now specific carriers run late,
+  and lateness crosses the *appointment day* rather than the hour, because BrokerOS
+  records scheduled dates with no time of day and same-day lateness would be
+  invisible in one of the three feeds.
+- **Carrier fall-offs.** A carrier accepts and walks away. No feed reports this;
+  the only evidence is a status moving backwards out of `COVERED` and the carrier
+  field changing. The store previously classified that as a data correction, which
+  meant a genuine business event with a real cost was indistinguishable from a
+  typo.
+
+Carrier reservation prices and reply times are **latent** in the generator — never
+written to any file — and the booked rates in the TMS feeds are derived from them.
+That keeps the feeds and the offer log from contradicting each other, and it means
+the estimated floors can be validated against a known truth rather than merely
+inspected for plausibility. `test_estimated_price_floor_recovers_the_hidden_reserve`
+holds them to a mean error under 10%; they currently land at 3.6%.
+
+## Shrinkage, and the fairness problem it actually fixes
+
+The previous iteration flagged incumbency bias and did not fix it. This one does.
+
+Every component estimate is empirical-Bayes shrunk toward a prior drawn from the
+most specific context that has enough data to be worth trusting. The prior
+hierarchy for a price floor is: accepted offers on this equipment type → accepted
+offers across this broker's carriers → a global default. For on-time it is the
+broker's own overall rate, because at this data volume there are not enough
+observed outcomes per lane for a lane-level prior to beat it, and adding a rung
+that cannot support weight is worse than not having it.
+
+The concrete case the dataset was built to test: PANHANDLE delivered its single
+load late. A raw average calls that a **0% on-time carrier**. Shrinkage puts it at
+roughly 60% and reports that the estimate is mostly prior. Meanwhile IBRAHIM,
+clean across several loads, still beats LONE OAK, late on two of three — so the
+shrinkage is not flattening everyone into the average.
+
+Two properties are reported alongside every estimate rather than hidden:
+
+- `prior_share` — how much of this number is the population rather than this
+  carrier. "97% on-time" and "97% on-time, of which 80% is just the average
+  carrier" are very different claims, and the UI shows the difference in a column.
+- `uncertainty` — which is what lets the ranking layer be optimistic on purpose.
+
+Excluding the carrier being estimated from its own prior matters: otherwise its
+record leaks into its own prior and the shrinkage quietly stops doing anything.
+
+## Business costs are named, in one file
+
+`ranking/costs.py` holds the dollar value of each bad outcome: a late delivery at
+$275, a fall-off at $425, broker time at $42/hour. They are business inputs, not
+model outputs, and they live together because they are the part a broker should
+argue with.
+
+This is the real reason expected value beats a weighted score. A weight of 0.15 on
+"reliability" is unfalsifiable. Saying a late delivery costs $275 is a claim
+someone can check against their own accessorial data and be wrong about in a
+specific, fixable way. Changing one requires no retraining and no redeploy of any
+estimator.
+
+Claims cost, tracking compliance and operational effort are set to **zero with a
+stated reason** rather than guessed at, because no feed carries them. They appear
+in the response's `limitations` so the gap is visible in the output instead of
+buried in a constant.
+
+## Eligibility is a gate, and some gates cannot be closed
+
+A carrier that cannot take the load is removed with a reason attached, not ranked
+last. Exclusions are first-class output: a carrier missing from a list with no
+explanation is indistinguishable from a bug, and a dispatcher who cannot find a
+carrier they expected stops trusting the whole list.
+
+The enforced gates are trailer type, payload against the trailer's legal capacity,
+service area, and whether the truck can physically reach the pickup before the
+appointment closes.
+
+The gates that **cannot be evaluated** are declared explicitly and rendered in the
+UI: operating authority, insurance, safety and fraud screening, do-not-use
+blocklists, and confirmed truck availability. None of them exist in any feed. An
+unstated missing gate is how a broker ends up tendering to a carrier whose
+insurance lapsed, so the absence is published rather than assumed away.
+
+One gate got this wrong during development and is worth recording. The weight
+check originally compared a load against the heaviest load that carrier had
+previously hauled, and promptly excluded a perfectly capable dry van carrier
+because its recent freight had been light. Every dry van has roughly the same
+capacity — booking history says nothing about capability. A gate that fires on a
+plausible-sounding proxy is worse than no gate, because it is wrong in a way that
+looks authoritative. It now checks the trailer type's payload ceiling, which binds
+rarely, and that is the correct behaviour rather than a sign it is useless.
+
+The trailer gate is still inferred from booking history, so it stays deliberately
+conservative: it fires only when a carrier has at least three loads for this broker
+and none of them used the required trailer. Letting a possibly-unequipped carrier
+through to be ranked low costs one evaluation; excluding one that does own the
+trailer removes it permanently.
+
+## Selection bias, stated rather than corrected
+
+The offer log only contains carriers somebody chose to call. A carrier never called
+looks unknown rather than unsuitable, and nothing distinguishes "would have said
+no" from "was never asked". Estimated acceptance is therefore biased, and the
+`limitations` array on every recommendation says so.
+
+Correcting it needs randomised exploration or propensity weighting, neither of
+which is implemented. What *is* implemented is the log schema that makes those
+techniques possible later — capturing the candidate set, the offer, the order and
+the outcome is the part that has to happen before any of it is available.
+
+## Earlier decisions that still stand
 
 ### A lane is a metro market pair, resolved from ZIP prefix
 
-City names are too fine and states are far too coarse, exactly as the brief
-says. So history is grouped by *metro market*, and a stop's market is resolved
-from its ZIP prefix rather than its city name.
+City names are too fine and states are far too coarse. A stop's market is resolved
+from its ZIP prefix rather than its city name, because ZIP prefixes already encode
+geography — which is what fixes the NYC/Newark case: `07xxx` and `100xx` can be
+assigned to one metro despite disagreeing on both city *and* state.
 
-ZIP is the resolver because ZIP prefixes already encode geography, which is what
-fixes the NYC/Newark case: `07xxx` and `100xx` can be assigned to one metro
-despite disagreeing on both city *and* state. Grouping by city name could never
-do that, and grouping by state gets Dallas→Houston and El Paso→Houston confused.
+**Rejected:** clustering stops by lat/long. It is the better answer and what I
+would build next; it needs a geocoder and a cluster-radius decision.
 
-**Rejected:** clustering stops by lat/long distance. It is the better answer and
-it is what I would build next, because it handles the "is this suburb its own
-market" question continuously instead of by fiat. It needs a geocoder and a
-decision about cluster radius, and it would have consumed the time this
-iteration spent on the data pipeline.
-
-**Limitation, stated plainly:** the market table is hardcoded ZIP3 ranges for
-the Texas Triangle plus a city-name fallback for records that carry no ZIP
-(carrier home bases). It is the right *shape* at the wrong *resolution*. It also
-treats Austin and San Antonio as separate markets while treating all of
-Dallas–Fort Worth as one, which is defensible but arbitrary — DFW is 9,000
-square miles.
+**Limitation:** the market table is hardcoded ZIP3 ranges for the Texas Triangle
+plus a city-name fallback for records with no ZIP. Right shape, wrong resolution.
+It also treats Austin and San Antonio as separate while treating all 9,000 square
+miles of Dallas–Fort Worth as one market, which is defensible but arbitrary.
 
 ### Nothing derived is stored, so corrections need no repair
 
-This is the answer to "what happens to your analytics when yesterday's load is
-corrected today".
+Loads are **upserted by identity** — a sync carries the whole object again, so the
+newest sync is the truth and re-running a file changes nothing. Lane statistics,
+carrier scores and price estimates are **computed at read time**. A correction
+landing on day 6 for a day 2 load is reflected immediately, with no aggregate to
+patch and no chance of a stale number surviving.
 
-Loads are **upserted by identity**. A sync file carries the whole load object
-again, so the newest sync is simply the truth, and re-running a file changes
-nothing. Lane statistics, carrier scores and price estimates are **computed at
-read time** from current load state. A correction that lands on day 6 for a
-day 2 load is therefore reflected immediately, with no aggregate to patch and no
-chance of a stale number surviving somewhere.
+`test_replay_is_idempotent` asserts a full replay produces byte-identical state,
+which is what makes "rebuild from scratch" a recovery strategy rather than a hope.
 
-`test_replay_is_idempotent` asserts that replaying the whole feed produces
-byte-identical state, which is what makes "rebuild from scratch" a legitimate
-recovery strategy rather than a hope.
-
-**What would break at millions of loads:** all of it. Recomputing every lane
-median per request is fine at 35 loads and absurd at 35 million. The real design
-is incremental aggregates keyed by (broker, lane, equipment, time bucket),
-updated by applying a delta when a load changes — which means storing the
-*previous* contribution of each load so it can be subtracted, and accepting that
-a correction now mutates derived state and needs an audit trail. That is a much
-bigger system, and its correctness argument is much weaker. I would keep
+**What breaks at millions of loads:** all of it. The real design is incremental
+aggregates keyed by (broker, lane, equipment, time bucket), which means storing
+each load's previous contribution so it can be subtracted, and accepting that a
+correction now mutates derived state and needs its own audit trail. I would keep
 recompute-on-read as the reference implementation and test the incremental path
 against it.
 
-### Corrections are classified, not just detected
+### Changes are classified, not just detected
 
-The store diffs every load against its previous version and records what
-changed. The `kind` matters more than the diff:
-
-- `REVEALED` — an amount went from null to a number. The carrier rate becoming
-  known at booking is *not* a correction, and treating it as one would cry wolf
-  on every load.
-- `CORRECTION` — a real value was replaced by a different real value. Somebody
-  restated history.
-- `PROGRESS` — status moved forward. A status moving *backwards* is classified as
-  a correction, because freight does not un-deliver.
+- `REVEALED` — null became a number. A carrier rate appearing at booking is not a
+  correction, and treating it as one would cry wolf on every load.
+- `CORRECTION` — a real value replaced by a different real value.
+- `PROGRESS` — status moved forward.
+- `FALL_OFF` — status moved backwards out of `COVERED`, or the carrier on a booked
+  load changed. Strictly this is indistinguishable from someone fixing a mistyped
+  carrier; the business reading is preferred because it is far more common and far
+  more expensive to miss.
 - `DETAIL` — everything else.
-
-The UI shows this per load ("How this load arrived") including which sync file
-each change came from, so a surprising number can be traced to the file that
-caused it.
 
 ### Money is modelled per TMS, because each one lies differently
 
-- **FreightFlow** restates `totalBuy` in place. Easy.
-- **HaulDesk** has no rate field at all: money is an append-only ledger of line
-  items, and a correction arrives as a *new negative row*. The adapter
-  accumulates rows across syncs keyed by `rate_id`, so re-reading a file cannot
-  double-count. Crucially, a load with no `pay` rows has a carrier rate of
-  `None`, not `0` — "not yet priced" and "priced at zero" are different facts and
-  conflating them would drag every median down.
-- **BrokerOS** simply changes `bos__Carrier_Rate__c` to a different number with
-  no marker. Nothing but a diff against the previous version can detect it.
+- **FreightFlow** restates `totalBuy` in place.
+- **HaulDesk** has no rate field: money is an append-only ledger, and a correction
+  arrives as a *new negative row*. The adapter accumulates rows keyed by `rate_id`
+  so re-reading cannot double-count. A load with no `pay` rows has a carrier rate
+  of `None`, not `0` — conflating "not yet priced" with "priced at zero" would drag
+  every median down. A carrier falling off reverses its linehaul row rather than
+  deleting it, and the ledger still nets to what the replacement is owed.
+- **BrokerOS** changes `bos__Carrier_Rate__c` with no marker. Only a diff detects it.
 
 ### Where a price comes from when the lane is thin
 
-The estimator walks comparable sets from narrowest to widest and stops at the
-first one with at least 3 priced loads:
+Comparable sets from narrowest to widest, stopping at the first with 3+ priced
+loads: same lane + trailer → same lane → same pickup market + trailer → same pickup
+market → everything this broker has priced. It then **says which level it used**,
+in plain words. If nothing reaches 3 it still answers from the narrowest non-empty
+set and marks itself low confidence, because refusing to answer is worse than
+answering with a stated caveat.
 
-1. same lane, same trailer type
-2. same lane, any trailer
-3. same pickup market, same trailer
-4. same pickup market
-5. everything this broker has priced
-
-It then **says which level it used**, in the UI, in plain words ("Fewer than 3
-priced loads exist on this lane, same trailer type, so the comparison was
-widened to loads out of this pickup market"). If nothing reaches 3 it still
-answers, using the narrowest non-empty set, and marks itself low confidence.
-Refusing to answer is worse than answering with a stated caveat.
-
-Two details that matter: a load is never a comparable for itself, and when a
-load has **no** equipment type recorded, the trailer-qualified levels are
-skipped entirely rather than allowed to silently match everything. Otherwise the
-estimate would claim its comparables were "the same trailer type" when no
-trailer type was ever known. (This was a real bug during development, caught by
-`test_price_basis_never_overstates_the_match`.)
-
-The band is a quartile spread where there are at least 4 comparables and a plain
-min/max where there are 2–3, because quartiles of three numbers are theatre.
-
-### Fairness to carriers with thin history: flagged, not solved
-
-The v1 scorer has a `relationship_depth` component, so a carrier with one
-excellent load structurally cannot out-score a carrier with five mediocre ones.
-**That is a real bias and this iteration does not fix it.**
-
-What it does instead is refuse to hide it. Every recommendation carries a
-`history_depth` with an `is_thin` flag and a human label ("Thin history: only one
-booked load ever"), which the UI renders on the card. A dispatcher sees a low
-score *and* the reason the evidence is weak, rather than a low score that looks
-like a judgement about quality.
-
-The principled fix is shrinkage: score toward the lane's prior when a carrier's
-sample is small, so thin history pulls a carrier toward average rather than
-toward the bottom, and add a confidence interval per carrier instead of a point
-score. That is what I would do next, and it is a change entirely inside
-`ranking.py`.
+A load is never a comparable for itself, and when a load has **no** equipment type
+the trailer-qualified levels are skipped entirely rather than allowed to silently
+match everything — otherwise the estimate would claim its comparables were "the
+same trailer type" when no trailer type was ever known. That was a real bug, caught
+by `test_price_basis_never_overstates_the_match`.
 
 ### Tenancy is structural, not a filter
 
-One broker per TMS directory. The tenant is:
+The tenant is part of every API path, the constructor argument to `BrokerHistory`
+(the **only** surface an engine is given, so it physically cannot reach another
+tenant), and part of the load's primary key — so `/api/brokers/anchor/loads/{a
+redline ref}` is a 404 rather than a leak.
 
-- part of every API path (`/api/brokers/{broker_id}/...`), never an optional
-  query parameter somebody could forget;
-- the constructor argument to `BrokerHistory`, which is the **only** thing the
-  ranking engine is given — an engine has no reference to the store and
-  physically cannot reach another tenant's loads;
-- part of the load's primary key, so `/api/brokers/anchor/loads/{a redline ref}`
-  is a 404 rather than a leak.
+IBRAHIM TRANSPORT works for two brokers under the same MC number, which makes this
+testable rather than assertable. That now extends to the offer log:
+`test_tenancy_holds_across_the_offer_log` fails if one broker's calls ever inform
+another's estimates.
 
-The dataset makes this testable rather than assertable: IBRAHIM TRANSPORT works
-for two brokers under the same MC number, with three loads under one and one
-under the other. `test_same_carrier_has_independent_history_per_broker` fails if
-those views ever converge.
+**A connection worth making for the shared pool.** The top of the shrinkage
+hierarchy — the population prior — is inherently a *cross-tenant* quantity, and
+that gives the pool a principled scope with tiered disclosure. Sharing a
+population-level prior by equipment type reveals essentially nothing about any
+individual broker's book, while sharing carrier-level history keyed by MC reveals
+who your competitors haul with. The pool's first and safest product is priors for
+sparse carriers, which is also exactly where brokers get the most value.
 
 ## What I cut, and why
 
-- **Postgres.** The compose file has no database. Ingestion order, idempotency
-  and correction handling are the parts of persistence that carry actual risk,
-  and all three are exercised by replaying files into an in-memory store behind
-  a narrow `Store` interface. Adding Postgres would have bought a schema
-  migration and no new insight this iteration. The cost is real: nothing
-  survives a restart, and the read-time recompute strategy above only looks
-  reasonable because the dataset is small.
-- **The shared carrier pool.** Not attempted. But the seam is deliberate:
-  `BrokerHistory` is the only surface the ranking engine sees, so a pooled view
-  is a second implementation of that one interface with an explicit list of what
-  it exposes. MC/DOT numbers are carried through all three adapters precisely
-  because cross-broker carrier identity is the thing a pool would be built on.
-- **7 days of data instead of 10 + day 11.** Days 1–6 are history and day 7 is
-  the answer set. Day count is a constant in the generator; the shape of the
-  dataset is what took the thought, not its length.
-- **Carrier quality signals.** Nothing models whether a carrier was cheap, late,
-  or a problem. The scorer rewards presence, not performance. Real on-time data
-  would need actual-vs-scheduled comparison per stop, which the data supports but
-  the scorer ignores.
+- **Multi-load assignment.** Independent rankings are wrong when several loads
+  compete for one truck, and this dataset demonstrates it: `TRINITY RIVER EXPRESS`
+  ranks in the top three for all three of Redline's open loads, and for Summit
+  `ALAMO RIDGE` is #1 for both. The fix is maximum-weight bipartite matching over
+  a load × carrier utility matrix. The utility matrix already exists, so this is
+  an additive layer rather than a rewrite — it is the single highest-value thing
+  left undone.
+- **Trained models.** No component is a fitted model; each is a shrunk estimate
+  over a handful of observations. Gradient-boosted trees are the right answer at
+  thousands of loads and actively worse at 8–12 priced loads per broker.
+- **Counterfactual evaluation.** Propensity weighting and doubly robust estimation
+  need the exploration data the log is designed to collect and does not yet have.
+- **Postgres.** Ingestion order, idempotency and correction handling are the parts
+  of persistence that carry risk, and all three are exercised by replaying files
+  into an in-memory store behind a narrow `Store` interface. The cost is real:
+  nothing survives a restart.
+- **The shared carrier pool.** Not attempted, but the seam is deliberate and
+  MC/DOT numbers are carried through all three adapters because cross-broker
+  carrier identity is what a pool is built on.
 
 ## Known limitations
 
-- **The deadhead signal uses a carrier's most recent delivery market**, which is
-  a proxy that goes stale fast. A truck that delivered into Houston four days ago
-  is not in Houston now. Real repositioning needs current truck location or at
-  least a decay window.
+- **Position is a carrier's most recent delivery market**, which goes stale fast. A
+  truck that delivered into Houston four days ago is not in Houston now. Real
+  repositioning needs current truck location, and availability is a probability
+  here rather than the fact it pretends to be.
 - **Lane matching is binary.** Neighbouring markets contribute nothing, so a
   Dallas→Austin veteran gets no credit for a Dallas→Georgetown load beyond the
-  shared origin — even though Georgetown is 30 miles from Austin. This is the
-  same limitation as the market table, seen from the scoring side.
-- **HaulDesk timestamps are naive local time** and are read as US Central. Every
-  timestamp in this dataset is in CDT so it is correct here, and it would be
-  wrong across a DST boundary. `tzdata` is installed in the image so `zoneinfo`
-  resolves properly rather than falling back to a fixed offset.
-- **Weights are hand-picked.** 0.40 for lane experience is a guess that sounds
-  reasonable, not a fitted parameter. With outcome data — did the called carrier
-  accept, at what rate — these should be learned, and the honest version of this
-  system logs recommendations and their outcomes from day one so that data
-  exists later.
-- **Score is presented as a 0–100 number**, which invites more trust than a
-  hand-weighted heuristic deserves. The component breakdown is there to
-  counteract that, but a rank plus a confidence band would be more honest than a
-  precise-looking score.
+  shared origin, even though Georgetown is 30 miles from Austin.
+- **Ranking is per load.** See the assignment cut above.
+- **Value per hour is a one-step approximation** of a sequential search problem.
+- **The heuristic engine's weights are still hand-picked** — that engine is a
+  control, and its unfalsifiable weights are precisely the thing the expected-value
+  engine exists to replace.
+- **HaulDesk timestamps are naive local time** read as US Central; correct for this
+  dataset, wrong across a DST boundary. `tzdata` is in the image so `zoneinfo`
+  resolves properly. BrokerOS appointment dates carry no time at all and are
+  anchored to Central — a normalisation gap that let a naive datetime reach the
+  ranking layer and crash it, now covered by
+  `test_every_normalised_datetime_is_timezone_aware`.
+- **Service outcomes are compared at date granularity**, the common denominator
+  across the three feeds. An hours-late truck is invisible in BrokerOS, and using a
+  finer comparison would make the same carrier look reliable under one broker and
+  late under another.
+- **Business costs are plausible, not calibrated.** Nothing in this dataset could
+  calibrate them, and the ranking is sensitive to them. A sensitivity analysis is
+  the obvious next check.

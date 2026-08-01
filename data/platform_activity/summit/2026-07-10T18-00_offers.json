@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-10T18:00:00-05:00",
+  "broker_id": "summit",
+  "offers": [
+    {
+      "offer_id": "OF-11-00022",
+      "load_ref": "a0jOYkSuUXWDsS3OjJ",
+      "carrier_ref": "001ZfPmg3vxbKJ7Xwi",
+      "carrier_mc": "1420990",
+      "carrier_name": "BAYOU CITY LOGISTICS LLC",
+      "offered_at": "2026-07-10T14:20:00-05:00",
+      "offered_rate_usd": 750.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-10T15:41:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-11-00023",
+      "load_ref": "a0jOYkSuUXWDsS3OjJ",
+      "carrier_ref": "00194TuN78HnhRZ60X",
+      "carrier_mc": "998271",
+      "carrier_name": "RIO GRANDE HAULERS INC",
+      "offered_at": "2026-07-10T15:20:00-05:00",
+      "offered_rate_usd": 725.0,
+      "outcome": "countered",
+      "counter_rate_usd": 785.0,
+      "responded_at": "2026-07-10T16:15:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-11-00024",
+      "load_ref": "a0jOYkSuUXWDsS3OjJ",
+      "carrier_ref": "00103OAV4p5bncSNEW",
+      "carrier_mc": "1533201",
+      "carrier_name": "STAR OF TEXAS FREIGHT LLC",
+      "offered_at": "2026-07-10T17:20:00-05:00",
+      "offered_rate_usd": 915.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-10T20:47:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

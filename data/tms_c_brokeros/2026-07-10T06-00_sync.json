@@ -5,12 +5,12 @@
       "Id": "a0j8for6a0VqnbNExI",
       "Name": "SHP6743434",
       "bos__Load_Status__c": "In Transit",
-      "bos__Distance_Miles__c": 190.1,
+      "bos__Distance_Miles__c": 203.9,
       "bos__Customer__c": "001OamA0b0WFeMTFj9",
       "bos__Carrier__c": "0014kYSQ2MReXmEcSz",
       "bos__Equipment_Type__c": "Reefer",
       "bos__Customer_Rate__c": 1395.0,
-      "bos__Carrier_Rate__c": 1145.0,
+      "bos__Carrier_Rate__c": 1055.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,

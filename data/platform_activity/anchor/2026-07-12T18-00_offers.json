@@ -1,0 +1,32 @@
+{
+  "logged_at": "2026-07-12T18:00:00-05:00",
+  "broker_id": "anchor",
+  "offers": [
+    {
+      "offer_id": "OF-86-00030",
+      "load_ref": "HD-2026-004437",
+      "carrier_ref": "66053",
+      "carrier_mc": "1201553",
+      "carrier_name": "HILL COUNTRY TRUCKING INC",
+      "offered_at": "2026-07-12T14:20:00-05:00",
+      "offered_rate_usd": 355.0,
+      "outcome": "countered",
+      "counter_rate_usd": 390.0,
+      "responded_at": "2026-07-12T15:58:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-86-00031",
+      "load_ref": "HD-2026-004437",
+      "carrier_ref": "66621",
+      "carrier_mc": "1390221",
+      "carrier_name": "GULF BREEZE TRANSPORT LLC",
+      "offered_at": "2026-07-12T15:20:00-05:00",
+      "offered_rate_usd": 345.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-12T15:55:00-05:00",
+      "decline_reason": "rate too low"
+    }
+  ]
+}

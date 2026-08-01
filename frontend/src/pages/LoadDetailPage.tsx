@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, useResource } from "../api/client";
 import type { LoadDetail } from "../api/types";
@@ -11,6 +12,8 @@ import {
   StatusPill,
 } from "../components/atoms";
 import { CarrierList } from "../components/CarrierList";
+import { Eligibility } from "../components/Eligibility";
+import { OfferLog } from "../components/OfferLog";
 import { PriceEstimateCard } from "../components/PriceEstimateCard";
 import {
   EQUIPMENT_LABELS,
@@ -25,10 +28,14 @@ import {
 
 export function LoadDetailPage() {
   const { brokerId = "", sourceRef = "" } = useParams();
+  // Both engines are exposed side by side rather than the better one silently
+  // replacing the other. Switching between them on the same load is the only way
+  // to see that the ranking actually changed, and why.
+  const [engine, setEngine] = useState("expected-value");
   const load = useResource((signal) => api.load(brokerId, sourceRef, signal), [brokerId, sourceRef]);
   const recommendations = useResource(
-    (signal) => api.recommendations(brokerId, sourceRef, signal),
-    [brokerId, sourceRef],
+    (signal) => api.recommendations(brokerId, sourceRef, engine, signal),
+    [brokerId, sourceRef, engine],
   );
 
   if (load.loading) return <Loading what="load" />;
@@ -87,22 +94,54 @@ export function LoadDetailPage() {
                 brokerId={brokerId}
               />
 
-              <CarrierList
-                carriers={recommendations.data.carriers}
-                considered={recommendations.data.carriers_considered}
-                engine={recommendations.data.engine}
-                asOf={recommendations.data.as_of}
-              />
+              <EngineSwitch engine={engine} onChange={setEngine} />
+              <CarrierList result={recommendations.data} />
+              <Eligibility result={recommendations.data} />
             </>
           )}
         </div>
 
         <aside className="detail-side">
           <LoadFacts detail={detail} />
+          <OfferLog detail={detail} />
           <Stops detail={detail} />
           <ChangeLog detail={detail} />
         </aside>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Two engines, one contract, identical data. The heuristic scores are ordinal and
+ * the expected-value scores are dollars per hour, so they are deliberately not
+ * presented as comparable numbers — only the resulting order is comparable.
+ */
+function EngineSwitch({
+  engine,
+  onChange,
+}: {
+  engine: string;
+  onChange: (key: string) => void;
+}) {
+  return (
+    <div className="engine-switch">
+      <span className="engine-switch-label">Ranked by</span>
+      {(
+        [
+          ["expected-value", "Expected value"],
+          ["simple-heuristic", "Weighted heuristic"],
+        ] as const
+      ).map(([key, label]) => (
+        <button
+          key={key}
+          type="button"
+          className={engine === key ? "engine-tab engine-tab-active" : "engine-tab"}
+          onClick={() => onChange(key)}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -156,11 +195,27 @@ function Stops({ detail }: { detail: LoadDetail }) {
               {stop.actual_departure && (
                 <div className="muted">departed {dateTime(stop.actual_departure)}</div>
               )}
+              <OnTimeNote
+                onTime={stop.kind === "PICKUP" ? detail.pickup_on_time : detail.delivery_on_time}
+              />
             </div>
           </li>
         ))}
       </ol>
     </Card>
+  );
+}
+
+/**
+ * Tri-state on purpose: a load still rolling has no outcome yet, which is
+ * different from having made it on time.
+ */
+function OnTimeNote({ onTime }: { onTime: boolean | null }) {
+  if (onTime === null) return null;
+  return (
+    <div className={onTime ? "ontime ontime-good" : "ontime ontime-bad"}>
+      {onTime ? "hit the appointment" : "missed the appointment day"}
+    </div>
   );
 }
 

@@ -1,0 +1,32 @@
+{
+  "logged_at": "2026-07-12T18:00:00-05:00",
+  "broker_id": "summit",
+  "offers": [
+    {
+      "offer_id": "OF-11-00027",
+      "load_ref": "a0jftgHugyPQpNsi6y",
+      "carrier_ref": "001ZfPmg3vxbKJ7Xwi",
+      "carrier_mc": "1420990",
+      "carrier_name": "BAYOU CITY LOGISTICS LLC",
+      "offered_at": "2026-07-12T14:20:00-05:00",
+      "offered_rate_usd": 755.0,
+      "outcome": "declined",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-12T15:30:00-05:00",
+      "decline_reason": "rate too low"
+    },
+    {
+      "offer_id": "OF-11-00028",
+      "load_ref": "a0jftgHugyPQpNsi6y",
+      "carrier_ref": "00194TuN78HnhRZ60X",
+      "carrier_mc": "998271",
+      "carrier_name": "RIO GRANDE HAULERS INC",
+      "offered_at": "2026-07-12T15:20:00-05:00",
+      "offered_rate_usd": 730.0,
+      "outcome": "countered",
+      "counter_rate_usd": 805.0,
+      "responded_at": "2026-07-12T16:27:00-05:00",
+      "decline_reason": "rate below our floor"
+    }
+  ]
+}

@@ -2,11 +2,53 @@
   "syncedAt": "2026-07-11T06:00:00-05:00",
   "loads": [
     {
+      "shipmentId": 127475970,
+      "status": "Completed",
+      "mileage": 200.6,
+      "totalSell": 1285.0,
+      "totalBuy": 1180.0,
+      "customer": {
+        "customerId": 889602,
+        "name": "Alamo Building Supply"
+      },
+      "carrier": {
+        "carrierMasterId": 835122,
+        "name": "PANHANDLE LOGISTICS LLC",
+        "mcNumber": "1450022",
+        "dotNumber": "3902117",
+        "phoneNumber": "+18175550143"
+      },
+      "equipment": "48 ft Flatbed",
+      "weightTotal": 31000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "FORT WORTH",
+          "state": "TX",
+          "zipCode": "76177",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T10:25:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "AUSTIN",
+          "state": "TX",
+          "zipCode": "78744",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T06:35:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-10T03:43:00-05:00",
+      "lastModifiedDate": "2026-07-11T04:47:00-05:00"
+    },
+    {
       "shipmentId": 127476764,
       "status": "Completed",
-      "mileage": 259.3,
-      "totalSell": 1640.0,
-      "totalBuy": 1345.0,
+      "mileage": 248.4,
+      "totalSell": 1470.0,
+      "totalBuy": 1205.0,
       "customer": {
         "customerId": 889877,
         "name": "Lone Star Beverages"

@@ -3,23 +3,23 @@
   "loads": [
     {
       "load_num": "HD-2026-004519",
-      "status_code": 90,
+      "status_code": 30,
       "customer_code": "C-0077",
       "customer_name": "Gulf Coast Foods",
       "carrier_ref": 66621,
       "equip": "V",
       "weight_kg": 9253.3,
-      "dist_km": 300.0,
+      "dist_km": 294.3,
       "pu_city": "Pasadena",
       "pu_state": "TX",
       "pu_zip": "77502",
       "pu_date": "2026-07-10",
-      "pu_departed_at": "2026-07-10 10:25:00",
+      "pu_departed_at": null,
       "del_city": "Seguin",
       "del_state": "TX",
       "del_zip": "78155",
       "del_date": "2026-07-11",
-      "del_arrived_at": "2026-07-11 09:40:00",
+      "del_arrived_at": null,
       "entered_at": "2026-07-09 15:43:00",
       "updated_at": "2026-07-10 10:47:00"
     },
@@ -49,11 +49,19 @@
   "carriers": [],
   "rates": [
     {
-      "rate_id": 910018,
+      "rate_id": 910019,
+      "load_num": "HD-2026-004519",
+      "side": "pay",
+      "code": "LINEHAUL",
+      "amount_usd": 855.0,
+      "created_at": "2026-07-10 10:47:00"
+    },
+    {
+      "rate_id": 910020,
       "load_num": "HD-2026-004536",
       "side": "bill",
       "code": "LINEHAUL",
-      "amount_usd": 1800.0,
+      "amount_usd": 1715.0,
       "created_at": "2026-07-10 10:47:00"
     }
   ]

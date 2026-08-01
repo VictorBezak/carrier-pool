@@ -1,0 +1,45 @@
+{
+  "logged_at": "2026-07-08T12:00:00-05:00",
+  "broker_id": "redline",
+  "offers": [
+    {
+      "offer_id": "OF-59-00016",
+      "load_ref": "127474382",
+      "carrier_ref": "835882",
+      "carrier_mc": "1346382",
+      "carrier_name": "IBRAHIM TRANSPORT INC",
+      "offered_at": "2026-07-08T08:20:00-05:00",
+      "offered_rate_usd": 905.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1055.0,
+      "responded_at": "2026-07-08T09:25:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-59-00017",
+      "load_ref": "127474382",
+      "carrier_ref": "835171",
+      "carrier_mc": "998271",
+      "carrier_name": "RIO GRANDE HAULERS INC",
+      "offered_at": "2026-07-08T09:20:00-05:00",
+      "offered_rate_usd": 905.0,
+      "outcome": "countered",
+      "counter_rate_usd": 1045.0,
+      "responded_at": "2026-07-08T10:19:00-05:00",
+      "decline_reason": "rate below our floor"
+    },
+    {
+      "offer_id": "OF-59-00018",
+      "load_ref": "127474382",
+      "carrier_ref": "835438",
+      "carrier_mc": "1102938",
+      "carrier_name": "LONE OAK CARRIERS LLC",
+      "offered_at": "2026-07-08T11:20:00-05:00",
+      "offered_rate_usd": 975.0,
+      "outcome": "accepted",
+      "counter_rate_usd": null,
+      "responded_at": "2026-07-08T13:26:00-05:00",
+      "decline_reason": null
+    }
+  ]
+}

@@ -5,7 +5,7 @@
       "shipmentId": 127472397,
       "status": "Delivered",
       "mileage": 222.9,
-      "totalSell": 1250.0,
+      "totalSell": 1320.0,
       "totalBuy": 1025.0,
       "customer": {
         "customerId": 889877,
@@ -47,8 +47,8 @@
       "shipmentId": 127472794,
       "status": "Dispatched",
       "mileage": 254.9,
-      "totalSell": 1410.0,
-      "totalBuy": 1155.0,
+      "totalSell": 1510.0,
+      "totalBuy": 1090.0,
       "customer": {
         "customerId": 889477,
         "name": "Trinity Paper Products"
@@ -89,7 +89,7 @@
       "shipmentId": 127473191,
       "status": "Booking",
       "mileage": 231.5,
-      "totalSell": 1285.0,
+      "totalSell": 1370.0,
       "totalBuy": null,
       "customer": {
         "customerId": 889040,

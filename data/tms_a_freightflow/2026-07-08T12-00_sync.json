@@ -6,7 +6,7 @@
       "status": "Delivered",
       "mileage": 260.7,
       "totalSell": 1545.0,
-      "totalBuy": 1265.0,
+      "totalBuy": 1230.0,
       "customer": {
         "customerId": 889043,
         "name": "Brazos Chemical Co"
@@ -47,8 +47,8 @@
       "shipmentId": 127474382,
       "status": "Dispatched",
       "mileage": 227.2,
-      "totalSell": 1255.0,
-      "totalBuy": 1030.0,
+      "totalSell": 1345.0,
+      "totalBuy": 975.0,
       "customer": {
         "customerId": 889477,
         "name": "Trinity Paper Products"
@@ -89,7 +89,7 @@
       "shipmentId": 127474779,
       "status": "Booking",
       "mileage": 229.4,
-      "totalSell": 1275.0,
+      "totalSell": 1355.0,
       "totalBuy": null,
       "customer": {
         "customerId": 889040,

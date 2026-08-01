@@ -5,12 +5,12 @@
       "Id": "a0jMjR7SwbyAZKgG5T",
       "Name": "SHP6743186",
       "bos__Load_Status__c": "Delivered",
-      "bos__Distance_Miles__c": 198.9,
+      "bos__Distance_Miles__c": 202.3,
       "bos__Customer__c": "001DKJh96of8KwbhKO",
       "bos__Carrier__c": "001ZfPmg3vxbKJ7Xwi",
       "bos__Equipment_Type__c": "Dry Van",
-      "bos__Customer_Rate__c": 1230.0,
-      "bos__Carrier_Rate__c": 1010.0,
+      "bos__Customer_Rate__c": 1195.0,
+      "bos__Carrier_Rate__c": 1000.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
@@ -26,7 +26,7 @@
           "bos__Is_Dropoff__c": true,
           "bos__Location__c": "001TjbLK2YCWC9Y65Q",
           "bos__Scheduled_Date__c": "2026-07-09",
-          "bos__Arrival_Time__c": "2026-07-09T14:40:00.000+0000"
+          "bos__Arrival_Time__c": "2026-07-10T11:35:00.000+0000"
         }
       ],
       "bos__Line_Items__r": [
@@ -44,11 +44,11 @@
       "Id": "a0jM3C6FfP0hAazjeh",
       "Name": "SHP6743248",
       "bos__Load_Status__c": "Quotes Requested",
-      "bos__Distance_Miles__c": 241.3,
+      "bos__Distance_Miles__c": 247.0,
       "bos__Customer__c": "001XBtI2gq9cxgvPhL",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Dry Van",
-      "bos__Customer_Rate__c": 1525.0,
+      "bos__Customer_Rate__c": 1460.0,
       "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {

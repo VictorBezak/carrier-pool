@@ -5,8 +5,8 @@
       "shipmentId": 127473588,
       "status": "En Route",
       "mileage": 234.0,
-      "totalSell": 1410.0,
-      "totalBuy": 1155.0,
+      "totalSell": 1385.0,
+      "totalBuy": 1145.0,
       "customer": {
         "customerId": 889877,
         "name": "Lone Star Beverages"
