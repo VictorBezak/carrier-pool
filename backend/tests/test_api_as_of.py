@@ -75,3 +75,25 @@ def test_a_load_that_did_not_exist_yet_is_absent_rather_than_stale(sync_times):
     with pytest.raises(HTTPException) as excinfo:
         api.get_load_detail(BROKER_FREIGHTFLOW, "127233279", as_of=first)
     assert excinfo.value.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "as_of",
+    [
+        "2026-07-15T12:00:00 00:00",  # an unencoded '+' offset arrives as a space
+        "yesterday",
+        "2026-13-45",
+    ],
+)
+def test_a_malformed_as_of_is_the_callers_fault_not_a_server_error(as_of):
+    from fastapi import HTTPException
+
+    for call in (
+        lambda: api.get_loads(BROKER_FREIGHTFLOW, as_of=as_of),
+        lambda: api.get_load_detail(BROKER_FREIGHTFLOW, "127233279", as_of=as_of),
+        lambda: api.get_recommendation(BROKER_FREIGHTFLOW, "127233279", as_of=as_of, pool=False),
+    ):
+        with pytest.raises(HTTPException) as excinfo:
+            call()
+        assert excinfo.value.status_code == 400
+        assert "as_of" in excinfo.value.detail

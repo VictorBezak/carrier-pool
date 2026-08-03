@@ -70,7 +70,7 @@ def get_brokers() -> list[dict[str, Any]]:
 @app.get("/api/brokers/{broker_id}/loads")
 def get_loads(broker_id: str, as_of: str | None = Query(default=None)) -> list[dict[str, Any]]:
     _validate_broker(broker_id)
-    cutoff = datetime.fromisoformat(as_of) if as_of else None
+    cutoff = _cutoff(as_of)
     loads = _store().loads_as_of(broker_id, cutoff) if cutoff else _store().broker_current_loads(broker_id)
     loads = sorted(loads, key=lambda load: (load.status != LoadStatus.ACTIVE, load.synced_at, load.raw_load_id))
     return [load_summary(load, _store().carriers) for load in loads]
@@ -78,7 +78,7 @@ def get_loads(broker_id: str, as_of: str | None = Query(default=None)) -> list[d
 
 @app.get("/api/brokers/{broker_id}/loads/{load_id}")
 def get_load_detail(broker_id: str, load_id: str, as_of: str | None = Query(default=None)) -> dict[str, Any]:
-    cutoff = datetime.fromisoformat(as_of) if as_of else None
+    cutoff = _cutoff(as_of)
     load = _load_as_of_or_404(broker_id, load_id, cutoff)
     return load_detail(load, _versions_for_load(broker_id, load_id, cutoff), _store().carriers)
 
@@ -90,7 +90,7 @@ def get_recommendation(
     as_of: str | None = Query(default=None),
     pool: bool = Query(default=False),
 ) -> dict[str, Any]:
-    cutoff = datetime.fromisoformat(as_of) if as_of else None
+    cutoff = _cutoff(as_of)
     target = _load_as_of_or_404(broker_id, load_id, cutoff)
     geo = GeoIndex.bundled()
     bundle = recommend(_store(), target, geo, as_of=cutoff or target.synced_at, opt_in_brokers=_pool_opt_ins(), include_pool=pool)
@@ -132,6 +132,21 @@ def put_pool_opt_in(broker_id: str, payload: PoolOptInPayload) -> dict[str, Any]
 @app.get("/api/pool/policy")
 def get_pool_policy() -> dict[str, Any]:
     return POOL_POLICY
+
+
+def _cutoff(as_of: str | None) -> datetime | None:
+    """Parse the as-of replay cutoff, rejecting a bad value instead of raising a 500.
+
+    `as_of` is the one query parameter a client composes by hand, and forgetting to
+    URL-encode the `+` in a UTC offset turns it into a space. That is the caller's
+    mistake, so it should read as one.
+    """
+    if not as_of:
+        return None
+    try:
+        return datetime.fromisoformat(as_of)
+    except ValueError as cause:
+        raise HTTPException(status_code=400, detail=f"Invalid as_of timestamp {as_of!r}; expected an ISO-8601 datetime") from cause
 
 
 def _database_enabled() -> bool:
