@@ -18,7 +18,7 @@
           "bos__Is_Dropoff__c": false,
           "bos__Location__c": "0013b7a9a06b6afd8e",
           "bos__Scheduled_Date__c": "2026-07-13",
-          "bos__Arrival_Time__c": "2026-07-13T13:37:30.000+0000"
+          "bos__Arrival_Time__c": "2026-07-13T15:30:00.000+0000"
         },
         {
           "bos__Number__c": 2.0,
@@ -34,7 +34,7 @@
           "bos__Is_Dropoff__c": true,
           "bos__Location__c": "00196e525fa4ba2f67",
           "bos__Scheduled_Date__c": "2026-07-14",
-          "bos__Arrival_Time__c": "2026-07-14T13:45:00.000+0000"
+          "bos__Arrival_Time__c": "2026-07-14T15:30:00.000+0000"
         }
       ],
       "bos__Line_Items__r": [

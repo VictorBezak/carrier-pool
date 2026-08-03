@@ -51,9 +51,10 @@ def lane_weight(target: LoadVersion, historical: LoadVersion, geo: GeoIndex) -> 
     return total * affinity, direct * affinity, reverse * affinity
 
 
-def estimate_price(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | None = None) -> PriceEstimate:
+def estimate_price(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | None = None, as_of=None) -> PriceEstimate:
     geo = geo or GeoIndex.bundled()
-    history = _priced_history(store, target)
+    as_of = as_of or target.synced_at
+    history = _priced_history(store, target, as_of)
     broker_prior = _broker_equipment_prior(history, target)
 
     lane = _weighted_rates(history, target, geo, mode="lane")
@@ -68,11 +69,12 @@ def estimate_price(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | N
     return _estimate_from_rates(target, broker, broker_prior, "broker_equipment_prior")
 
 
-def estimate_carrier_price(store: CanonicalStore, target: LoadVersion, carrier_id: str, geo: GeoIndex | None = None) -> PriceEstimate:
+def estimate_carrier_price(store: CanonicalStore, target: LoadVersion, carrier_id: str, geo: GeoIndex | None = None, as_of=None, market_prior: float | None = None) -> PriceEstimate:
     geo = geo or GeoIndex.bundled()
-    broker_history = _priced_history(store, target)
+    as_of = as_of or target.synced_at
+    broker_history = _priced_history(store, target, as_of)
     carrier_history = [load for load in broker_history if load.carrier_id == carrier_id]
-    market_prior = estimate_price(store, target, geo).point_ppm
+    market_prior = estimate_price(store, target, geo, as_of=as_of).point_ppm if market_prior is None else market_prior
 
     lane = _weighted_rates(carrier_history, target, geo, mode="lane")
     if lane.effective_loads >= 0.35:
@@ -89,10 +91,10 @@ def estimate_carrier_price(store: CanonicalStore, target: LoadVersion, carrier_i
     return _estimate_from_rates(target, _WeightedRates([], 0.0, market_prior, 0.0), market_prior, "broker_market_fallback")
 
 
-def _priced_history(store: CanonicalStore, target: LoadVersion) -> list[LoadVersion]:
+def _priced_history(store: CanonicalStore, target: LoadVersion, as_of) -> list[LoadVersion]:
     return [
         load
-        for load in store.current_loads.values()
+        for load in store.loads_as_of(target.broker_id, as_of)
         if load.broker_id == target.broker_id
         and load.raw_load_id != target.raw_load_id
         and load.carrier_id is not None

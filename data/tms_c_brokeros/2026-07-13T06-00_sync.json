@@ -18,7 +18,7 @@
           "bos__Is_Dropoff__c": false,
           "bos__Location__c": "0015043b88d9af9e12",
           "bos__Scheduled_Date__c": "2026-07-11",
-          "bos__Arrival_Time__c": "2026-07-11T14:11:15.000+0000"
+          "bos__Arrival_Time__c": "2026-07-11T14:45:00.000+0000"
         },
         {
           "bos__Number__c": 2.0,
@@ -26,7 +26,7 @@
           "bos__Is_Dropoff__c": true,
           "bos__Location__c": "001c5ecc39e2ee8064",
           "bos__Scheduled_Date__c": "2026-07-12",
-          "bos__Arrival_Time__c": "2026-07-12T14:07:30.000+0000"
+          "bos__Arrival_Time__c": "2026-07-12T14:45:00.000+0000"
         }
       ],
       "bos__Line_Items__r": [
@@ -57,7 +57,7 @@
           "bos__Is_Dropoff__c": false,
           "bos__Location__c": "0015043b88d9af9e12",
           "bos__Scheduled_Date__c": "2026-07-11",
-          "bos__Arrival_Time__c": "2026-07-11T14:26:15.000+0000"
+          "bos__Arrival_Time__c": "2026-07-11T15:00:00.000+0000"
         },
         {
           "bos__Number__c": 2.0,
@@ -65,7 +65,7 @@
           "bos__Is_Dropoff__c": true,
           "bos__Location__c": "001c5ecc39e2ee8064",
           "bos__Scheduled_Date__c": "2026-07-12",
-          "bos__Arrival_Time__c": "2026-07-12T14:22:30.000+0000"
+          "bos__Arrival_Time__c": "2026-07-12T15:00:00.000+0000"
         }
       ],
       "bos__Line_Items__r": [
@@ -82,13 +82,13 @@
     {
       "Id": "a0j6503e29639ac5b2",
       "Name": "SHP4576978",
-      "bos__Load_Status__c": "Booked",
+      "bos__Load_Status__c": "Ready to Book",
       "bos__Distance_Miles__c": 299.1,
       "bos__Customer__c": "001dfc3a9c4c0a02e0",
-      "bos__Carrier__c": "001ea00b4d355bde92",
+      "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Dry Van",
       "bos__Customer_Rate__c": 1490.0,
-      "bos__Carrier_Rate__c": 1180.0,
+      "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
@@ -156,11 +156,6 @@
       "type": "Account",
       "record_type": "Customer",
       "Name": "Triangle Home Goods"
-    },
-    "001ea00b4d355bde92": {
-      "type": "Account",
-      "record_type": "Carrier",
-      "Name": "Pearland Produce Express"
     },
     "0013b7a9a06b6afd8e": {
       "type": "Location",

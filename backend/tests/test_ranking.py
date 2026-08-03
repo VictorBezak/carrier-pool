@@ -10,7 +10,7 @@ from carrier_pool.geo import GeoIndex
 from carrier_pool.ingest import BROKER_BROKEROS, BROKER_FREIGHTFLOW, BROKER_HAULDESK, ingest_data
 from carrier_pool.models import Equipment, LoadStatus
 from carrier_pool.pricing import estimate_price
-from carrier_pool.ranking import _correction_counts, active_loads, lane_weight, rank_carriers
+from carrier_pool.ranking import _broker_history, _correction_counts, _fallthrough_counts, _reliability_score, active_loads, lane_weight, rank_carriers
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
@@ -46,15 +46,23 @@ def component(ranking, name):
     return next(item for item in ranking.components if item.name == name)
 
 
-def copy_data_without(tmp_path: Path, excluded: set[str]) -> Path:
+def copy_data_through(tmp_path: Path, broker_id: str, through_name: str) -> Path:
     target = tmp_path / "data"
-    for broker_dir in DATA_DIR.glob("tms_*"):
-        copied_dir = target / broker_dir.name
-        copied_dir.mkdir(parents=True)
-        for path in broker_dir.glob("*_sync.json"):
-            rel = f"{broker_dir.name}/{path.name}"
-            if rel not in excluded:
-                shutil.copy2(path, copied_dir / path.name)
+    broker_dir = DATA_DIR / broker_id
+    copied_dir = target / broker_id
+    copied_dir.mkdir(parents=True, exist_ok=True)
+    for path in sorted(broker_dir.glob("*_sync.json")):
+        if path.name <= through_name:
+            shutil.copy2(path, copied_dir / path.name)
+    return target
+
+
+def copy_broker_only(tmp_path: Path, broker_id: str) -> Path:
+    target = tmp_path / broker_id / "data"
+    copied_dir = target / broker_id
+    copied_dir.mkdir(parents=True, exist_ok=True)
+    for path in sorted((DATA_DIR / broker_id).glob("*_sync.json")):
+        shutil.copy2(path, copied_dir / path.name)
     return target
 
 
@@ -161,18 +169,17 @@ def test_state_grouping_trap_has_low_lane_similarity(store, geo):
     assert lane_weight(target, intra_texas, geo)[0] < 0.01
 
 
-def test_corrections_move_price_estimate(tmp_path, geo):
-    full_store = ingest_data(DATA_DIR)
-    without_correction = ingest_data(copy_data_without(tmp_path, {"tms_c_brokeros/2026-07-15T18-00_sync.json"}))
-    full_load = active_by_lane(full_store, BROKER_BROKEROS, "Plano", "Pearland", Equipment.DRY_VAN)
-    stale_load = active_by_lane(without_correction, BROKER_BROKEROS, "Plano", "Pearland", Equipment.DRY_VAN)
-    assert estimate_price(full_store, full_load, geo).point_usd != estimate_price(without_correction, stale_load, geo).point_usd
+def test_corrections_move_price_estimate_as_of(store, geo):
+    load = active_by_lane(store, BROKER_BROKEROS, "Plano", "Pearland", Equipment.DRY_VAN)
+    before_correction = next(version.synced_at for version in store.versions if version.source_file == "tms_c_brokeros/2026-07-15T12-00_sync.json")
+    assert estimate_price(store, load, geo, as_of=before_correction).point_usd != estimate_price(store, load, geo).point_usd
 
 
 def test_correction_counts_cover_all_three_brokers(store):
-    assert sum(_correction_counts(store, BROKER_FREIGHTFLOW).values()) == 1
-    assert sum(_correction_counts(store, BROKER_HAULDESK).values()) == 1
-    assert sum(_correction_counts(store, BROKER_BROKEROS).values()) == 1
+    cutoff = max(version.synced_at for version in store.versions)
+    assert sum(_correction_counts(store, BROKER_FREIGHTFLOW, cutoff).values()) == 1
+    assert sum(_correction_counts(store, BROKER_HAULDESK, cutoff).values()) == 1
+    assert sum(_correction_counts(store, BROKER_BROKEROS, cutoff).values()) == 1
 
 
 def test_price_shrinkage_collapses_single_load_outlier(store):
@@ -184,20 +191,63 @@ def test_price_shrinkage_collapses_single_load_outlier(store):
 
 
 def test_hauldesk_local_times_parse_as_central(store):
-    actual = next(load.pickup_actual_at for load in store.versions if load.broker_id == BROKER_HAULDESK and load.pickup_actual_at is not None)
+    actual = next(load.pickup_departed_at for load in store.versions if load.broker_id == BROKER_HAULDESK and load.pickup_departed_at is not None)
     assert actual.utcoffset().total_seconds() == -5 * 60 * 60
 
 
-def test_brokeros_on_time_verdicts_stay_unchanged(store):
-    actuals = 0
-    late = 0
-    for load in store.versions:
-        if load.broker_id != BROKER_BROKEROS:
-            continue
-        for actual, close_at in ((load.pickup_actual_at, load.pickup_close_at), (load.delivery_actual_at, load.delivery_close_at)):
-            if actual is not None and close_at is not None:
-                actuals += 1
-                late += actual > close_at
-    assert actuals == 76
-    assert late == 0
+def test_reliability_signal_has_late_pickups_and_deliveries_per_broker(store):
+    for broker in (BROKER_FREIGHTFLOW, BROKER_HAULDESK, BROKER_BROKEROS):
+        pickup_late = 0
+        delivery_late = 0
+        for load in store.versions:
+            if load.broker_id != broker:
+                continue
+            pickup_actuals = [actual for actual in (load.pickup_arrived_at, load.pickup_departed_at) if actual is not None]
+            delivery_actuals = [actual for actual in (load.delivery_arrived_at, load.delivery_departed_at) if actual is not None]
+            pickup_late += any(actual > load.pickup_close_at for actual in pickup_actuals if load.pickup_close_at is not None)
+            delivery_late += any(actual > load.delivery_close_at for actual in delivery_actuals if load.delivery_close_at is not None)
+        assert pickup_late > 0
+        assert delivery_late > 0
+
+
+def test_tenant_isolation_is_exhaustive(tmp_path, store, geo):
+    for load in active_loads(store):
+        isolated = ingest_data(copy_broker_only(tmp_path, load.broker_id))
+        isolated_load = next(item for item in active_loads(isolated, load.broker_id) if item.raw_load_id == load.raw_load_id)
+        full_rankings = rank_carriers(store, load, geo)
+        isolated_rankings = rank_carriers(isolated, isolated_load, geo)
+        assert [(r.carrier_id, r.score, r.confidence) for r in isolated_rankings] == [(r.carrier_id, r.score, r.confidence) for r in full_rankings]
+        assert estimate_price(isolated, isolated_load, geo) == estimate_price(store, load, geo)
+
+
+def test_as_of_ranking_unchanged_by_later_syncs(tmp_path, store, geo):
+    load = active_by_lane(store, BROKER_FREIGHTFLOW, "Arlington", "Sugar Land", Equipment.DRY_VAN)
+    partial_store = ingest_data(copy_data_through(tmp_path, BROKER_FREIGHTFLOW, "2026-07-16T00-00_sync.json"))
+    partial_load = active_by_lane(partial_store, BROKER_FREIGHTFLOW, "Arlington", "Sugar Land", Equipment.DRY_VAN)
+    assert [(r.carrier_id, r.score, r.confidence) for r in rank_carriers(partial_store, partial_load, geo)] == [
+        (r.carrier_id, r.score, r.confidence) for r in rank_carriers(store, load, geo)
+    ]
+
+
+def test_reassigned_load_has_single_transition_and_one_fallthrough(store):
+    versions = [version for version in store.versions if version.raw_load_id == "127738346"]
+    compact = []
+    for carrier_id in [version.carrier_id for version in versions]:
+        if not compact or compact[-1] != carrier_id:
+            compact.append(carrier_id)
+    assert len([carrier_id for carrier_id in compact if carrier_id is not None]) == 2
+    cutoff = max(version.synced_at for version in store.versions)
+    loser = next(carrier_id for carrier_id in compact if carrier_id is not None)
+    assert _fallthrough_counts(store, BROKER_FREIGHTFLOW, cutoff)[loser] == 1
+
+
+def test_reliability_score_discriminates_late_carrier(store):
+    target = active_by_lane(store, BROKER_FREIGHTFLOW, "Arlington", "Sugar Land", Equipment.DRY_VAN)
+    history = _broker_history(store, target, target.synced_at)
+    by_carrier = {}
+    for load in history:
+        by_carrier.setdefault(load.carrier_id, []).append(load)
+    punctual = next(carrier_id for carrier_id, loads in by_carrier.items() if any(load.carrier_id == carrier_id and load.pickup_departed_at and load.pickup_departed_at <= load.pickup_close_at for load in loads))
+    late = next(carrier_id for carrier_id, loads in by_carrier.items() if any(load.carrier_id == carrier_id and load.pickup_departed_at and load.pickup_departed_at > load.pickup_close_at for load in loads))
+    assert _reliability_score(by_carrier[punctual]) > _reliability_score(by_carrier[late])
 

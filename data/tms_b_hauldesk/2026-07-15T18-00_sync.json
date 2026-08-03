@@ -19,9 +19,9 @@
       "del_state": "TX",
       "del_zip": "77520",
       "del_date": "2026-07-14",
-      "del_arrived_at": "2026-07-14 10:00:00",
+      "del_arrived_at": "2026-07-14 14:45:00",
       "entered_at": "2026-07-12 15:43:00",
-      "updated_at": "2026-07-15 17:41:00"
+      "updated_at": "2026-07-15 17:17:00"
     },
     {
       "load_num": "HD-2026-680412",
@@ -41,7 +41,7 @@
       "del_state": "TX",
       "del_zip": "78154",
       "del_date": "2026-07-15",
-      "del_arrived_at": "2026-07-15 09:00:00",
+      "del_arrived_at": "2026-07-15 10:00:00",
       "entered_at": "2026-07-13 09:43:00",
       "updated_at": "2026-07-15 17:17:00"
     },
@@ -63,20 +63,21 @@
       "del_state": "TX",
       "del_zip": "78154",
       "del_date": "2026-07-15",
-      "del_arrived_at": "2026-07-15 09:15:00",
+      "del_arrived_at": "2026-07-15 10:15:00",
       "entered_at": "2026-07-13 21:43:00",
       "updated_at": "2026-07-15 17:17:00"
     }
   ],
-  "carriers": [],
-  "rates": [
+  "carriers": [
     {
-      "rate_id": 1594782,
-      "load_num": "HD-2026-678177",
-      "side": "pay",
-      "code": "ADJUSTMENT",
-      "amount_usd": -85.0,
-      "created_at": "2026-07-15 17:41:00"
+      "carrier_id": 73716,
+      "carrier_name": "GULFWAY FLATBED DBA GULFWAY",
+      "mc_no": "715902",
+      "dot_no": "3101990",
+      "home_city": "Baytown",
+      "home_state": "TX",
+      "phone": "(832) 555-0184"
     }
-  ]
+  ],
+  "rates": []
 }

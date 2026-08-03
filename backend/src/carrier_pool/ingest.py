@@ -29,6 +29,7 @@ def _sync_files(folder: Path) -> list[Path]:
 def _ingest_freightflow(folder: Path, store: CanonicalStore) -> None:
     for path in _sync_files(folder):
         payload = json.loads(path.read_text(encoding="utf-8"))
+        synced_at = _parse_dt(payload["syncedAt"])
         for row in payload["loads"]:
             customer_id = str(row["customer"]["customerId"])
             store.customers[(BROKER_FREIGHTFLOW, customer_id)] = Customer(BROKER_FREIGHTFLOW, customer_id, row["customer"]["name"])
@@ -51,6 +52,7 @@ def _ingest_freightflow(folder: Path, store: CanonicalStore) -> None:
                 LoadVersion(
                     broker_id=BROKER_FREIGHTFLOW,
                     source_file=str(path.relative_to(folder.parent)),
+                    synced_at=synced_at,
                     raw_load_id=str(row["shipmentId"]),
                     status=_freightflow_status(row["status"]),
                     customer_id=customer_id,
@@ -61,10 +63,12 @@ def _ingest_freightflow(folder: Path, store: CanonicalStore) -> None:
                     delivery=_location(delivery["city"], delivery["state"], delivery["zipCode"]),
                     pickup_open_at=_parse_dt(pickup.get("estimatedReadyDateTime")),
                     pickup_close_at=_parse_dt(pickup.get("estimatedCloseDateTime")),
-                    pickup_actual_at=_parse_dt(pickup.get("actualDepartureDateTime")),
+                    pickup_arrived_at=None,
+                    pickup_departed_at=_parse_dt(pickup.get("actualDepartureDateTime")),
                     delivery_open_at=_parse_dt(delivery.get("estimatedReadyDateTime")),
                     delivery_close_at=_parse_dt(delivery.get("estimatedCloseDateTime")),
-                    delivery_actual_at=_parse_dt(delivery.get("actualDepartureDateTime")),
+                    delivery_arrived_at=None,
+                    delivery_departed_at=_parse_dt(delivery.get("actualDepartureDateTime")),
                     distance_miles=float(row["mileage"]),
                     weight_lbs=float(row["weightTotal"]) if row.get("weightTotal") is not None else None,
                     commodity=None,
@@ -82,6 +86,7 @@ def _ingest_hauldesk(folder: Path, store: CanonicalStore) -> None:
     rates_by_load: dict[str, dict[str, float]] = defaultdict(lambda: {"bill": 0.0, "pay": 0.0, "adjustment_abs": 0.0})
     for path in _sync_files(folder):
         payload = json.loads(path.read_text(encoding="utf-8"))
+        synced_at = _parse_local(payload["synced_at"])
         for carrier in payload["carriers"]:
             carrier_id = str(carrier["carrier_id"])
             model = Carrier(
@@ -112,6 +117,7 @@ def _ingest_hauldesk(folder: Path, store: CanonicalStore) -> None:
                 LoadVersion(
                     broker_id=BROKER_HAULDESK,
                     source_file=str(path.relative_to(folder.parent)),
+                    synced_at=synced_at,
                     raw_load_id=row["load_num"],
                     status=_hauldesk_status(row["status_code"]),
                     customer_id=customer_id,
@@ -122,10 +128,12 @@ def _ingest_hauldesk(folder: Path, store: CanonicalStore) -> None:
                     delivery=_location(row["del_city"], row["del_state"], row["del_zip"]),
                     pickup_open_at=_central_date(row["pu_date"], 8),
                     pickup_close_at=_central_date(row["pu_date"], 16),
-                    pickup_actual_at=_parse_local(row.get("pu_departed_at")),
+                    pickup_arrived_at=None,
+                    pickup_departed_at=_parse_local(row.get("pu_departed_at")),
                     delivery_open_at=_central_date(row["del_date"], 8),
                     delivery_close_at=_central_date(row["del_date"], 16),
-                    delivery_actual_at=_parse_local(row.get("del_arrived_at")),
+                    delivery_arrived_at=_parse_local(row.get("del_arrived_at")),
+                    delivery_departed_at=None,
                     distance_miles=float(row["dist_km"]) / 1.609344,
                     weight_lbs=float(row["weight_kg"]) / 0.45359237 if row.get("weight_kg") is not None else None,
                     commodity=None,
@@ -141,6 +149,7 @@ def _ingest_hauldesk(folder: Path, store: CanonicalStore) -> None:
 def _ingest_brokeros(folder: Path, store: CanonicalStore) -> None:
     for path in _sync_files(folder):
         payload = json.loads(path.read_text(encoding="utf-8"))
+        synced_at = _parse_crm(payload["synced_at"])
         refs = payload["referenced_records"]
         for row in payload["records"]:
             customer_ref = refs[row["bos__Customer__c"]]
@@ -164,6 +173,7 @@ def _ingest_brokeros(folder: Path, store: CanonicalStore) -> None:
                 LoadVersion(
                     broker_id=BROKER_BROKEROS,
                     source_file=str(path.relative_to(folder.parent)),
+                    synced_at=synced_at,
                     raw_load_id=row["Id"],
                     status=_brokeros_status(row["bos__Load_Status__c"]),
                     customer_id=customer_id,
@@ -174,10 +184,12 @@ def _ingest_brokeros(folder: Path, store: CanonicalStore) -> None:
                     delivery=_location(delivery_ref["bos__City__c"], delivery_ref["bos__State__c"], delivery_ref["bos__Postal_Code__c"]),
                     pickup_open_at=_crm_date(pickup_stop["bos__Scheduled_Date__c"], 8),
                     pickup_close_at=_crm_date(pickup_stop["bos__Scheduled_Date__c"], 16),
-                    pickup_actual_at=_parse_crm(pickup_stop.get("bos__Arrival_Time__c")),
+                    pickup_arrived_at=_parse_crm(pickup_stop.get("bos__Arrival_Time__c")),
+                    pickup_departed_at=None,
                     delivery_open_at=_crm_date(delivery_stop["bos__Scheduled_Date__c"], 8),
                     delivery_close_at=_crm_date(delivery_stop["bos__Scheduled_Date__c"], 16),
-                    delivery_actual_at=_parse_crm(delivery_stop.get("bos__Arrival_Time__c")),
+                    delivery_arrived_at=_parse_crm(delivery_stop.get("bos__Arrival_Time__c")),
+                    delivery_departed_at=None,
                     distance_miles=float(row["bos__Distance_Miles__c"]),
                     weight_lbs=total_weight_lbs,
                     commodity=commodity,

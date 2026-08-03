@@ -66,6 +66,7 @@ def main() -> None:
             errors.append(f"{broker.value}: missing documented statuses {sorted(missing)}")
 
     errors.extend(_correction_errors())
+    errors.extend(_scenario_invariant_errors())
 
     if errors:
         raise SystemExit("Validation failed:\n" + "\n".join(errors))
@@ -288,6 +289,91 @@ def _correction_errors() -> list[str]:
             if len(set(buys)) < 2:
                 errors.append(f"{spec.broker.value}: correction {spec.key} did not restate bos__Carrier_Rate__c")
     return errors
+
+
+def _scenario_invariant_errors() -> list[str]:
+    errors: list[str] = []
+    carriers_by_load: dict[tuple[Broker, str], list[str | int | None]] = {}
+    statuses_by_load: dict[tuple[Broker, str], set] = {}
+    late_counts: dict[Broker, dict[str, int]] = {broker: {"pickup": 0, "delivery": 0} for broker in Broker}
+    hauldesk_linehaul: dict[str, int] = {}
+
+    for broker in Broker:
+        for path in sorted((DATA_DIR / broker.value).glob("*_sync.json")):
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            if broker == Broker.FREIGHTFLOW:
+                for row in payload["loads"]:
+                    key = (broker, str(row["shipmentId"]))
+                    statuses_by_load.setdefault(key, set()).add(row["status"])
+                    carrier = row["carrier"]["carrierMasterId"] if row["carrier"] else None
+                    carriers_by_load.setdefault(key, []).append(carrier)
+                    pickup, delivery = row["stops"][0], row["stops"][-1]
+                    if pickup["actualDepartureDateTime"] and datetime.fromisoformat(pickup["actualDepartureDateTime"]) > datetime.fromisoformat(pickup["estimatedCloseDateTime"]):
+                        late_counts[broker]["pickup"] += 1
+                    if delivery["actualDepartureDateTime"] and datetime.fromisoformat(delivery["actualDepartureDateTime"]) > datetime.fromisoformat(delivery["estimatedCloseDateTime"]):
+                        late_counts[broker]["delivery"] += 1
+            elif broker == Broker.HAULDESK:
+                for row in payload["loads"]:
+                    key = (broker, row["load_num"])
+                    statuses_by_load.setdefault(key, set()).add(row["status_code"])
+                    carriers_by_load.setdefault(key, []).append(row["carrier_ref"])
+                    if row["pu_departed_at"] and datetime.fromisoformat(row["pu_departed_at"]) > datetime.fromisoformat(f"{row['pu_date']}T16:00:00"):
+                        late_counts[broker]["pickup"] += 1
+                    if row["del_arrived_at"] and datetime.fromisoformat(row["del_arrived_at"]) > datetime.fromisoformat(f"{row['del_date']}T16:00:00"):
+                        late_counts[broker]["delivery"] += 1
+                for rate in payload["rates"]:
+                    if rate["side"] == "pay" and rate["code"] == "LINEHAUL":
+                        hauldesk_linehaul[rate["load_num"]] = hauldesk_linehaul.get(rate["load_num"], 0) + 1
+            else:
+                refs = payload["referenced_records"]
+                for row in payload["records"]:
+                    key = (broker, row["Id"])
+                    statuses_by_load.setdefault(key, set()).add(row["bos__Load_Status__c"])
+                    carriers_by_load.setdefault(key, []).append(row["bos__Carrier__c"])
+                    stops = sorted(row["bos__Stops__r"], key=lambda stop: stop["bos__Number__c"])
+                    for stop in stops:
+                        if not stop["bos__Arrival_Time__c"]:
+                            continue
+                        arrival = datetime.strptime(stop["bos__Arrival_Time__c"], "%Y-%m-%dT%H:%M:%S.000+0000")
+                        close_at = datetime.fromisoformat(f"{stop['bos__Scheduled_Date__c']}T16:00:00")
+                        late_key = "pickup" if stop["bos__Is_Pickup__c"] else "delivery" if stop["bos__Is_Dropoff__c"] else None
+                        if late_key and arrival > close_at:
+                            late_counts[broker][late_key] += 1
+
+    for (broker, load_id), carriers in carriers_by_load.items():
+        compact = []
+        for carrier in carriers:
+            if not compact or compact[-1] != carrier:
+                compact.append(carrier)
+        if len([carrier for carrier in compact if carrier is not None]) > 2:
+            errors.append(f"{broker.value}: load {load_id} changes carrier more than once or reverts")
+
+    active_status = {Broker.FREIGHTFLOW: "Booking", Broker.HAULDESK: 20, Broker.BROKEROS: "Ready to Book"}
+    for spec in build_load_specs():
+        if spec.lifecycle != "full":
+            continue
+        key = (spec.broker, _raw_load_id(spec))
+        if active_status[spec.broker] not in statuses_by_load.get(key, set()):
+            errors.append(f"{spec.broker.value}: full lifecycle load {spec.key} never appears ACTIVE")
+
+    for load_num, count in hauldesk_linehaul.items():
+        if count > 1:
+            errors.append(f"{Broker.HAULDESK.value}: load {load_num} has {count} pay LINEHAUL rows")
+
+    for broker, counts in late_counts.items():
+        if counts["pickup"] == 0:
+            errors.append(f"{broker.value}: expected at least one late pickup")
+        if counts["delivery"] == 0:
+            errors.append(f"{broker.value}: expected at least one late delivery")
+    return errors
+
+
+def _raw_load_id(spec) -> str:
+    if spec.broker == Broker.FREIGHTFLOW:
+        return str(127000000 + stable_int(spec.key, 6))
+    if spec.broker == Broker.HAULDESK:
+        return f"HD-2026-{stable_int(spec.key, 6):06d}"
+    return stable_id("a0j", f"load:{spec.key}")
 
 
 if __name__ == "__main__":

@@ -2,28 +2,6 @@
   "synced_at": "2026-07-13 12:00:00",
   "loads": [
     {
-      "load_num": "HD-2026-678177",
-      "status_code": 40,
-      "customer_code": "C-1189",
-      "customer_name": "Alamo Building Supply",
-      "carrier_ref": 73716,
-      "equip": "F",
-      "weight_kg": 14968.5,
-      "dist_km": 336.7,
-      "pu_city": "Seguin",
-      "pu_state": "TX",
-      "pu_zip": "78155",
-      "pu_date": "2026-07-13",
-      "pu_departed_at": null,
-      "del_city": "Baytown",
-      "del_state": "TX",
-      "del_zip": "77520",
-      "del_date": "2026-07-14",
-      "del_arrived_at": null,
-      "entered_at": "2026-07-12 15:43:00",
-      "updated_at": "2026-07-13 11:17:00"
-    },
-    {
       "load_num": "HD-2026-815049",
       "status_code": 30,
       "customer_code": "C-8189",

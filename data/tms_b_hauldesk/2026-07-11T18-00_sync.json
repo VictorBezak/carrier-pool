@@ -24,28 +24,6 @@
       "updated_at": "2026-07-11 17:17:00"
     },
     {
-      "load_num": "HD-2026-563611",
-      "status_code": 50,
-      "customer_code": "C-8189",
-      "customer_name": "Metroplex Auto Parts",
-      "carrier_ref": 72737,
-      "equip": "V",
-      "weight_kg": 9298.6,
-      "dist_km": 457.1,
-      "pu_city": "Irving",
-      "pu_state": "TX",
-      "pu_zip": "75062",
-      "pu_date": "2026-07-10",
-      "pu_departed_at": "2026-07-10 18:30:00",
-      "del_city": "Schertz",
-      "del_state": "TX",
-      "del_zip": "78154",
-      "del_date": "2026-07-11",
-      "del_arrived_at": "2026-07-11 11:00:00",
-      "entered_at": "2026-07-09 21:43:00",
-      "updated_at": "2026-07-11 17:17:00"
-    },
-    {
       "load_num": "HD-2026-538318",
       "status_code": 50,
       "customer_code": "C-1189",
@@ -63,7 +41,7 @@
       "del_state": "TX",
       "del_zip": "77502",
       "del_date": "2026-07-11",
-      "del_arrived_at": "2026-07-11 09:00:00",
+      "del_arrived_at": "2026-07-11 09:15:00",
       "entered_at": "2026-07-09 09:43:00",
       "updated_at": "2026-07-11 17:17:00"
     }

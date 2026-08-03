@@ -14,7 +14,7 @@ WEIGHTS = {
     "positioning": 0.20,
     "price": 0.18,
     "reliability": 0.14,
-    "recency": 0.10,
+    "relationship": 0.10,
     "customer_affinity": 0.05,
     "stability": 0.05,
 }
@@ -32,24 +32,24 @@ class CarrierEvidence:
     reliability_observations: int
     price_observations: int
     last_delivery_deadhead_miles: float | None
-    home_deadhead_miles: float | None
     correction_count: int
     fallthrough_count: int
 
 
-def rank_carriers(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | None = None) -> list[CarrierRanking]:
+def rank_carriers(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | None = None, as_of: datetime | None = None) -> list[CarrierRanking]:
     geo = geo or GeoIndex.bundled()
-    history = _broker_history(store, target)
+    as_of = as_of or target.synced_at
+    history = _broker_history(store, target, as_of)
     candidate_ids = _candidate_ids(history, target)
-    market_price = estimate_price(store, target, geo)
-    fallthroughs = _fallthrough_counts(store, target.broker_id)
-    corrections = _correction_counts(store, target.broker_id)
+    market_price = estimate_price(store, target, geo, as_of=as_of)
+    fallthroughs = _fallthrough_counts(store, target.broker_id, as_of)
+    corrections = _correction_counts(store, target.broker_id, as_of)
     rankings: list[CarrierRanking] = []
 
     for carrier_id in candidate_ids:
         carrier_history = [load for load in history if load.carrier_id == carrier_id]
-        evidence = _evidence(carrier_id, carrier_history, target, geo, corrections.get(carrier_id, 0), fallthroughs.get(carrier_id, 0))
-        carrier_price = estimate_carrier_price(store, target, carrier_id, geo)
+        evidence = _evidence(carrier_id, carrier_history, target, geo, as_of, corrections.get(carrier_id, 0), fallthroughs.get(carrier_id, 0))
+        carrier_price = estimate_carrier_price(store, target, carrier_id, geo, as_of=as_of, market_prior=market_price.point_ppm)
         components = _components(evidence, carrier_history, target, geo, carrier_price, market_price)
         score = round(sum(component.score * component.weight for component in components), 4)
         confidence = _confidence(evidence)
@@ -78,10 +78,10 @@ def active_loads(store: CanonicalStore, broker_id: str | None = None) -> list[Lo
     return sorted(loads, key=lambda load: (load.broker_id, load.raw_load_id))
 
 
-def _broker_history(store: CanonicalStore, target: LoadVersion) -> list[LoadVersion]:
+def _broker_history(store: CanonicalStore, target: LoadVersion, as_of: datetime) -> list[LoadVersion]:
     return [
         load
-        for load in store.current_loads.values()
+        for load in store.loads_as_of(target.broker_id, as_of)
         if load.broker_id == target.broker_id
         and load.raw_load_id != target.raw_load_id
         and load.carrier_id is not None
@@ -108,16 +108,16 @@ def lane_weight(target: LoadVersion, historical: LoadVersion, geo: GeoIndex) -> 
     return weighted_lane_weight(target, historical, geo)
 
 
-def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, correction_count: int, fallthrough_count: int) -> CarrierEvidence:
+def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, as_of: datetime, correction_count: int, fallthrough_count: int) -> CarrierEvidence:
     weighted = [lane_weight(target, load, geo) for load in history]
     lane_effective = sum(item[0] for item in weighted)
     direct_effective = sum(item[1] for item in weighted)
     reverse_effective = sum(item[2] for item in weighted)
-    target_time = target.pickup_open_at or target.created_at or datetime.now(timezone.utc)
+    target_time = as_of
     recent_loads = sum(1 for load in history if load.updated_at and (target_time - load.updated_at).days <= 21)
-    reliability_observations = sum(1 for load in history if load.pickup_actual_at or load.delivery_actual_at)
+    reliability_observations = sum(len(_reliability_events(load)) for load in history)
     price_observations = sum(1 for load in history if load.carrier_rate_usd and load.distance_miles > 0)
-    last_load = max((load for load in history if load.delivery_actual_at and load.delivery_actual_at <= target_time), key=lambda load: load.delivery_actual_at, default=None)
+    last_load = max((load for load in history if _delivery_known_at(load) and _delivery_known_at(load) <= target_time), key=lambda load: _delivery_known_at(load), default=None)
     last_deadhead = geo.miles(last_load.delivery.zip_code, target.pickup.zip_code) if last_load else None
     if last_deadhead is not None and math.isinf(last_deadhead):
         # Unlocatable ZIP: report positioning as unknown rather than an infinite deadhead.
@@ -133,7 +133,6 @@ def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, 
         reliability_observations=reliability_observations,
         price_observations=price_observations,
         last_delivery_deadhead_miles=last_deadhead,
-        home_deadhead_miles=None,
         correction_count=correction_count,
         fallthrough_count=fallthrough_count,
     )
@@ -144,15 +143,15 @@ def _components(evidence: CarrierEvidence, history: list[LoadVersion], target: L
     positioning_score = _positioning_score(evidence, history, target, geo)
     price_score, price_evidence = _price_score(carrier_price, market_price)
     reliability_score = _reliability_score(history)
-    recency_score = min(1.0, 0.55 * (1 - math.exp(-evidence.total_loads / 5.0)) + 0.45 * (1 - math.exp(-evidence.recent_loads / 2.0)))
+    relationship_score = min(1.0, 0.55 * (1 - math.exp(-evidence.total_loads / 5.0)) + 0.45 * (1 - math.exp(-evidence.recent_loads / 2.0)))
     customer_score = _customer_score(history, target)
     stability_score = max(0.0, 1.0 - 0.18 * evidence.correction_count - 0.28 * evidence.fallthrough_count)
     return [
         ComponentScore("lane_familiarity", _clip(lane_score), WEIGHTS["lane_familiarity"], {"effective_loads": round(evidence.lane_effective, 2), "direct": round(evidence.direct_effective, 2), "reverse": round(evidence.reverse_effective, 2)}),
         ComponentScore("positioning", _clip(positioning_score), WEIGHTS["positioning"], {"last_delivery_deadhead_miles": _round_optional(evidence.last_delivery_deadhead_miles)}),
         ComponentScore("price", _clip(price_score), WEIGHTS["price"], price_evidence),
-        ComponentScore("reliability", _clip(reliability_score), WEIGHTS["reliability"], {"observations": evidence.reliability_observations}),
-        ComponentScore("recency", _clip(recency_score), WEIGHTS["recency"], {"total_loads": evidence.total_loads, "recent_loads": evidence.recent_loads}),
+        ComponentScore("reliability", _clip(reliability_score), WEIGHTS["reliability"], {"observations": evidence.reliability_observations, "measures": _reliability_measures(history)}),
+        ComponentScore("relationship", _clip(relationship_score), WEIGHTS["relationship"], {"total_loads": evidence.total_loads, "recent_loads": evidence.recent_loads}),
         ComponentScore("customer_affinity", _clip(customer_score), WEIGHTS["customer_affinity"], {"same_customer_loads": sum(1 for load in history if load.customer_id == target.customer_id)}),
         ComponentScore("stability", _clip(stability_score), WEIGHTS["stability"], {"corrections": evidence.correction_count, "fallthroughs": evidence.fallthrough_count}),
     ]
@@ -185,13 +184,32 @@ def _reliability_score(history: list[LoadVersion]) -> float:
     successes = 3.0
     observations = 4.0
     for load in history:
-        if load.pickup_actual_at and load.pickup_close_at:
+        for actual, close_at, _measure in _reliability_events(load):
             observations += 1
-            successes += 1 if load.pickup_actual_at <= load.pickup_close_at else 0
-        if load.delivery_actual_at and load.delivery_close_at:
-            observations += 1
-            successes += 1 if load.delivery_actual_at <= load.delivery_close_at else 0
+            successes += 1 if actual <= close_at else 0
     return successes / observations
+
+
+def _reliability_events(load: LoadVersion) -> list[tuple[datetime, datetime, str]]:
+    events = []
+    if load.pickup_arrived_at and load.pickup_close_at:
+        events.append((load.pickup_arrived_at, load.pickup_close_at, "pickup_arrival"))
+    if load.pickup_departed_at and load.pickup_close_at:
+        events.append((load.pickup_departed_at, load.pickup_close_at, "pickup_departure"))
+    if load.delivery_arrived_at and load.delivery_close_at:
+        events.append((load.delivery_arrived_at, load.delivery_close_at, "delivery_arrival"))
+    if load.delivery_departed_at and load.delivery_close_at:
+        events.append((load.delivery_departed_at, load.delivery_close_at, "delivery_departure"))
+    return events
+
+
+def _reliability_measures(history: list[LoadVersion]) -> str:
+    measures = Counter(measure for load in history for _actual, _close_at, measure in _reliability_events(load))
+    return ",".join(f"{measure}:{count}" for measure, count in sorted(measures.items()))
+
+
+def _delivery_known_at(load: LoadVersion) -> datetime | None:
+    return load.delivery_departed_at or load.delivery_arrived_at
 
 
 def _customer_score(history: list[LoadVersion], target: LoadVersion) -> float:
@@ -199,11 +217,11 @@ def _customer_score(history: list[LoadVersion], target: LoadVersion) -> float:
     return (same + 1.0) / (same + 6.0)
 
 
-def _fallthrough_counts(store: CanonicalStore, broker_id: str) -> Counter[str]:
+def _fallthrough_counts(store: CanonicalStore, broker_id: str, as_of: datetime) -> Counter[str]:
     counts: Counter[str] = Counter()
     by_load: dict[str, list[LoadVersion]] = defaultdict(list)
     for version in store.versions:
-        if version.broker_id == broker_id:
+        if version.broker_id == broker_id and version.synced_at <= as_of:
             by_load[version.raw_load_id].append(version)
     for versions in by_load.values():
         previous = None
@@ -215,22 +233,26 @@ def _fallthrough_counts(store: CanonicalStore, broker_id: str) -> Counter[str]:
     return counts
 
 
-def _correction_counts(store: CanonicalStore, broker_id: str) -> Counter[str]:
+def _correction_counts(store: CanonicalStore, broker_id: str, as_of: datetime) -> Counter[str]:
     counts: Counter[str] = Counter()
     by_load: dict[str, list[LoadVersion]] = defaultdict(list)
     for version in store.versions:
-        if version.broker_id == broker_id:
+        if version.broker_id == broker_id and version.synced_at <= as_of:
             by_load[version.raw_load_id].append(version)
 
     for versions in by_load.values():
         previous_rate = None
+        previous_carrier = None
         for version in sorted(versions, key=lambda item: item.updated_at or datetime.min.replace(tzinfo=timezone.utc)):
             if version.carrier_rate_usd is None:
                 continue
             adjusted = float(version.raw.get("_rate_adjustment_abs", 0.0) or 0.0) > 0.0
             rate_changed = previous_rate is not None and not math.isclose(version.carrier_rate_usd, previous_rate)
-            if version.carrier_id and (rate_changed or adjusted):
+            carrier_changed = previous_carrier is not None and version.carrier_id is not None and previous_carrier != version.carrier_id
+            if version.carrier_id and not carrier_changed and (rate_changed or adjusted):
                 counts[version.carrier_id] += 1
+            if version.carrier_id:
+                previous_carrier = version.carrier_id
             previous_rate = version.carrier_rate_usd
     return counts
 
@@ -272,6 +294,11 @@ def _limitations(evidence: CarrierEvidence, target: LoadVersion) -> list[str]:
         limitations.append("low lane confidence: little direct or nearby-lane history")
     if evidence.reliability_observations < 3:
         limitations.append("limited reliability observations")
+    measures = {measure for load in evidence.history for _actual, _close_at, measure in _reliability_events(load)}
+    if measures and all("arrival" in measure for measure in measures):
+        limitations.append("reliability is based on arrival timestamps only for this broker")
+    elif measures and all("departure" in measure for measure in measures):
+        limitations.append("reliability is based on departure timestamps only for this broker")
     if target.equipment == Equipment.UNKNOWN:
         limitations.append("target equipment is unknown, so equipment compatibility was not gated")
     elif not any(load.equipment == target.equipment for load in evidence.history):

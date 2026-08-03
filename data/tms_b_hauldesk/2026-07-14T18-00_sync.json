@@ -3,7 +3,7 @@
   "loads": [
     {
       "load_num": "HD-2026-678177",
-      "status_code": 50,
+      "status_code": 40,
       "customer_code": "C-1189",
       "customer_name": "Alamo Building Supply",
       "carrier_ref": 73716,
@@ -19,8 +19,30 @@
       "del_state": "TX",
       "del_zip": "77520",
       "del_date": "2026-07-14",
-      "del_arrived_at": "2026-07-14 10:00:00",
+      "del_arrived_at": "2026-07-14 14:45:00",
       "entered_at": "2026-07-12 15:43:00",
+      "updated_at": "2026-07-14 17:17:00"
+    },
+    {
+      "load_num": "HD-2026-989157",
+      "status_code": 30,
+      "customer_code": "C-1189",
+      "customer_name": "Alamo Building Supply",
+      "carrier_ref": 73716,
+      "equip": "F",
+      "weight_kg": 16102.5,
+      "dist_km": 336.7,
+      "pu_city": "Seguin",
+      "pu_state": "TX",
+      "pu_zip": "78155",
+      "pu_date": "2026-07-15",
+      "pu_departed_at": null,
+      "del_city": "Baytown",
+      "del_state": "TX",
+      "del_zip": "77520",
+      "del_date": "2026-07-16",
+      "del_arrived_at": null,
+      "entered_at": "2026-07-14 09:43:00",
       "updated_at": "2026-07-14 17:17:00"
     },
     {
@@ -41,33 +63,20 @@
       "del_state": "TX",
       "del_zip": "78154",
       "del_date": "2026-07-14",
-      "del_arrived_at": "2026-07-14 08:30:00",
+      "del_arrived_at": "2026-07-14 09:30:00",
       "entered_at": "2026-07-12 09:43:00",
-      "updated_at": "2026-07-14 17:17:00"
-    },
-    {
-      "load_num": "HD-2026-815049",
-      "status_code": 50,
-      "customer_code": "C-8189",
-      "customer_name": "Metroplex Auto Parts",
-      "carrier_ref": 75320,
-      "equip": "V",
-      "weight_kg": 16102.5,
-      "dist_km": 457.1,
-      "pu_city": "Irving",
-      "pu_state": "TX",
-      "pu_zip": "75062",
-      "pu_date": "2026-07-13",
-      "pu_departed_at": "2026-07-13 14:45:00",
-      "del_city": "Schertz",
-      "del_state": "TX",
-      "del_zip": "78154",
-      "del_date": "2026-07-14",
-      "del_arrived_at": "2026-07-14 08:45:00",
-      "entered_at": "2026-07-12 21:43:00",
       "updated_at": "2026-07-14 17:17:00"
     }
   ],
   "carriers": [],
-  "rates": []
+  "rates": [
+    {
+      "rate_id": 1274236,
+      "load_num": "HD-2026-989157",
+      "side": "pay",
+      "code": "LINEHAUL",
+      "amount_usd": 1075.0,
+      "created_at": "2026-07-14 17:17:00"
+    }
+  ]
 }

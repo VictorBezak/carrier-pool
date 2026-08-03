@@ -37,94 +37,10 @@
           "zipCode": "77478",
           "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-14T11:15:00-05:00"
+          "actualDepartureDateTime": "2026-07-14T13:00:00-05:00"
         }
       ],
       "createdDate": "2026-07-12T03:43:00-05:00",
-      "lastModifiedDate": "2026-07-14T17:17:00-05:00"
-    },
-    {
-      "shipmentId": 127301207,
-      "status": "Delivered",
-      "mileage": 217.4,
-      "totalSell": 1540.0,
-      "totalBuy": 1210.0,
-      "customer": {
-        "customerId": 962163,
-        "name": "Bluebonnet Foods"
-      },
-      "carrier": {
-        "carrierMasterId": 890663,
-        "name": "BAYOU BEND EXPRESS",
-        "mcNumber": "740221",
-        "dotNumber": "3099101",
-        "phoneNumber": "+17135550110"
-      },
-      "equipment": "53 ft Van | Reefer",
-      "weightTotal": 25500.0,
-      "stops": [
-        {
-          "stopType": "First Pickup",
-          "city": "SCHERTZ",
-          "state": "TX",
-          "zipCode": "78154",
-          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-13T17:00:00-05:00"
-        },
-        {
-          "stopType": "Last Drop",
-          "city": "PASADENA",
-          "state": "TX",
-          "zipCode": "77502",
-          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-14T12:00:00-05:00"
-        }
-      ],
-      "createdDate": "2026-07-12T09:43:00-05:00",
-      "lastModifiedDate": "2026-07-14T17:17:00-05:00"
-    },
-    {
-      "shipmentId": 127567858,
-      "status": "Delivered",
-      "mileage": 50.1,
-      "totalSell": 540.0,
-      "totalBuy": 430.0,
-      "customer": {
-        "customerId": 885717,
-        "name": "Trinity Retail Group"
-      },
-      "carrier": {
-        "carrierMasterId": 878666,
-        "name": "PECAN VALLEY TRUCKING",
-        "mcNumber": "420018",
-        "dotNumber": "1997331",
-        "phoneNumber": "+16825550155"
-      },
-      "equipment": "53 ft Van | Dry",
-      "weightTotal": 18000.0,
-      "stops": [
-        {
-          "stopType": "First Pickup",
-          "city": "FORT WORTH",
-          "state": "TX",
-          "zipCode": "76102",
-          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-13T18:15:00-05:00"
-        },
-        {
-          "stopType": "Last Drop",
-          "city": "PLANO",
-          "state": "TX",
-          "zipCode": "75074",
-          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-14T12:30:00-05:00"
-        }
-      ],
-      "createdDate": "2026-07-12T21:43:00-05:00",
       "lastModifiedDate": "2026-07-14T17:17:00-05:00"
     }
   ]

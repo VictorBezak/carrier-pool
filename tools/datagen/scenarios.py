@@ -144,7 +144,7 @@ def build_load_specs() -> list[LoadSpec]:
     specs.extend(
         [
             _load("hd-flatbed-history-1", Broker.HAULDESK, "b_build", "b_thin_3", "seguin", "baytown", Equipment.FLATBED, 1320, 1060, 27, lifecycle="full", scenario_ids=("equipment_constraint",), correction_delta_usd=-85, hauldesk_carrier_rename_slot=38),
-            _load("hd-flatbed-history-2", Broker.HAULDESK, "b_build", "b_thin_3", "seguin", "baytown", Equipment.FLATBED, 1340, 1075, 36, scenario_ids=("equipment_constraint",)),
+            _load("hd-flatbed-history-2", Broker.HAULDESK, "b_build", "b_thin_3", "seguin", "baytown", Equipment.FLATBED, 1340, 1075, 34, scenario_ids=("equipment_constraint",)),
             _load("hd-tail-slot", Broker.HAULDESK, "b_parts", "b_mid_1", "san_marcos", "pearland", Equipment.DRY_VAN, 1350, 1095, 38),
             _load("hd-day11-small-sample", Broker.HAULDESK, "b_parts", None, "plano", "new_braunfels", Equipment.DRY_VAN, 1420, None, 40, lifecycle="day11", scenario_ids=("small_sample_trap",)),
             _load("hd-day11-equipment", Broker.HAULDESK, "b_cold", None, "seguin", "baytown", Equipment.REEFER, 1560, None, 41, lifecycle="day11", scenario_ids=("equipment_constraint",)),

@@ -50,6 +50,7 @@ class Customer:
 class LoadVersion:
     broker_id: str
     source_file: str
+    synced_at: datetime
     raw_load_id: str
     status: LoadStatus
     customer_id: str
@@ -60,10 +61,12 @@ class LoadVersion:
     delivery: Location
     pickup_open_at: datetime | None
     pickup_close_at: datetime | None
-    pickup_actual_at: datetime | None
+    pickup_arrived_at: datetime | None
+    pickup_departed_at: datetime | None
     delivery_open_at: datetime | None
     delivery_close_at: datetime | None
-    delivery_actual_at: datetime | None
+    delivery_arrived_at: datetime | None
+    delivery_departed_at: datetime | None
     distance_miles: float
     weight_lbs: float | None
     commodity: str | None
@@ -90,6 +93,16 @@ class CanonicalStore:
 
     def broker_current_loads(self, broker_id: str) -> list[LoadVersion]:
         return [version for (broker, _), version in self.current_loads.items() if broker == broker_id]
+
+    def loads_as_of(self, broker_id: str, cutoff: datetime) -> list[LoadVersion]:
+        latest: dict[str, LoadVersion] = {}
+        for version in self.versions:
+            if version.broker_id != broker_id or version.synced_at > cutoff:
+                continue
+            existing = latest.get(version.raw_load_id)
+            if existing is None or version.synced_at >= existing.synced_at:
+                latest[version.raw_load_id] = version
+        return list(latest.values())
 
 
 @dataclass(frozen=True)

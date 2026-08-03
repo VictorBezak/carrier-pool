@@ -33,7 +33,7 @@ def _physical_schedule(spec: LoadSpec, created_at: datetime) -> dict[str, dateti
     bias = RELIABILITY_BIAS_HOURS.get(carrier_key or "", 0.75)
     # Deterministic small variation keeps profiles visible without making every load identical.
     variation = ((sum(ord(char) for char in spec.key) % 5) - 2) * 0.25
-    pickup_arrived = pickup_open + timedelta(hours=max(0.0, 1.0 + bias * 0.25 + variation))
+    pickup_arrived = pickup_open + timedelta(hours=max(0.0, 2.0 + bias * 2.0 + variation))
     pickup_departed = pickup_open + timedelta(hours=7.0 + bias + variation)
     if pickup_departed < pickup_open:
         pickup_departed = pickup_open + timedelta(minutes=30)
@@ -42,7 +42,7 @@ def _physical_schedule(spec: LoadSpec, created_at: datetime) -> dict[str, dateti
     delivery_date = pickup_date + timedelta(days=1)
     delivery_open = datetime.combine(delivery_date, time(8, 0), created_at.tzinfo)
     delivery_close = datetime.combine(delivery_date, time(16, 0), created_at.tzinfo)
-    delivery_arrived = delivery_open + timedelta(hours=1.0 + bias * 0.5 + variation)
+    delivery_arrived = delivery_open + timedelta(hours=max(0.0, 2.0 + bias * 2.0 + variation))
     earliest_arrival = pickup_departed + timedelta(hours=transit_hours)
     if delivery_arrived < earliest_arrival:
         delivery_arrived = earliest_arrival
@@ -61,44 +61,52 @@ def _physical_schedule(spec: LoadSpec, created_at: datetime) -> dict[str, dateti
 def expand_load(spec: LoadSpec) -> list[LoadEvent]:
     created_at = slot_datetime(spec.start_slot) - timedelta(hours=2, minutes=17)
     schedule = _physical_schedule(spec, created_at)
+    covered_slot: int | None = None
 
     if spec.lifecycle == "day11":
-        event_plan = ((spec.start_slot, CanonicalStatus.ACTIVE, spec.carrier),)
+        event_plan = ((spec.start_slot, CanonicalStatus.ACTIVE),)
     elif spec.lifecycle == "full":
+        covered_slot = min(spec.start_slot + 2, TOTAL_SLOTS - 1)
         event_plan = (
-            (spec.start_slot, CanonicalStatus.PLANNED, spec.carrier),
-            (min(spec.start_slot + 1, TOTAL_SLOTS - 1), CanonicalStatus.ACTIVE, spec.carrier),
-            (min(spec.start_slot + 2, TOTAL_SLOTS - 1), CanonicalStatus.COVERED, spec.carrier),
-            (next_sync_slot(schedule["pickup_arrived"]), CanonicalStatus.AT_SHIPPER, spec.carrier),
-            (next_sync_slot(schedule["pickup_departed"]), CanonicalStatus.IN_TRANSIT, spec.reassigned_carrier or spec.carrier),
-            (next_sync_slot(schedule["delivery_arrived"]), CanonicalStatus.AT_RECEIVER, spec.reassigned_carrier or spec.carrier),
-            (next_sync_slot(schedule["delivery_arrived"] + timedelta(hours=6)), CanonicalStatus.DELIVERED, spec.reassigned_carrier or spec.carrier),
-            (next_sync_slot(schedule["delivery_arrived"] + timedelta(hours=12)), CanonicalStatus.INVOICED, spec.reassigned_carrier or spec.carrier),
-            (next_sync_slot(schedule["delivery_arrived"] + timedelta(hours=24)), CanonicalStatus.COMPLETED, spec.reassigned_carrier or spec.carrier),
+            (spec.start_slot, CanonicalStatus.PLANNED),
+            (min(spec.start_slot + 1, TOTAL_SLOTS - 1), CanonicalStatus.ACTIVE),
+            (covered_slot, CanonicalStatus.COVERED),
+            (next_sync_slot(schedule["pickup_arrived"]), CanonicalStatus.AT_SHIPPER),
+            (next_sync_slot(schedule["pickup_departed"]), CanonicalStatus.IN_TRANSIT),
+            (next_sync_slot(schedule["delivery_arrived"]), CanonicalStatus.AT_RECEIVER),
+            (next_sync_slot(schedule["delivery_arrived"] + timedelta(hours=6)), CanonicalStatus.DELIVERED),
+            (next_sync_slot(schedule["delivery_arrived"] + timedelta(hours=12)), CanonicalStatus.INVOICED),
+            (next_sync_slot(schedule["delivery_arrived"] + timedelta(hours=24)), CanonicalStatus.COMPLETED),
         )
     elif spec.lifecycle == "covered_only":
-        event_plan = ((spec.start_slot, CanonicalStatus.COVERED, spec.carrier),)
+        covered_slot = spec.start_slot
+        event_plan = ((spec.start_slot, CanonicalStatus.COVERED),)
     else:
         covered_slot = min(spec.start_slot + 1, TOTAL_SLOTS - 1)
         delivered_slot = next_sync_slot(schedule["delivery_arrived"] + timedelta(hours=6))
         completed_slot = next_sync_slot(schedule["delivery_arrived"] + timedelta(hours=18))
         event_plan = (
-            (spec.start_slot, CanonicalStatus.ACTIVE, spec.carrier),
-            (covered_slot, CanonicalStatus.COVERED, spec.carrier),
-            (delivered_slot, CanonicalStatus.DELIVERED, spec.reassigned_carrier or spec.carrier),
-            (completed_slot, CanonicalStatus.COMPLETED, spec.reassigned_carrier or spec.carrier),
+            (spec.start_slot, CanonicalStatus.ACTIVE),
+            (covered_slot, CanonicalStatus.COVERED),
+            (delivered_slot, CanonicalStatus.DELIVERED),
+            (completed_slot, CanonicalStatus.COMPLETED),
         )
 
+    reassign_slot = None
     if spec.reassigned_carrier and spec.lifecycle != "day11":
-        reassign_slot = min(next_sync_slot(schedule["pickup_open"] - timedelta(hours=6)), TOTAL_SLOTS - 1)
-        event_plan = (*event_plan, (reassign_slot, CanonicalStatus.COVERED, spec.reassigned_carrier))
+        earliest = (covered_slot + 1) if covered_slot is not None else spec.start_slot
+        reassign_slot = min(max(next_sync_slot(schedule["pickup_open"] - timedelta(hours=6)), earliest), TOTAL_SLOTS - 1)
+        if all(slot != reassign_slot for slot, _ in event_plan):
+            status_in_force = max((status for slot, status in event_plan if slot <= reassign_slot), key=lambda status: STATUS_ORDER[status], default=CanonicalStatus.COVERED)
+            event_plan = (*event_plan, (reassign_slot, status_in_force))
 
     events: list[LoadEvent] = []
-    for slot, status, carrier_key in sorted(set(event_plan), key=lambda item: (item[0], item[1].value)):
+    for slot, status in sorted(set(event_plan), key=lambda item: (item[0], item[1].value)):
         if slot >= TOTAL_SLOTS:
             continue
         visible_buy = spec.buy_usd if status not in {CanonicalStatus.PLANNED, CanonicalStatus.ACTIVE} else None
         modified_at = slot_datetime(slot) - timedelta(minutes=43)
+        carrier_key = _carrier_at(spec, slot, reassign_slot)
         events.append(
             LoadEvent(
                 spec=spec,
@@ -145,6 +153,12 @@ def expand_load(spec: LoadSpec) -> list[LoadEvent]:
         )
 
     return _latest_per_sync(events)
+
+
+def _carrier_at(spec: LoadSpec, slot: int, reassign_slot: int | None) -> str | None:
+    if reassign_slot is not None and slot >= reassign_slot:
+        return spec.reassigned_carrier
+    return spec.carrier
 
 
 def expand_loads(specs: list[LoadSpec]) -> list[LoadEvent]:

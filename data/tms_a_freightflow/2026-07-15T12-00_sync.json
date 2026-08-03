@@ -37,47 +37,95 @@
           "zipCode": "77478",
           "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-14T11:15:00-05:00"
+          "actualDepartureDateTime": "2026-07-14T13:00:00-05:00"
         }
       ],
       "createdDate": "2026-07-12T03:43:00-05:00",
       "lastModifiedDate": "2026-07-15T11:17:00-05:00"
     },
     {
-      "shipmentId": 127932767,
-      "status": "Booking",
-      "mileage": 249.0,
-      "totalSell": 1330.0,
-      "totalBuy": null,
+      "shipmentId": 127301207,
+      "status": "Completed",
+      "mileage": 217.4,
+      "totalSell": 1540.0,
+      "totalBuy": 1210.0,
       "customer": {
-        "customerId": 885717,
-        "name": "Trinity Retail Group"
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
       },
-      "carrier": null,
-      "equipment": "53 ft Van | Dry",
-      "weightTotal": 18000.0,
+      "carrier": {
+        "carrierMasterId": 890663,
+        "name": "BAYOU BEND EXPRESS",
+        "mcNumber": "740221",
+        "dotNumber": "3099101",
+        "phoneNumber": "+17135550110"
+      },
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 25500.0,
       "stops": [
         {
           "stopType": "First Pickup",
-          "city": "WAXAHACHIE",
+          "city": "SCHERTZ",
           "state": "TX",
-          "zipCode": "75165",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "zipCode": "78154",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T17:00:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "PASADENA",
+          "state": "TX",
+          "zipCode": "77502",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T16:00:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-12T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T11:17:00-05:00"
+    },
+    {
+      "shipmentId": 127315346,
+      "status": "Dispatched",
+      "mileage": 288.7,
+      "totalSell": 1320.0,
+      "totalBuy": 1110.0,
+      "customer": {
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
+      },
+      "carrier": {
+        "carrierMasterId": 872528,
+        "name": "LARIAT LINEHAUL",
+        "mcNumber": "501004",
+        "dotNumber": "1800442",
+        "phoneNumber": "+19405550177"
+      },
+      "equipment": "48 ft Flatbed",
+      "weightTotal": 23000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "PLANO",
+          "state": "TX",
+          "zipCode": "75074",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
           "actualDepartureDateTime": null
         },
         {
           "stopType": "Last Drop",
-          "city": "BAYTOWN",
+          "city": "NEW BRAUNFELS",
           "state": "TX",
-          "zipCode": "77520",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "zipCode": "78130",
+          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
           "actualDepartureDateTime": null
         }
       ],
-      "createdDate": "2026-07-15T09:43:00-05:00",
-      "lastModifiedDate": "2026-07-15T11:17:00-05:00"
+      "createdDate": "2026-07-14T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T05:17:00-05:00"
     }
   ]
 }

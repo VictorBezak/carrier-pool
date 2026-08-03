@@ -12,11 +12,11 @@
         "name": "Lone Star Beverages"
       },
       "carrier": {
-        "carrierMasterId": 901459,
-        "name": "BLUE ROUTE CARRIERS",
-        "mcNumber": "550218",
-        "dotNumber": "1603301",
-        "phoneNumber": "+12815550121"
+        "carrierMasterId": 918323,
+        "name": "CEDAR HILL FREIGHT",
+        "mcNumber": "902441",
+        "dotNumber": "2419988",
+        "phoneNumber": "+18175550188"
       },
       "equipment": "53 ft Van | Dry",
       "weightTotal": 23000.0,
@@ -115,11 +115,11 @@
           "zipCode": "77449",
           "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-12T12:30:00-05:00"
+          "actualDepartureDateTime": "2026-07-12T17:15:00-05:00"
         }
       ],
       "createdDate": "2026-07-10T21:43:00-05:00",
-      "lastModifiedDate": "2026-07-13T05:17:00-05:00"
+      "lastModifiedDate": "2026-07-13T11:17:00-05:00"
     }
   ]
 }
