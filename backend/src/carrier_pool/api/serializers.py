@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import datetime
 from typing import Any
 
 from carrier_pool.geo import GeoIndex, ZipCentroid
-from carrier_pool.models import CarrierRanking, ComponentScore, LoadVersion
+from carrier_pool.models import Carrier, CarrierRanking, ComponentScore, LoadVersion
 from carrier_pool.pool import PoolCarrierRanking
 from carrier_pool.pricing import PriceEstimate, lane_weight
 from carrier_pool.ranking import _delivery_known_at
@@ -18,7 +19,22 @@ def location(value) -> dict[str, Any]:
     return {"city": value.city, "state": value.state, "zip_code": value.zip_code}
 
 
-def load_summary(load: LoadVersion) -> dict[str, Any]:
+CarrierMasters = Mapping[tuple[str, str], Carrier]
+
+
+def carrier_ref(load: LoadVersion, carriers: CarrierMasters | None) -> dict[str, Any] | None:
+    """The booked carrier, or null while the load is still awaiting coverage.
+
+    Carrier IDs are opaque in all three TMS shapes, so the name has to be resolved from
+    the carrier master rather than read off the load version.
+    """
+    if load.carrier_id is None:
+        return None
+    carrier = (carriers or {}).get((load.broker_id, load.carrier_id))
+    return {"id": load.carrier_id, "name": carrier.name if carrier else load.carrier_id}
+
+
+def load_summary(load: LoadVersion, carriers: CarrierMasters | None = None) -> dict[str, Any]:
     return {
         "broker_id": load.broker_id,
         "load_id": load.raw_load_id,
@@ -26,6 +42,7 @@ def load_summary(load: LoadVersion) -> dict[str, Any]:
         "synced_at": dt(load.synced_at),
         "status": load.status.value,
         "customer": {"id": load.customer_id, "name": load.customer_name},
+        "carrier": carrier_ref(load, carriers),
         "equipment": load.equipment.value,
         "pickup": location(load.pickup),
         "delivery": location(load.delivery),
@@ -36,9 +53,9 @@ def load_summary(load: LoadVersion) -> dict[str, Any]:
     }
 
 
-def load_detail(load: LoadVersion, versions: list[LoadVersion]) -> dict[str, Any]:
+def load_detail(load: LoadVersion, versions: list[LoadVersion], carriers: CarrierMasters | None = None) -> dict[str, Any]:
     return {
-        **load_summary(load),
+        **load_summary(load, carriers),
         "pickup_window": {"open_at": dt(load.pickup_open_at), "close_at": dt(load.pickup_close_at)},
         "delivery_window": {"open_at": dt(load.delivery_open_at), "close_at": dt(load.delivery_close_at)},
         "actuals": {
@@ -47,7 +64,7 @@ def load_detail(load: LoadVersion, versions: list[LoadVersion]) -> dict[str, Any
             "delivery_arrived_at": dt(load.delivery_arrived_at),
             "delivery_departed_at": dt(load.delivery_departed_at),
         },
-        "versions": [load_summary(version) for version in sorted(versions, key=lambda item: item.synced_at)],
+        "versions": [load_summary(version, carriers) for version in sorted(versions, key=lambda item: item.synced_at)],
     }
 
 

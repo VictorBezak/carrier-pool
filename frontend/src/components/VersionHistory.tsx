@@ -18,6 +18,14 @@ const FIELDS: Field[] = [
   { key: "equipment", label: "Equipment", value: (v) => v.equipment, render: (v) => <span className="capitalize">{v.equipment.replace(/_/g, " ")}</span> },
   { key: "weight", label: "Weight", align: "right", value: (v) => v.weight_lbs, render: (v) => <Num>{pounds(v.weight_lbs)}</Num> },
   { key: "distance", label: "Miles", align: "right", value: (v) => v.distance_miles, render: (v) => <Num>{miles(v.distance_miles)}</Num> },
+  // A load taken off one carrier and given to another is the fall-through the stability
+  // component scores, and it is only legible as a change between two rows of this table.
+  {
+    key: "carrier",
+    label: "Carrier",
+    value: (v) => v.carrier?.id ?? null,
+    render: (v) => (v.carrier ? v.carrier.name : <span className="text-muted-foreground">not booked</span>)
+  },
   {
     key: "customer_rate",
     label: "Customer rate",

@@ -21,6 +21,8 @@ export type LoadSummary = {
   synced_at: string;
   status: LoadStatus;
   customer: { id: string; name: string };
+  /** Null until a carrier is booked. */
+  carrier: { id: string; name: string } | null;
   equipment: string;
   pickup: Location;
   delivery: Location;

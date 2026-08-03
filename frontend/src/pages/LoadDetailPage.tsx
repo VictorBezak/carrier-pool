@@ -105,6 +105,9 @@ export function LoadDetailPage() {
             <PrimaryField label="Equipment">
               <span className="capitalize">{equipmentLabel(detail.equipment)}</span>
             </PrimaryField>
+            {/* Only once a carrier is booked. On an ACTIVE load the answer to "who is
+                hauling this" is the ranked table below, not a field up here. */}
+            {detail.carrier && <PrimaryField label="Booked carrier">{detail.carrier.name}</PrimaryField>}
             <PrimaryField label="Customer rate">
               <Num>{money(detail.customer_rate_usd)}</Num>
             </PrimaryField>

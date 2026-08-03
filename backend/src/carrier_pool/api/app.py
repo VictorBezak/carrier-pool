@@ -73,14 +73,14 @@ def get_loads(broker_id: str, as_of: str | None = Query(default=None)) -> list[d
     cutoff = datetime.fromisoformat(as_of) if as_of else None
     loads = _store().loads_as_of(broker_id, cutoff) if cutoff else _store().broker_current_loads(broker_id)
     loads = sorted(loads, key=lambda load: (load.status != LoadStatus.ACTIVE, load.synced_at, load.raw_load_id))
-    return [load_summary(load) for load in loads]
+    return [load_summary(load, _store().carriers) for load in loads]
 
 
 @app.get("/api/brokers/{broker_id}/loads/{load_id}")
 def get_load_detail(broker_id: str, load_id: str, as_of: str | None = Query(default=None)) -> dict[str, Any]:
     cutoff = datetime.fromisoformat(as_of) if as_of else None
     load = _load_as_of_or_404(broker_id, load_id, cutoff)
-    return load_detail(load, _versions_for_load(broker_id, load_id, cutoff))
+    return load_detail(load, _versions_for_load(broker_id, load_id, cutoff), _store().carriers)
 
 
 @app.get("/api/brokers/{broker_id}/loads/{load_id}/recommendation")
@@ -96,7 +96,7 @@ def get_recommendation(
     bundle = recommend(_store(), target, geo, as_of=cutoff or target.synced_at, opt_in_brokers=_pool_opt_ins(), include_pool=pool)
     history = _broker_history(_store(), target, cutoff or target.synced_at)
     return {
-        "load": load_summary(target),
+        "load": load_summary(target, _store().carriers),
         "price": price_estimate(bundle.price),
         "own_carriers": [carrier_ranking(ranking, target, history, geo) for ranking in bundle.own_carriers],
         "pool_carriers": [pool_ranking(ranking, target, geo) for ranking in bundle.pool_carriers],
