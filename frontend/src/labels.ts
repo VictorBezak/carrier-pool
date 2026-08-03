@@ -1,4 +1,4 @@
-import type { CarrierRanking, ComponentScore, LoadDetail, PriceEstimate } from "@/api/types";
+import type { ComponentScore, LoadDetail, PriceEstimate } from "@/api/types";
 import { evidenceValue, money, perMile } from "@/format";
 
 const COMPONENT_LABELS: Record<string, string> = {
@@ -99,10 +99,6 @@ export function evidenceDisplay(key: string, value: string | number | null) {
   if (key.endsWith("_days") && typeof value === "number") return `${Math.round(value)} days`;
   if (key.includes("miles") && typeof value === "number") return `${Math.round(value)} mi`;
   return evidenceValue(value);
-}
-
-export function topReason(carrier: CarrierRanking) {
-  return carrier.reasons[0]?.replace(/broker-local /g, "").replace(/effective similar-lane/g, "similar-lane") ?? "Relevant carrier history";
 }
 
 export function priceStory(price: PriceEstimate, detail: LoadDetail) {

@@ -17,8 +17,8 @@ import { PriceRangeChart } from "@/charts/PriceRangeChart";
 import { CarrierEvidence } from "@/components/CarrierEvidence";
 import { VersionHistory } from "@/components/VersionHistory";
 import { ColumnLabel, ConfidenceBadge, Num, ReasonList, StatusBadge } from "@/components/indicators";
-import { equipment as equipmentLabel, evidenceValue, miles, money, place, pounds, timestamp } from "@/format";
-import { basisName, evidenceName, matchScore, priceStory, topReason } from "@/labels";
+import { equipment as equipmentLabel, evidenceValue, margin, miles, money, percent, place, pounds, timestamp } from "@/format";
+import { basisName, evidenceName, matchScore, priceStory } from "@/labels";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/session";
 
@@ -188,7 +188,12 @@ export function LoadDetailPage() {
             </Card>
           </div>
 
-          <CombinedCarrierTable rows={carrierRows} selectedRowKey={selectedCarrierRow?.key ?? null} onSelectRow={setSelectedCarrierKey} />
+          <CombinedCarrierTable
+            rows={carrierRows}
+            customerRate={detail.customer_rate_usd}
+            selectedRowKey={selectedCarrierRow?.key ?? null}
+            onSelectRow={setSelectedCarrierKey}
+          />
 
           <Card size="sm">
             <CardHeader>
@@ -365,8 +370,14 @@ function rowSource(row: CombinedCarrierRow) {
   return row.carrier.pooled ? "Your network + pool facts" : "Your network";
 }
 
-function rowTopReason(row: CombinedCarrierRow) {
-  return row.kind === "local" ? topReason(row.carrier) : (row.carrier.reasons[0] ?? "Additional pooled carrier capacity");
+/**
+ * Empty miles is the heaviest component in the score and the number a carrier prices its
+ * quote around, so it earns a column of its own rather than living inside the reasoning.
+ * Null means no position on record, which is a different statement than zero.
+ */
+function rowDeadheadMiles(row: CombinedCarrierRow) {
+  const value = row.carrier.components.find((component) => component.name === "positioning")?.evidence.expected_deadhead_miles;
+  return typeof value === "number" ? value : null;
 }
 
 function compareCarrierRows(a: CombinedCarrierRow, b: CombinedCarrierRow) {
@@ -384,10 +395,12 @@ function confidenceRank(value: CarrierRanking["confidence"]) {
 
 function CombinedCarrierTable({
   rows,
+  customerRate,
   selectedRowKey,
   onSelectRow
 }: {
   rows: CombinedCarrierRow[];
+  customerRate: number | null;
   selectedRowKey: string | null;
   onSelectRow: (rowKey: string) => void;
 }) {
@@ -397,7 +410,11 @@ function CombinedCarrierTable({
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-[13px] font-medium">Call these carriers first</h2>
-          <p className="text-[12px] text-muted-foreground">Ranked by lane history, price, and on-time record. Select a carrier to update the lane map.</p>
+          <p className="text-[12px] text-muted-foreground">
+            Ranked by empty miles, lane history, price, and on-time record. Select a carrier to update the lane map.
+            Rankings come from synced TMS data that may be stale or incomplete — always confirm equipment availability
+            with the carrier before booking.
+          </p>
         </div>
       </div>
 
@@ -418,10 +435,13 @@ function CombinedCarrierTable({
                 <ColumnLabel>Match</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 px-2.5 text-right">
+                <ColumnLabel>Empty miles</ColumnLabel>
+              </TableHead>
+              <TableHead className="h-8 px-2.5 text-right">
                 <ColumnLabel>Expected cost</ColumnLabel>
               </TableHead>
-              <TableHead className="h-8 px-2.5">
-                <ColumnLabel>Why</ColumnLabel>
+              <TableHead className="h-8 px-2.5 text-right">
+                <ColumnLabel>Est. margin</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 px-2.5">
                 <ColumnLabel>Confidence</ColumnLabel>
@@ -432,7 +452,7 @@ function CombinedCarrierTable({
           <TableBody>
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="h-16 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="h-16 text-center text-muted-foreground">
                   No carrier in this broker's history matches this load yet.
                 </TableCell>
               </TableRow>
@@ -440,6 +460,8 @@ function CombinedCarrierTable({
             {rows.map((row) => {
               const carrier = row.carrier;
               const open = expanded === row.key;
+              const deadhead = rowDeadheadMiles(row);
+              const rowMargin = margin(customerRate, rowPrice(row));
               return [
                 <TableRow
                   key={row.key}
@@ -481,10 +503,16 @@ function CombinedCarrierTable({
                     <Num className="font-medium">{matchScore(carrier.score)}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
+                    <Num className={cn(deadhead === null && "text-muted-foreground")}>{deadhead === null ? "—" : miles(deadhead)}</Num>
+                  </TableCell>
+                  <TableCell className="px-2.5 py-2 text-right">
                     <Num>{money(rowPrice(row))}</Num>
                   </TableCell>
-                  <TableCell className="max-w-[300px] px-2.5 py-2 text-muted-foreground">
-                    <span className="truncate">{rowTopReason(row)}</span>
+                  <TableCell className="px-2.5 py-2 text-right">
+                    <Num>{money(rowMargin)}</Num>
+                    {rowMargin !== null && customerRate !== null && (
+                      <Num className="ml-1.5 text-[10.5px] text-muted-foreground">{percent(rowMargin / customerRate)}</Num>
+                    )}
                   </TableCell>
                   <TableCell className="px-2.5 py-2">
                     <ConfidenceBadge confidence={carrier.confidence} />
@@ -498,13 +526,13 @@ function CombinedCarrierTable({
                         setExpanded(open ? null : row.key);
                       }}
                     >
-                      Show reasoning
+                      Reasoning
                     </Button>
                   </TableCell>
                 </TableRow>,
                 open ? (
                   <TableRow key={`${row.key}-evidence`} className="hover:bg-transparent">
-                    <TableCell colSpan={8} className="p-0 whitespace-normal">
+                    <TableCell colSpan={9} className="p-0 whitespace-normal">
                       {row.kind === "local" ? (
                         <CarrierEvidence
                           components={row.carrier.components}
