@@ -118,3 +118,47 @@ Include a short `DECISIONS.md`:
 - The judgment calls you made and the alternatives you rejected.
 - What you'd do next with more time.
 - Honest limitations score better than hidden ones.
+
+## How to run this submission
+
+The full platform path uses Docker Compose: Postgres stores the append-only sync log, the backend ingests the generated TMS files one sync at a time, and nginx serves the React UI.
+
+```bash
+./scripts/verify.sh
+```
+
+That command builds the stack, waits for `/health`, opts FreightFlow and HaulDesk into the shared carrier pool, and checks the known day-11 sanity load through the HTTP API: Ibrahim ranks first with high confidence, and the pool tier excludes overlapping Delta Prime history.
+
+After it finishes, open:
+
+- Frontend: <http://localhost:3000>
+- Backend API: <http://localhost:8000/api/brokers>
+
+Useful manual commands:
+
+```bash
+docker compose up --build
+docker compose down
+docker compose down -v   # also clears the Postgres volume
+```
+
+For local backend-only development without Postgres:
+
+```bash
+cd backend
+python -m venv .venv
+. .venv/bin/activate
+pip install -e .
+pytest -q
+CARRIER_POOL_FILE_MODE=1 uvicorn carrier_pool.api.app:app --reload
+```
+
+For local frontend development:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite proxies `/api` and `/health` to `localhost:8000`.
