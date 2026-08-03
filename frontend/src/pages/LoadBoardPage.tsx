@@ -27,6 +27,12 @@ import { useSession } from "@/session";
 
 type Row = LoadSummary & { recommendation?: Recommendation | null };
 
+/**
+ * A load list together with the broker and replay point it was fetched for. These three
+ * move as one so nothing can ask about a load using a timestamp it was not resolved at.
+ */
+type Book = { brokerId: string; asOf: string | null; loads: LoadSummary[] };
+
 const STATUS_FILTERS = [
   { value: "active", label: "Needs coverage" },
   { value: "covered", label: "Booked" },
@@ -39,24 +45,36 @@ type StatusFilter = (typeof STATUS_FILTERS)[number]["value"];
 export function LoadBoardPage() {
   const session = useSession();
   const navigate = useNavigate();
-  const [loads, setLoads] = useState<LoadSummary[]>([]);
+  const [book, setBook] = useState<Book>({ brokerId: "", asOf: null, loads: [] });
   const [pending, setPending] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("active");
   const [equipmentFilter, setEquipmentFilter] = useState("all");
-  const recommendations = useActiveRecommendations(session.brokerId, loads, session.asOf, session.poolEnabled);
+  const loads = book.loads;
+  const recommendations = useActiveRecommendations(book, session.poolEnabled);
 
   useEffect(() => {
     if (!session.brokerId) return;
+    const requested = { brokerId: session.brokerId, asOf: session.asOf };
+    let stale = false;
     setPending(true);
     setError(null);
     void api
-      .loads(session.brokerId, session.asOf)
-      .then(setLoads)
-      .catch((cause: Error) => setError(cause.message))
-      .finally(() => setPending(false));
+      .loads(requested.brokerId, requested.asOf)
+      .then((rows) => {
+        if (!stale) setBook({ ...requested, loads: rows });
+      })
+      .catch((cause: Error) => {
+        if (!stale) setError(cause.message);
+      })
+      .finally(() => {
+        if (!stale) setPending(false);
+      });
+    return () => {
+      stale = true;
+    };
   }, [session.brokerId, session.asOf]);
 
   const equipmentOptions = useMemo(() => [...new Set(loads.map((load) => load.equipment))].sort(), [loads]);
@@ -210,6 +228,7 @@ export function LoadBoardPage() {
               </TableRow>
             )}
             {!error &&
+              !pending &&
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -383,9 +402,12 @@ const COLUMNS: ColumnDef<Row>[] = [
 
 /**
  * Only active loads need an answer, so the board fetches recommendations for those
- * rows alone, four at a time, and shows skeleton cells until each lands.
+ * rows alone, four at a time, and shows skeleton cells until each lands. It takes the
+ * whole book rather than its parts because a load is only answerable at the replay point
+ * its list came from; pairing a fresh timestamp with a stale list asks about loads that
+ * did not exist yet, which the API correctly refuses.
  */
-function useActiveRecommendations(brokerId: string, loads: LoadSummary[], asOf: string | null, pool: boolean) {
+function useActiveRecommendations({ brokerId, asOf, loads }: Book, pool: boolean) {
   const [byLoad, setByLoad] = useState<Record<string, Recommendation | null>>({});
 
   useEffect(() => {
