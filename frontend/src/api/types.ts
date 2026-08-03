@@ -114,8 +114,6 @@ export type CarrierRanking = {
 };
 
 export type PoolCarrierRanking = {
-  contributor_broker_id: string;
-  contributor_broker_name: string;
   carrier_id: string;
   carrier_name: string;
   score: number;

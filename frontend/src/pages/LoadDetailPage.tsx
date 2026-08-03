@@ -317,7 +317,7 @@ function buildCarrierRows(recommendation: Recommendation | null): CombinedCarrie
   }));
   const poolRows = recommendation.pool_carriers.map((carrier, index) => ({
     kind: "pool" as const,
-    key: `pool:${carrier.contributor_broker_id}:${carrier.carrier_id}`,
+    key: `pool:${index}:${carrier.carrier_id}`,
     rankLabel: `P${index + 1}`,
     carrier
   }));
@@ -435,7 +435,6 @@ function CombinedCarrierTable({
                   <TableCell className="px-2.5 py-2">
                     <span className="flex flex-col gap-0.5">
                       <span>{rowSource(row)}</span>
-                      {row.kind === "pool" && <span className="text-[11px] text-muted-foreground">{row.carrier.contributor_broker_name}</span>}
                     </span>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">

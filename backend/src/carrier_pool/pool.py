@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from .db import BROKER_NAMES
 from .geo import GeoIndex
 from .ingest import BROKER_BROKEROS
 from .models import CanonicalStore, CarrierRanking, Equipment, LoadStatus, LoadVersion, PooledFacts, PooledStop
@@ -74,16 +73,12 @@ POOL_POLICY = {
 
 @dataclass(frozen=True)
 class PoolContribution:
-    contributor_broker_id: str
-    contributor_broker_name: str
     carrier_id: str
     payload: dict[str, Any]
 
 
 @dataclass(frozen=True)
 class PoolCarrierRanking:
-    contributor_broker_id: str
-    contributor_broker_name: str
     carrier_id: str
     carrier_name: str
     score: float
@@ -140,8 +135,6 @@ def pool_rankings(
             score, confidence, reasons, limitations = _score_contribution(contribution.payload, target)
             rankings.append(
                 PoolCarrierRanking(
-                    contributor_broker_id=broker_id,
-                    contributor_broker_name=contribution.contributor_broker_name,
                     carrier_id=contribution.carrier_id,
                     carrier_name=contribution.payload["carrier_name"],
                     score=score,
@@ -208,7 +201,7 @@ def pool_contributions(store: CanonicalStore, broker_id: str, as_of: datetime) -
             history,
             fallthroughs.get(carrier_id, 0),
         )
-        contributions.append(PoolContribution(broker_id, BROKER_NAMES.get(broker_id, broker_id), carrier_id, payload))
+        contributions.append(PoolContribution(carrier_id, payload))
     return contributions
 
 

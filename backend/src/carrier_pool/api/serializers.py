@@ -86,8 +86,6 @@ def carrier_ranking(ranking: CarrierRanking, target: LoadVersion, history: list[
 
 def pool_ranking(ranking: PoolCarrierRanking, target: LoadVersion, geo: GeoIndex) -> dict[str, Any]:
     return {
-        "contributor_broker_id": ranking.contributor_broker_id,
-        "contributor_broker_name": ranking.contributor_broker_name,
         "carrier_id": ranking.carrier_id,
         "carrier_name": ranking.carrier_name,
         "score": ranking.score,
