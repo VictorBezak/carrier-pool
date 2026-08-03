@@ -384,7 +384,7 @@ function rowPrice(row: CombinedCarrierRow) {
 
 function rowSource(row: CombinedCarrierRow) {
   if (row.kind === "pool") return "Shared pool";
-  return row.carrier.pooled ? "Your network + pool facts" : "Your network";
+  return row.carrier.pooled ? "Your network + Shared pool" : "Your network";
 }
 
 /**
@@ -501,18 +501,10 @@ function CombinedCarrierTable({
                   <TableCell className="px-2.5 py-2">
                     <Num className={cn("text-muted-foreground", row.rankLabel === "1" && "font-medium text-primary")}>{row.rankLabel}</Num>
                   </TableCell>
+                  {/* Provenance lives in the Source column alone. Badging it here as well put
+                      two labels for one fact in the row the broker scans for a carrier name. */}
                   <TableCell className="px-2.5 py-2">
                     <span className="font-medium">{carrier.carrier_name}</span>
-                    {row.kind === "local" && row.carrier.pooled && (
-                      <Badge variant="outline" className="ml-2 border-primary/30 font-normal text-[10px]">
-                        pooled facts
-                      </Badge>
-                    )}
-                    {row.kind === "pool" && (
-                      <Badge variant="outline" className="ml-2 border-primary/30 font-normal text-[10px]">
-                        shared pool
-                      </Badge>
-                    )}
                     <Num className="ml-2 text-[10.5px] text-muted-foreground">{carrier.carrier_id}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2">
