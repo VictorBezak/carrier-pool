@@ -411,7 +411,6 @@ function CombinedCarrierTable({
         <div>
           <h2 className="text-[13px] font-medium">Call these carriers first</h2>
           <p className="text-[12px] text-muted-foreground">
-            Ranked by empty miles, lane history, price, and on-time record. Select a carrier to update the lane map.
             Rankings come from synced TMS data that may be stale or incomplete — always confirm equipment availability
             with the carrier before booking.
           </p>

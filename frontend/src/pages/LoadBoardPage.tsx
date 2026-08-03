@@ -164,18 +164,22 @@ export function LoadBoardPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search lane, customer, load"
-            className="h-8 w-64 pl-8 text-[13px]"
+            className="h-8 w-64 bg-card pl-8 text-[13px]"
           />
         </div>
         <ToggleGroup type="single" size="sm" value={status} onValueChange={(next) => setStatus((next || "all") as StatusFilter)}>
           {STATUS_FILTERS.map((option) => (
-            <ToggleGroupItem key={option.value} value={option.value} className="px-2.5 text-[12px]">
+            <ToggleGroupItem
+              key={option.value}
+              value={option.value}
+              className="px-2.5 text-[12px] text-muted-foreground data-[state=on]:bg-accent data-[state=on]:font-medium data-[state=on]:text-accent-foreground"
+            >
               {option.label}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
         <Select value={equipmentFilter} onValueChange={setEquipmentFilter}>
-          <SelectTrigger size="sm" className="w-40 text-[13px] capitalize">
+          <SelectTrigger size="sm" className="w-40 bg-card text-[13px] capitalize">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
