@@ -101,7 +101,7 @@ HaulDesk has flatbed history on a lane that becomes a reefer request on day 11.
 
 **Scenario key:** `cold_lane`
 
-BrokerOS has no Conroe to Selma history.
+BrokerOS has no Conroe to Cibolo history.
 
 **Expected behavior:** The price estimate should fall back geographically and show low confidence.
 

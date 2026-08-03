@@ -6,4 +6,6 @@ requires-python = ">=3.11"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+# ".." exposes the repo-root tools/ package so tests can assert the generator and the
+# ranker resolve coordinates from the same vendored reference.
+pythonpath = ["src", ".."]

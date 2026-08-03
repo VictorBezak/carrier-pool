@@ -4,7 +4,7 @@
     {
       "shipmentId": 127738346,
       "status": "At Shipper",
-      "mileage": 276.1,
+      "mileage": 279.5,
       "totalSell": 1510.0,
       "totalBuy": 1190.0,
       "customer": {
@@ -46,7 +46,7 @@
     {
       "shipmentId": 127461251,
       "status": "Dispatched",
-      "mileage": 270.2,
+      "mileage": 269.0,
       "totalSell": 1260.0,
       "totalBuy": 1085.0,
       "customer": {
@@ -65,9 +65,9 @@
       "stops": [
         {
           "stopType": "First Pickup",
-          "city": "SELMA",
+          "city": "CIBOLO",
           "state": "TX",
-          "zipCode": "78154",
+          "zipCode": "78108",
           "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
           "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
           "actualDepartureDateTime": null

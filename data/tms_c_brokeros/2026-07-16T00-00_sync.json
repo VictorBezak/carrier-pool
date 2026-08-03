@@ -5,7 +5,7 @@
       "Id": "a0j64daff20c1e0204",
       "Name": "SHP3091967",
       "bos__Load_Status__c": "Ready to Book",
-      "bos__Distance_Miles__c": 209.8,
+      "bos__Distance_Miles__c": 205.4,
       "bos__Customer__c": "0011ae10e48ad3fc9b",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Reefer",
@@ -24,7 +24,7 @@
           "bos__Number__c": 2.0,
           "bos__Is_Pickup__c": false,
           "bos__Is_Dropoff__c": true,
-          "bos__Location__c": "001e014ba60a54b9e1",
+          "bos__Location__c": "0012360beb71ddb1da",
           "bos__Scheduled_Date__c": "2026-07-17",
           "bos__Arrival_Time__c": null
         }
@@ -44,7 +44,7 @@
       "Id": "a0ja8e27a7106e2a16",
       "Name": "SHP5440056",
       "bos__Load_Status__c": "Booked",
-      "bos__Distance_Miles__c": 164.7,
+      "bos__Distance_Miles__c": 168.4,
       "bos__Customer__c": "001b9838835c559d83",
       "bos__Carrier__c": "001ea00b4d355bde92",
       "bos__Equipment_Type__c": "Reefer",
@@ -93,12 +93,12 @@
       "bos__State__c": "TX",
       "bos__Postal_Code__c": "77301"
     },
-    "001e014ba60a54b9e1": {
+    "0012360beb71ddb1da": {
       "type": "Location",
-      "Name": "Selma Facility",
-      "bos__City__c": "Selma",
+      "Name": "Cibolo Facility",
+      "bos__City__c": "Cibolo",
       "bos__State__c": "TX",
-      "bos__Postal_Code__c": "78154"
+      "bos__Postal_Code__c": "78108"
     },
     "001b9838835c559d83": {
       "type": "Account",

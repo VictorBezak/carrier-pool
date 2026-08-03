@@ -105,7 +105,7 @@ def test_equipment_mismatch_is_marked_as_fallback(store):
 
 
 def test_cold_lane_returns_low_confidence(store):
-    load = active_by_lane(store, BROKER_BROKEROS, "Conroe", "Selma", Equipment.REEFER)
+    load = active_by_lane(store, BROKER_BROKEROS, "Conroe", "Cibolo", Equipment.REEFER)
     rankings = rank_carriers(store, load)
     assert rankings[0].confidence == "low"
     assert any("low lane confidence" in limitation for limitation in rankings[0].limitations)

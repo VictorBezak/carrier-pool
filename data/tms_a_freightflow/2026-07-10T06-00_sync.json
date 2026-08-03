@@ -4,7 +4,7 @@
     {
       "shipmentId": 127383125,
       "status": "Completed",
-      "mileage": 254.8,
+      "mileage": 255.2,
       "totalSell": 1482.0,
       "totalBuy": 1184.0,
       "customer": {
@@ -46,7 +46,7 @@
     {
       "shipmentId": 127673038,
       "status": "Completed",
-      "mileage": 254.8,
+      "mileage": 255.2,
       "totalSell": 1490.0,
       "totalBuy": 1190.0,
       "customer": {
@@ -88,7 +88,7 @@
     {
       "shipmentId": 127720325,
       "status": "Dispatched",
-      "mileage": 254.8,
+      "mileage": 255.2,
       "totalSell": 1522.0,
       "totalBuy": 1214.0,
       "customer": {

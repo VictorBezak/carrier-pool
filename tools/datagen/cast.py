@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import csv
 from datetime import date, datetime, time, timedelta, timezone
+from functools import lru_cache
 from math import asin, cos, radians, sin, sqrt
+from pathlib import Path
 
 from .models import Broker, Carrier, Customer, Place
 
@@ -23,25 +26,44 @@ def slot_filename(slot: int, suffix: str = "sync") -> str:
     return f"{dt:%Y-%m-%d}T{dt:%H-%M}_{suffix}.json"
 
 
+# Coordinates come from the same vendored Census ZCTA table the ranker uses, so the
+# generator cannot invent a geography that only its own consumer agrees with.
+ZCTA_REFERENCE = Path(__file__).resolve().parents[2] / "backend/src/carrier_pool/reference/zcta_centroids.csv"
+
+
+@lru_cache(maxsize=1)
+def _zcta_centroids() -> dict[str, tuple[float, float]]:
+    with ZCTA_REFERENCE.open(newline="", encoding="utf-8") as handle:
+        return {row["zip"]: (float(row["lat"]), float(row["lon"])) for row in csv.DictReader(handle)}
+
+
+def _place(key: str, city: str, zip_code: str, metro: str) -> Place:
+    lat, lon = _zcta_centroids()[zip_code]
+    return Place(key, city, "TX", zip_code, metro, lat, lon)
+
+
+# Each place needs its own ZCTA: two places sharing one ZIP would be a single point
+# to any ZIP-keyed consumer. Schertz and Selma genuinely share 78154, so the roster
+# uses Cibolo (78108), a distinct neighbouring ZCTA in the same metro.
 PLACES: dict[str, Place] = {
-    "grand_prairie": Place("grand_prairie", "Grand Prairie", "TX", "75050", "DFW", 32.7459, -96.9978),
-    "arlington": Place("arlington", "Arlington", "TX", "76010", "DFW", 32.7357, -97.1081),
-    "irving": Place("irving", "Irving", "TX", "75062", "DFW", 32.8140, -96.9489),
-    "plano": Place("plano", "Plano", "TX", "75074", "DFW", 33.0198, -96.6989),
-    "fort_worth": Place("fort_worth", "Fort Worth", "TX", "76102", "DFW", 32.7555, -97.3308),
-    "denton": Place("denton", "Denton", "TX", "76201", "DFW", 33.2148, -97.1331),
-    "waxahachie": Place("waxahachie", "Waxahachie", "TX", "75165", "DFW", 32.3865, -96.8483),
-    "katy": Place("katy", "Katy", "TX", "77449", "HOU", 29.7858, -95.8244),
-    "pasadena": Place("pasadena", "Pasadena", "TX", "77502", "HOU", 29.6911, -95.2091),
-    "sugar_land": Place("sugar_land", "Sugar Land", "TX", "77478", "HOU", 29.6197, -95.6349),
-    "baytown": Place("baytown", "Baytown", "TX", "77520", "HOU", 29.7355, -94.9774),
-    "pearland": Place("pearland", "Pearland", "TX", "77581", "HOU", 29.5636, -95.2860),
-    "conroe": Place("conroe", "Conroe", "TX", "77301", "HOU", 30.3119, -95.4561),
-    "new_braunfels": Place("new_braunfels", "New Braunfels", "TX", "78130", "SA", 29.7030, -98.1245),
-    "schertz": Place("schertz", "Schertz", "TX", "78154", "SA", 29.5522, -98.2697),
-    "seguin": Place("seguin", "Seguin", "TX", "78155", "SA", 29.5688, -97.9647),
-    "selma": Place("selma", "Selma", "TX", "78154", "SA", 29.5844, -98.3053),
-    "san_marcos": Place("san_marcos", "San Marcos", "TX", "78666", "SA", 29.8833, -97.9414),
+    "grand_prairie": _place("grand_prairie", "Grand Prairie", "75050", "DFW"),
+    "arlington": _place("arlington", "Arlington", "76010", "DFW"),
+    "irving": _place("irving", "Irving", "75062", "DFW"),
+    "plano": _place("plano", "Plano", "75074", "DFW"),
+    "fort_worth": _place("fort_worth", "Fort Worth", "76102", "DFW"),
+    "denton": _place("denton", "Denton", "76201", "DFW"),
+    "waxahachie": _place("waxahachie", "Waxahachie", "75165", "DFW"),
+    "katy": _place("katy", "Katy", "77449", "HOU"),
+    "pasadena": _place("pasadena", "Pasadena", "77502", "HOU"),
+    "sugar_land": _place("sugar_land", "Sugar Land", "77478", "HOU"),
+    "baytown": _place("baytown", "Baytown", "77520", "HOU"),
+    "pearland": _place("pearland", "Pearland", "77581", "HOU"),
+    "conroe": _place("conroe", "Conroe", "77301", "HOU"),
+    "new_braunfels": _place("new_braunfels", "New Braunfels", "78130", "SA"),
+    "schertz": _place("schertz", "Schertz", "78154", "SA"),
+    "seguin": _place("seguin", "Seguin", "78155", "SA"),
+    "cibolo": _place("cibolo", "Cibolo", "78108", "SA"),
+    "san_marcos": _place("san_marcos", "San Marcos", "78666", "SA"),
 }
 
 
@@ -84,7 +106,7 @@ CARRIERS: dict[str, Carrier] = {
     "b_thin_2": _carrier(Broker.HAULDESK, "b_thin_2", "PRAIRIE DOG LOGISTICS", "518420", "1811441", "denton", "(940) 555-0198"),
     "b_thin_3": _carrier(Broker.HAULDESK, "b_thin_3", "GULFWAY FLATBED", "715902", "3101990", "baytown", "(832) 555-0184"),
     "b_thin_4": _carrier(Broker.HAULDESK, "b_thin_4", "TRINITY SPUR TRUCKING", "640991", "2540109", "waxahachie", "(469) 555-0137"),
-    "b_thin_5": _carrier(Broker.HAULDESK, "b_thin_5", "LIVE OAK TRANSPORT", "799120", "3450112", "selma", "(210) 555-0109"),
+    "b_thin_5": _carrier(Broker.HAULDESK, "b_thin_5", "LIVE OAK TRANSPORT", "799120", "3450112", "cibolo", "(210) 555-0109"),
     # BrokerOS
     "c_veteran_1": _carrier(Broker.BROKEROS, "c_veteran_1", "Lone Pine Logistics", "930114", "4102221", "sugar_land", "+17135550123"),
     "c_veteran_2": _carrier(Broker.BROKEROS, "c_veteran_2", "Hill Country Refrigerated", "830225", "3980102", "san_marcos", "+15125550191"),
@@ -93,7 +115,7 @@ CARRIERS: dict[str, Carrier] = {
     "c_mid_3": _carrier(Broker.BROKEROS, "c_mid_3", "Pearland Produce Express", "609871", "2509441", "pearland", "+12815550165"),
     "c_thin_1": _carrier(Broker.BROKEROS, "c_thin_1", "Oak Cliff Cartage", "580201", "2311772", "irving", "+14695550168"),
     "c_thin_2": _carrier(Broker.BROKEROS, "c_thin_2", "Bastion Flatbeds", "765992", "3314780", "fort_worth", "+18175550169"),
-    "c_thin_3": _carrier(Broker.BROKEROS, "c_thin_3", "Selma Shuttle", "713400", "3188220", "selma", "+12105550170"),
+    "c_thin_3": _carrier(Broker.BROKEROS, "c_thin_3", "Cibolo Shuttle", "713400", "3188220", "cibolo", "+12105550170"),
     "c_thin_4": _carrier(Broker.BROKEROS, "c_thin_4", "Conroe Cold Start", "888130", "3601720", "conroe", "+19365550171"),
     "c_thin_5": _carrier(Broker.BROKEROS, "c_thin_5", "Waxahachie Way", "593810", "2107780", "waxahachie", "+19725550172"),
 }

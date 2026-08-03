@@ -4,7 +4,7 @@
     {
       "shipmentId": 127356583,
       "status": "Delivered",
-      "mileage": 254.8,
+      "mileage": 255.2,
       "totalSell": 1458.0,
       "totalBuy": 1166.0,
       "customer": {
@@ -46,7 +46,7 @@
     {
       "shipmentId": 127383125,
       "status": "Dispatched",
-      "mileage": 254.8,
+      "mileage": 255.2,
       "totalSell": 1482.0,
       "totalBuy": 1184.0,
       "customer": {

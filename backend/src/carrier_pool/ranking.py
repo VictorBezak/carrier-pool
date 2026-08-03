@@ -118,6 +118,9 @@ def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, 
     price_observations = sum(1 for load in history if load.carrier_rate_usd and load.distance_miles > 0)
     last_load = max((load for load in history if load.delivery_actual_at and load.delivery_actual_at <= target_time), key=lambda load: load.delivery_actual_at, default=None)
     last_deadhead = geo.miles(last_load.delivery.zip_code, target.pickup.zip_code) if last_load else None
+    if last_deadhead is not None and math.isinf(last_deadhead):
+        # Unlocatable ZIP: report positioning as unknown rather than an infinite deadhead.
+        last_deadhead = None
     return CarrierEvidence(
         carrier_id=carrier_id,
         history=history,
