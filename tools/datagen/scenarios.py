@@ -99,8 +99,13 @@ def build_load_specs() -> list[LoadSpec]:
 
     specs.extend(
         [
-            _load("ff-deadhead-close", Broker.FREIGHTFLOW, "a_food", "a_mid_2", "schertz", "pasadena", Equipment.REEFER, 1540, 1210, 24, scenario_ids=("deadhead_isolation",), notes="Ends near the day-11 pickup."),
-            _load("ff-deadhead-far", Broker.FREIGHTFLOW, "a_food", "a_thin_3", "schertz", "pasadena", Equipment.REEFER, 1540, 1210, 26, scenario_ids=("deadhead_isolation",), notes="Same lane economics, but ends far from the day-11 pickup."),
+            # Same corridor, same rate, same mileage, opposite directions. The close carrier
+            # therefore ends its work 13 miles from the day-11 pickup while the far carrier
+            # ends 172 miles away at the delivery end, which is the only contrast that makes
+            # a deadhead test meaningful. Running both in the same direction (the earlier
+            # arrangement) left both carriers parked in Pasadena and tested nothing.
+            _load("ff-deadhead-close", Broker.FREIGHTFLOW, "a_food", "a_mid_2", "pasadena", "schertz", Equipment.REEFER, 1540, 1210, 24, scenario_ids=("deadhead_isolation",), notes="Runs the corridor inbound, so it ends near the day-11 pickup."),
+            _load("ff-deadhead-far", Broker.FREIGHTFLOW, "a_food", "a_thin_3", "schertz", "pasadena", Equipment.REEFER, 1540, 1210, 26, scenario_ids=("deadhead_isolation",), notes="Same corridor and rate outbound, so it ends far from the day-11 pickup."),
             _load("ff-intra-dfw-1", Broker.FREIGHTFLOW, "a_retail", "a_thin_1", "fort_worth", "plano", Equipment.DRY_VAN, 540, 430, 28, scenario_ids=("state_grouping_trap",)),
             _load("ff-intra-dfw-2", Broker.FREIGHTFLOW, "a_retail", "a_thin_2", "denton", "waxahachie", Equipment.DRY_VAN, 610, 485, 30, scenario_ids=("state_grouping_trap",)),
             _load("ff-correction-rate", Broker.FREIGHTFLOW, "a_bev", "a_veteran_2", "irving", "sugar_land", Equipment.DRY_VAN, 1510, 1190, 25, lifecycle="full", correction_delta_usd=175, scenario_ids=("correction_moves_answer",), reassigned_carrier="a_mid_1"),
@@ -180,7 +185,7 @@ SCENARIOS: dict[str, Scenario] = {
     "sanity": Scenario("sanity", "Rich-lane sanity check", "FreightFlow has dense Grand Prairie to Katy dry-van history.", "The day-11 Arlington to Sugar Land load should rank the FreightFlow veteran first with high confidence."),
     "near_miss_lane": Scenario("near_miss_lane", "Near-miss lane", "Historical cities differ from the day-11 cities, but both endpoints sit in the same metros.", "Exact city matching should be sparse; metro/zip clustering should recover the history."),
     "small_sample_trap": Scenario("small_sample_trap", "Small-sample trap", "One HaulDesk carrier has a single excellent DFW to SA load; another has many solid loads.", "A shrunk score should prefer the experienced carrier over the one-load outlier."),
-    "deadhead_isolation": Scenario("deadhead_isolation", "Deadhead isolation", "Two FreightFlow carriers have matching lane economics but different recent delivery positions.", "The closer recent delivery should explain any ranking separation."),
+    "deadhead_isolation": Scenario("deadhead_isolation", "Deadhead isolation", "Two FreightFlow carriers run the same Schertz/Pasadena corridor at the same rate and mileage, one inbound and one outbound, so they finish 13 and 172 miles from the day-11 pickup respectively.", "Empty miles should carry the ranking: the inbound carrier wins despite thinner direct-lane evidence, because the outbound carrier only has reverse-direction credit and a truck stranded at the delivery end."),
     "equipment_constraint": Scenario("equipment_constraint", "Equipment constraint", "HaulDesk has flatbed history on a lane that becomes a reefer request on day 11.", "The ranker should not treat deep flatbed history as a clean reefer match."),
     "cold_lane": Scenario("cold_lane", "Cold lane", "BrokerOS has no Conroe to Cibolo history.", "The price estimate should fall back geographically and show low confidence."),
     "correction_moves_answer": Scenario("correction_moves_answer", "Correction moves answer", "FreightFlow and BrokerOS restate buy rates; HaulDesk appends a negative adjustment.", "Ingesting the correction file should change downstream estimates without hidden stale aggregates."),

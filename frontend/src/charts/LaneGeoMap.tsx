@@ -110,9 +110,9 @@ function historyLines(geometry: LaneGeometry, color: string): GeoLine[] {
 export function LaneGeoMap({ geometry }: { geometry: LaneGeometry }) {
   const colors = chartColors();
   const { ref, size, aspect } = usePlotArea();
-  // Traces paint in array order, so the deadhead comes last to stay on top of the
+  // Traces paint in array order, so the repositioning leg comes last to stay on top of the
   // thicker target lane it usually overlaps. legendrank keeps the legend reading
-  // history, deadhead, this load regardless of paint order.
+  // history, last delivery, this load regardless of paint order.
   const lines: GeoLine[] = [
     ...historyLines(geometry, colors.comp[3]),
     {
@@ -124,7 +124,10 @@ export function LaneGeoMap({ geometry }: { geometry: LaneGeometry }) {
       legendrank: 3
     },
     {
-      name: "deadhead",
+      // Named for what it is rather than for the score: this is the run from the carrier's
+      // last recorded drop, which is only the deadhead the ranker uses when that drop is
+      // fresh. A stale drop is superseded by the carrier's operating footprint.
+      name: "from last delivery",
       points: [geometry.last_delivery, geometry.target.origin],
       color: colors.warn,
       width: 1.5,
@@ -132,7 +135,7 @@ export function LaneGeoMap({ geometry }: { geometry: LaneGeometry }) {
       showlegend: Boolean(geometry.last_delivery),
       legendrank: 2
     }
-  ].filter((line) => line.points.every(Boolean) && (line.showlegend || line.name !== "deadhead"));
+  ].filter((line) => line.points.every(Boolean) && (line.showlegend || line.name !== "from last delivery"));
 
   const drawn = lines.flatMap((line) => line.points).filter((point): point is MapPoint => Boolean(point));
 

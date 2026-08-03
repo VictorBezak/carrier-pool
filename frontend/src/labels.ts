@@ -2,8 +2,8 @@ import type { CarrierRanking, ComponentScore, LoadDetail, PriceEstimate } from "
 import { evidenceValue, money, perMile } from "@/format";
 
 const COMPONENT_LABELS: Record<string, string> = {
+  positioning: "Empty miles",
   lane_familiarity: "Knows this lane",
-  positioning: "Truck nearby",
   price: "Price history",
   reliability: "On-time record",
   relationship: "Works with you",
@@ -15,20 +15,31 @@ const BASIS_LABELS: Record<string, string> = {
   similar_lane: "similar lanes",
   carrier_similar_lane: "this carrier on similar lanes",
   broker_prior: "your overall history",
-  market_prior: "the broker average"
+  market_prior: "the broker average",
+  last_delivery: "where they just delivered",
+  operating_footprint: "where they usually run",
+  blended: "recent delivery and usual area",
+  unknown: "no position on record"
 };
 
 const EVIDENCE_LABELS: Record<string, string> = {
   effective_loads: "similar past loads",
   direct: "same direction",
   reverse: "reverse direction",
-  last_delivery_deadhead_miles: "empty miles to pickup",
+  expected_deadhead_miles: "expected empty miles",
+  deadhead_ratio: "empty vs loaded miles",
+  last_delivery_deadhead_miles: "empty miles from last delivery",
+  footprint_deadhead_miles: "empty miles where they usually run",
+  position_age_days: "age of last known position",
+  position_observations: "deliveries behind this estimate",
+  pickups_within_50mi: "past pickups within 50 mi",
   observed_ppm: "similar-lane price",
   shrunk_ppm: "recommended lane price",
   prior_ppm: "your average price",
   price_effective_loads: "price history size",
-  basis: "price source",
+  basis: "source",
   point_usd: "expected price",
+  all_in_ppm_with_deadhead: "carrier earns per mile driven",
   observations: "on-time checks",
   measures: "timing checks used",
   total_loads: "loads together",
@@ -62,6 +73,8 @@ export function evidenceDisplay(key: string, value: string | number | null) {
   if (key === "point_usd" && typeof value === "number") return money(value);
   if (key.endsWith("_ppm") && typeof value === "number") return perMile(value);
   if (key === "basis" && typeof value === "string") return basisName(value);
+  if (key === "deadhead_ratio" && typeof value === "number") return `${Math.round(value * 100)}%`;
+  if (key.endsWith("_days") && typeof value === "number") return `${Math.round(value)} days`;
   if (key.includes("miles") && typeof value === "number") return `${Math.round(value)} mi`;
   return evidenceValue(value);
 }

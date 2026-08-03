@@ -73,9 +73,9 @@ One HaulDesk carrier has a single excellent DFW to SA load; another has many sol
 
 **Scenario key:** `deadhead_isolation`
 
-Two FreightFlow carriers have matching lane economics but different recent delivery positions.
+Two FreightFlow carriers run the same Schertz/Pasadena corridor at the same rate and mileage, one inbound and one outbound, so they finish 13 and 172 miles from the day-11 pickup respectively.
 
-**Expected behavior:** The closer recent delivery should explain any ranking separation.
+**Expected behavior:** Empty miles should carry the ranking: the inbound carrier wins despite thinner direct-lane evidence, because the outbound carrier only has reverse-direction credit and a truck stranded at the delivery end.
 
 **Loads and files:**
 

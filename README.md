@@ -153,6 +153,10 @@ docker compose down
 docker compose down -v   # also clears the Postgres volume
 ```
 
+Ingestion treats a sync file as an immutable historical record and keys its watermark on the
+filename, so regenerating `data/` with `python -m tools.datagen.generate` will not be picked
+up by a stack that already ingested those filenames. Run `docker compose down -v` first.
+
 For local backend-only development without Postgres:
 
 ```bash
