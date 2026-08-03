@@ -29,8 +29,9 @@ export function LoadDetailPage() {
   const navigate = useNavigate();
   const [detail, setDetail] = useState<LoadDetail | null>(null);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
-  const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
+  const [selectedCarrierKey, setSelectedCarrierKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const carrierRows = useMemo(() => buildCarrierRows(recommendation), [recommendation]);
 
   useEffect(() => {
     if (!session.brokerId || !loadId) return;
@@ -53,14 +54,15 @@ export function LoadDetailPage() {
   }, [session.brokerId, loadId, session.asOf, session.poolEnabled]);
 
   useEffect(() => {
-    setSelectedCarrierId(recommendation?.own_carriers[0]?.carrier_id ?? null);
-  }, [recommendation]);
+    setSelectedCarrierKey(carrierRows[0]?.key ?? null);
+  }, [carrierRows]);
 
   if (!detail) {
     return <Skeleton className="h-64 w-full" />;
   }
 
-  const selectedCarrier = recommendation?.own_carriers.find((carrier) => carrier.carrier_id === selectedCarrierId) ?? recommendation?.own_carriers[0] ?? null;
+  const selectedCarrierRow = carrierRows.find((row) => row.key === selectedCarrierKey) ?? carrierRows[0] ?? null;
+  const selectedCarrierName = selectedCarrierRow?.carrier.carrier_name ?? null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -171,28 +173,35 @@ export function LoadDetailPage() {
                 <CardTitle>Carrier comparison</CardTitle>
               </CardHeader>
               <CardContent className="min-h-[270px]">
-                <CarrierCompositionChart carriers={recommendation.own_carriers} selectedCarrierId={selectedCarrier?.carrier_id ?? null} />
+                <CarrierCompositionChart
+                  carriers={recommendation.own_carriers}
+                  selectedCarrierId={selectedCarrierRow?.kind === "local" ? selectedCarrierRow.carrier.carrier_id : null}
+                />
               </CardContent>
             </Card>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
-            <CarrierTable
-              carriers={recommendation.own_carriers}
-              selectedCarrierId={selectedCarrier?.carrier_id ?? null}
-              onSelectCarrier={setSelectedCarrierId}
-            />
-            <Card size="sm">
-              <CardHeader>
-                <CardTitle>{selectedCarrier ? `${selectedCarrier.carrier_name}'s lane history` : "Lane history"}</CardTitle>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                {selectedCarrier ? <LaneGeoMap geometry={selectedCarrier.geometry} /> : <p className="text-sm text-muted-foreground">Select a carrier to see lane history.</p>}
-              </CardContent>
-            </Card>
-          </div>
+          <CombinedCarrierTable rows={carrierRows} selectedRowKey={selectedCarrierRow?.key ?? null} onSelectRow={setSelectedCarrierKey} />
 
-          {session.poolEnabled && <PoolTable carriers={recommendation.pool_carriers} />}
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>{selectedCarrierName ? `${selectedCarrierName}'s lane history` : "Lane history"}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex h-[360px] flex-col gap-2">
+              {selectedCarrierRow ? (
+                <>
+                  <div className="min-h-0 flex-1">
+                    <LaneGeoMap geometry={selectedCarrierRow.carrier.geometry} />
+                  </div>
+                  {selectedCarrierRow.kind === "pool" && (
+                    <p className="text-[12px] text-muted-foreground">Pool carriers share bucketed lane cells, not raw historical lanes.</p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Select a carrier to see lane history.</p>
+              )}
+            </CardContent>
+          </Card>
         </>
       )}
 
@@ -294,19 +303,53 @@ function ComparablesTable({ price }: { price: Recommendation["price"] }) {
   );
 }
 
+type CombinedCarrierRow =
+  | { kind: "local"; key: string; rankLabel: string; carrier: CarrierRanking }
+  | { kind: "pool"; key: string; rankLabel: string; carrier: PoolCarrierRanking };
+
+function buildCarrierRows(recommendation: Recommendation | null): CombinedCarrierRow[] {
+  if (!recommendation) return [];
+  const localRows = recommendation.own_carriers.map((carrier, index) => ({
+    kind: "local" as const,
+    key: `local:${carrier.carrier_id}`,
+    rankLabel: String(index + 1),
+    carrier
+  }));
+  const poolRows = recommendation.pool_carriers.map((carrier, index) => ({
+    kind: "pool" as const,
+    key: `pool:${carrier.contributor_broker_id}:${carrier.carrier_id}`,
+    rankLabel: `P${index + 1}`,
+    carrier
+  }));
+  return [...localRows, ...poolRows];
+}
+
 function carrierPrice(carrier: CarrierRanking) {
   const value = carrier.components.find((component) => component.name === "price")?.evidence.point_usd;
   return typeof value === "number" ? value : null;
 }
 
-function CarrierTable({
-  carriers,
-  selectedCarrierId,
-  onSelectCarrier
+function rowPrice(row: CombinedCarrierRow) {
+  return row.kind === "local" ? carrierPrice(row.carrier) : row.carrier.expected_carrier_cost_usd;
+}
+
+function rowSource(row: CombinedCarrierRow) {
+  if (row.kind === "pool") return "Shared pool";
+  return row.carrier.pooled ? "Your network + pool facts" : "Your network";
+}
+
+function rowTopReason(row: CombinedCarrierRow) {
+  return row.kind === "local" ? topReason(row.carrier) : (row.carrier.reasons[0] ?? "Additional pooled carrier capacity");
+}
+
+function CombinedCarrierTable({
+  rows,
+  selectedRowKey,
+  onSelectRow
 }: {
-  carriers: CarrierRanking[];
-  selectedCarrierId: string | null;
-  onSelectCarrier: (carrierId: string) => void;
+  rows: CombinedCarrierRow[];
+  selectedRowKey: string | null;
+  onSelectRow: (rowKey: string) => void;
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   return (
@@ -328,11 +371,14 @@ function CarrierTable({
               <TableHead className="h-8 px-2.5">
                 <ColumnLabel>Carrier</ColumnLabel>
               </TableHead>
+              <TableHead className="h-8 px-2.5">
+                <ColumnLabel>Source</ColumnLabel>
+              </TableHead>
               <TableHead className="h-8 w-20 px-2.5 text-right">
                 <ColumnLabel>Match</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 px-2.5 text-right">
-                <ColumnLabel>Their price</ColumnLabel>
+                <ColumnLabel>Expected cost</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 px-2.5">
                 <ColumnLabel>Why</ColumnLabel>
@@ -344,50 +390,62 @@ function CarrierTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {carriers.length === 0 && (
+            {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="h-16 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-16 text-center text-muted-foreground">
                   No carrier in this broker's history matches this load yet.
                 </TableCell>
               </TableRow>
             )}
-            {carriers.map((carrier, index) => {
-              const open = expanded === carrier.carrier_id;
+            {rows.map((row) => {
+              const carrier = row.carrier;
+              const open = expanded === row.key;
               return [
                 <TableRow
-                  key={carrier.carrier_id}
+                  key={row.key}
                   aria-expanded={open}
                   tabIndex={0}
                   className="cursor-pointer"
-                  onClick={() => onSelectCarrier(carrier.carrier_id)}
+                  onClick={() => onSelectRow(row.key)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       event.preventDefault();
-                      onSelectCarrier(carrier.carrier_id);
+                      onSelectRow(row.key);
                     }
                   }}
-                  data-state={selectedCarrierId === carrier.carrier_id ? "selected" : undefined}
+                  data-state={selectedRowKey === row.key ? "selected" : undefined}
                 >
                   <TableCell className="px-2.5 py-2">
-                    <Num className={cn("text-muted-foreground", index === 0 && "font-medium text-primary")}>{index + 1}</Num>
+                    <Num className={cn("text-muted-foreground", row.rankLabel === "1" && "font-medium text-primary")}>{row.rankLabel}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2">
                     <span className="font-medium">{carrier.carrier_name}</span>
-                    {carrier.pooled && (
+                    {row.kind === "local" && row.carrier.pooled && (
                       <Badge variant="outline" className="ml-2 border-primary/30 font-normal text-[10px]">
                         pooled facts
                       </Badge>
                     )}
+                    {row.kind === "pool" && (
+                      <Badge variant="outline" className="ml-2 border-primary/30 font-normal text-[10px]">
+                        shared pool
+                      </Badge>
+                    )}
                     <Num className="ml-2 text-[10.5px] text-muted-foreground">{carrier.carrier_id}</Num>
+                  </TableCell>
+                  <TableCell className="px-2.5 py-2">
+                    <span className="flex flex-col gap-0.5">
+                      <span>{rowSource(row)}</span>
+                      {row.kind === "pool" && <span className="text-[11px] text-muted-foreground">{row.carrier.contributor_broker_name}</span>}
+                    </span>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
                     <Num className="font-medium">{matchScore(carrier.score)}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
-                    <Num>{money(carrierPrice(carrier))}</Num>
+                    <Num>{money(rowPrice(row))}</Num>
                   </TableCell>
                   <TableCell className="max-w-[300px] px-2.5 py-2 text-muted-foreground">
-                    <span className="truncate">{topReason(carrier)}</span>
+                    <span className="truncate">{rowTopReason(row)}</span>
                   </TableCell>
                   <TableCell className="px-2.5 py-2">
                     <ConfidenceBadge confidence={carrier.confidence} />
@@ -398,21 +456,25 @@ function CarrierTable({
                       size="xs"
                       onClick={(event) => {
                         event.stopPropagation();
-                        setExpanded(open ? null : carrier.carrier_id);
+                        setExpanded(open ? null : row.key);
                       }}
                     >
-                      Show reasoning
+                      {row.kind === "local" ? "Show reasoning" : "What was shared"}
                     </Button>
                   </TableCell>
                 </TableRow>,
                 open ? (
-                  <TableRow key={`${carrier.carrier_id}-evidence`} className="hover:bg-transparent">
-                    <TableCell colSpan={7} className="p-0 whitespace-normal">
-                      <CarrierEvidence
-                        components={carrier.components}
-                        reasons={carrier.reasons}
-                        limitations={carrier.limitations}
-                      />
+                  <TableRow key={`${row.key}-evidence`} className="hover:bg-transparent">
+                    <TableCell colSpan={8} className="p-0 whitespace-normal">
+                      {row.kind === "local" ? (
+                        <CarrierEvidence
+                          components={row.carrier.components}
+                          reasons={row.carrier.reasons}
+                          limitations={row.carrier.limitations}
+                        />
+                      ) : (
+                        <PoolEvidence carrier={row.carrier} />
+                      )}
                     </TableCell>
                   </TableRow>
                 ) : null
@@ -425,128 +487,33 @@ function CarrierTable({
   );
 }
 
-function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-
+function PoolEvidence({ carrier }: { carrier: PoolCarrierRanking }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div>
-        <h2 className="flex items-center gap-2 text-[13px] font-medium">
-          Additional carriers
-          <Badge variant="outline" className="font-normal">
-            other brokers
-          </Badge>
-        </h2>
-        <p className="text-[12px] text-muted-foreground">Additional capacity from brokers who opted into pool sharing.</p>
-      </div>
-
-      <div className="overflow-hidden rounded-lg border border-l-2 border-l-dashed border-l-primary/40 bg-card">
-        <Table className="text-[12.5px]">
-          <TableHeader className="bg-muted/60">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="h-8 w-10 px-2.5">
-                <ColumnLabel>#</ColumnLabel>
-              </TableHead>
-              <TableHead className="h-8 px-2.5">
-                <ColumnLabel>Carrier</ColumnLabel>
-              </TableHead>
-              <TableHead className="h-8 px-2.5">
-                <ColumnLabel>Contributed by</ColumnLabel>
-              </TableHead>
-              <TableHead className="h-8 w-20 px-2.5 text-right">
-                <ColumnLabel>Match</ColumnLabel>
-              </TableHead>
-              <TableHead className="h-8 px-2.5 text-right">
-                <ColumnLabel>Expected cost</ColumnLabel>
-              </TableHead>
-              <TableHead className="h-8 px-2.5">
-                <ColumnLabel>Confidence</ColumnLabel>
-              </TableHead>
-              <TableHead className="h-8 w-8 px-2.5" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {carriers.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="h-16 text-center text-muted-foreground">
-                  No eligible pool carriers for this load.
-                </TableCell>
-              </TableRow>
-            )}
-            {carriers.map((carrier, index) => {
-              const key = `${carrier.contributor_broker_id}:${carrier.carrier_id}`;
-              const open = expanded === key;
-              return [
-                <TableRow
-                  key={key}
-                  aria-expanded={open}
-                  tabIndex={0}
-                  className="cursor-pointer"
-                  onClick={() => setExpanded(open ? null : key)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      setExpanded(open ? null : key);
-                    }
-                  }}
-                >
-                  <TableCell className="px-2.5 py-2">
-                    <Num className="text-muted-foreground">P{index + 1}</Num>
-                  </TableCell>
-                  <TableCell className="px-2.5 py-2 font-medium">{carrier.carrier_name}</TableCell>
-                  <TableCell className="px-2.5 py-2 text-muted-foreground">{carrier.contributor_broker_name}</TableCell>
-                  <TableCell className="px-2.5 py-2 text-right">
-                    <Num>{matchScore(carrier.score)}</Num>
-                  </TableCell>
-                  <TableCell className="px-2.5 py-2 text-right">
-                    <Num>{money(carrier.expected_carrier_cost_usd)}</Num>
-                  </TableCell>
-                  <TableCell className="px-2.5 py-2">
-                    <ConfidenceBadge confidence={carrier.confidence} />
-                  </TableCell>
-                  <TableCell className="px-2.5 py-2">
-                    <Button variant="ghost" size="xs">
-                      What was shared
-                    </Button>
-                  </TableCell>
-                </TableRow>,
-                open ? (
-                  <TableRow key={`${key}-evidence`} className="hover:bg-transparent">
-                    <TableCell colSpan={7} className="p-0 whitespace-normal">
-                      <div className="border-t bg-muted/30 p-4">
-                        <div className="flex flex-col gap-4">
-                          <div className="grid gap-4 sm:grid-cols-2">
-                            <ReasonList label="Why this carrier" items={carrier.reasons} />
-                            <ReasonList label="What we don't know" items={carrier.limitations} tone="caution" />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            <ColumnLabel>Everything that crossed the boundary</ColumnLabel>
-                            <div className="overflow-hidden rounded-md border bg-card">
-                              <Table className="text-[11.5px]">
-                                <TableBody>
-                                  {Object.entries(carrier.payload).map(([key, value]) => (
-                                    <TableRow key={key}>
-                                      <TableCell className="w-40 px-2 py-1">
-                                        <ColumnLabel>{evidenceName(key)}</ColumnLabel>
-                                      </TableCell>
-                                      <TableCell className="px-2 py-1">
-                                        <Num>{Array.isArray(value) ? value.join(", ") || "—" : evidenceValue(value ?? null)}</Num>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+    <div className="border-t bg-muted/30 p-4">
+      <div className="flex flex-col gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ReasonList label="Why this carrier" items={carrier.reasons} />
+          <ReasonList label="What we don't know" items={carrier.limitations} tone="caution" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <ColumnLabel>Everything that crossed the boundary</ColumnLabel>
+          <div className="overflow-hidden rounded-md border bg-card">
+            <Table className="text-[11.5px]">
+              <TableBody>
+                {Object.entries(carrier.payload).map(([key, value]) => (
+                  <TableRow key={key}>
+                    <TableCell className="w-40 px-2 py-1">
+                      <ColumnLabel>{evidenceName(key)}</ColumnLabel>
+                    </TableCell>
+                    <TableCell className="px-2 py-1">
+                      <Num>{Array.isArray(value) ? value.join(", ") || "—" : evidenceValue(value ?? null)}</Num>
                     </TableCell>
                   </TableRow>
-                ) : null
-              ];
-            })}
-          </TableBody>
-        </Table>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
     </div>
   );
