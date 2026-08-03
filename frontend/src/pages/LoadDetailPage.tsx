@@ -219,7 +219,7 @@ function PriceMath({ price }: { price: Recommendation["price"] }) {
     <Collapsible>
       <CollapsibleTrigger asChild>
         <Button variant="outline" size="sm" className="w-fit">
-          Show the math
+          Show reasoning
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-3 flex flex-col gap-4">
@@ -314,7 +314,7 @@ function CarrierTable({
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-[13px] font-medium">Call these carriers first</h2>
-          <p className="text-[12px] text-muted-foreground">Select a carrier to update the map. Open the math only when someone asks why.</p>
+          <p className="text-[12px] text-muted-foreground">Ranked by lane history, price, and on-time record. Select a carrier to update the lane map.</p>
         </div>
       </div>
 
@@ -396,7 +396,7 @@ function CarrierTable({
                         setExpanded(open ? null : carrier.carrier_id);
                       }}
                     >
-                      Show math
+                      Show reasoning
                     </Button>
                   </TableCell>
                 </TableRow>,
@@ -432,7 +432,7 @@ function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
             other brokers
           </Badge>
         </h2>
-        <p className="text-[12px] text-muted-foreground">Extra carriers from opted-in brokers. Details stay hidden until you ask what was shared.</p>
+        <p className="text-[12px] text-muted-foreground">Additional capacity from brokers who opted into pool sharing.</p>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-l-2 border-l-dashed border-l-primary/40 bg-card">
