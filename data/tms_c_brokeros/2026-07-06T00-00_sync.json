@@ -1,16 +1,16 @@
 {
-  "synced_at": "2026-07-06T11:00:00.000+0000",
+  "synced_at": "2026-07-06T05:00:00.000+0000",
   "records": [
     {
       "Id": "a0j72408d66f298713",
       "Name": "SHP4878405",
-      "bos__Load_Status__c": "Booked",
+      "bos__Load_Status__c": "Ready to Book",
       "bos__Distance_Miles__c": 290.3,
       "bos__Customer__c": "001b9838835c559d83",
-      "bos__Carrier__c": "0010a3d8fbab4dd872",
+      "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Reefer",
       "bos__Customer_Rate__c": 1687,
-      "bos__Carrier_Rate__c": 1295,
+      "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
@@ -38,7 +38,7 @@
         }
       ],
       "CreatedDate": "2026-07-06T02:43:00.000+0000",
-      "LastModifiedDate": "2026-07-06T10:17:00.000+0000"
+      "LastModifiedDate": "2026-07-06T04:17:00.000+0000"
     }
   ],
   "referenced_records": {
@@ -46,14 +46,6 @@
       "type": "Account",
       "record_type": "Customer",
       "Name": "Gulf Coast Foods"
-    },
-    "0010a3d8fbab4dd872": {
-      "type": "Account",
-      "record_type": "Carrier",
-      "Name": "Lone Pine Logistics",
-      "bos__MC_Number__c": "930114",
-      "bos__DOT_Number__c": "4102221",
-      "Phone": "+17135550123"
     },
     "00163cd936a4f4d766": {
       "type": "Location",

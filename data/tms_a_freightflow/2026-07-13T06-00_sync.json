@@ -1,0 +1,89 @@
+{
+  "syncedAt": "2026-07-13T06:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127301207,
+      "status": "Completed",
+      "mileage": 217.2,
+      "totalSell": 1540,
+      "totalBuy": 1210,
+      "customer": {
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
+      },
+      "carrier": {
+        "carrierMasterId": 890663,
+        "name": "BAYOU BEND EXPRESS",
+        "mcNumber": "740221",
+        "dotNumber": "3099101",
+        "phoneNumber": "+17135550110"
+      },
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "SCHERTZ",
+          "state": "TX",
+          "zipCode": "78154",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T04:00:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "PASADENA",
+          "state": "TX",
+          "zipCode": "77502",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T05:00:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-12T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-13T05:17:00-05:00"
+    },
+    {
+      "shipmentId": 127567858,
+      "status": "Dispatched",
+      "mileage": 48.3,
+      "totalSell": 540,
+      "totalBuy": 430,
+      "customer": {
+        "customerId": 885717,
+        "name": "Trinity Retail Group"
+      },
+      "carrier": {
+        "carrierMasterId": 878666,
+        "name": "PECAN VALLEY TRUCKING",
+        "mcNumber": "420018",
+        "dotNumber": "1997331",
+        "phoneNumber": "+16825550155"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "FORT WORTH",
+          "state": "TX",
+          "zipCode": "76102",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "PLANO",
+          "state": "TX",
+          "zipCode": "75074",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-12T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-13T05:17:00-05:00"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "syncedAt": "2026-07-16T00:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127233279,
+      "status": "Booking",
+      "mileage": 274.0,
+      "totalSell": 1490,
+      "totalBuy": null,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": null,
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "ARLINGTON",
+          "state": "TX",
+          "zipCode": "76010",
+          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "SUGAR LAND",
+          "state": "TX",
+          "zipCode": "77478",
+          "estimatedReadyDateTime": "2026-07-18T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-18T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-15T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T23:17:00-05:00"
+    }
+  ]
+}

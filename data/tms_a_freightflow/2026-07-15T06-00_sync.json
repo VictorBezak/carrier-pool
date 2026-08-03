@@ -1,0 +1,140 @@
+{
+  "syncedAt": "2026-07-15T06:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127738346,
+      "status": "Completed",
+      "mileage": 276.1,
+      "totalSell": 1510,
+      "totalBuy": 1365,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 901459,
+        "name": "BLUE ROUTE CARRIERS",
+        "mcNumber": "550218",
+        "dotNumber": "1603301",
+        "phoneNumber": "+12815550121"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "IRVING",
+          "state": "TX",
+          "zipCode": "75062",
+          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-15T04:00:00-05:00"
+        },
+        {
+          "stopType": "Stop 2",
+          "city": "PEARLAND",
+          "state": "TX",
+          "zipCode": "77581",
+          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "SUGAR LAND",
+          "state": "TX",
+          "zipCode": "77478",
+          "estimatedReadyDateTime": "2026-07-18T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-18T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-15T05:00:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-13T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T05:41:00-05:00"
+    },
+    {
+      "shipmentId": 127315346,
+      "status": "Dispatched",
+      "mileage": 288.0,
+      "totalSell": 1320,
+      "totalBuy": 1110,
+      "customer": {
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
+      },
+      "carrier": {
+        "carrierMasterId": 872528,
+        "name": "LARIAT LINEHAUL",
+        "mcNumber": "501004",
+        "dotNumber": "1800442",
+        "phoneNumber": "+19405550177"
+      },
+      "equipment": "48 ft Flatbed",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "PLANO",
+          "state": "TX",
+          "zipCode": "75074",
+          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "NEW BRAUNFELS",
+          "state": "TX",
+          "zipCode": "78130",
+          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-14T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T05:17:00-05:00"
+    },
+    {
+      "shipmentId": 127461251,
+      "status": "Completed",
+      "mileage": 270.2,
+      "totalSell": 1260,
+      "totalBuy": 1085,
+      "customer": {
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
+      },
+      "carrier": {
+        "carrierMasterId": 918324,
+        "name": "MISSION CITY FREIGHT",
+        "mcNumber": "631145",
+        "dotNumber": "2881440",
+        "phoneNumber": "+12105550133"
+      },
+      "equipment": "48 ft Flatbed",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "SELMA",
+          "state": "TX",
+          "zipCode": "78154",
+          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-15T04:00:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "ARLINGTON",
+          "state": "TX",
+          "zipCode": "76010",
+          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-15T05:00:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-14T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T05:17:00-05:00"
+    }
+  ]
+}

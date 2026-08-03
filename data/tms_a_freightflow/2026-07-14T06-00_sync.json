@@ -1,0 +1,98 @@
+{
+  "syncedAt": "2026-07-14T06:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127738346,
+      "status": "Dispatched",
+      "mileage": 276.1,
+      "totalSell": 1510,
+      "totalBuy": 1190,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 901459,
+        "name": "BLUE ROUTE CARRIERS",
+        "mcNumber": "550218",
+        "dotNumber": "1603301",
+        "phoneNumber": "+12815550121"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "IRVING",
+          "state": "TX",
+          "zipCode": "75062",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Stop 2",
+          "city": "PEARLAND",
+          "state": "TX",
+          "zipCode": "77581",
+          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "SUGAR LAND",
+          "state": "TX",
+          "zipCode": "77478",
+          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-13T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-14T05:17:00-05:00"
+    },
+    {
+      "shipmentId": 127738720,
+      "status": "Completed",
+      "mileage": 70.3,
+      "totalSell": 610,
+      "totalBuy": 485,
+      "customer": {
+        "customerId": 885717,
+        "name": "Trinity Retail Group"
+      },
+      "carrier": {
+        "carrierMasterId": 921117,
+        "name": "MOCKINGBIRD LOGISTICS",
+        "mcNumber": "615880",
+        "dotNumber": "2100987",
+        "phoneNumber": "+19725550190"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "DENTON",
+          "state": "TX",
+          "zipCode": "76201",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T04:00:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "WAXAHACHIE",
+          "state": "TX",
+          "zipCode": "75165",
+          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T05:00:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-13T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-14T05:17:00-05:00"
+    }
+  ]
+}

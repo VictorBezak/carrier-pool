@@ -1,0 +1,134 @@
+{
+  "synced_at": "2026-07-15T11:00:00.000+0000",
+  "records": [
+    {
+      "Id": "a0j927470f19056572",
+      "Name": "SHP1455626",
+      "bos__Load_Status__c": "Paid",
+      "bos__Distance_Miles__c": 236.1,
+      "bos__Customer__c": "0011ae10e48ad3fc9b",
+      "bos__Carrier__c": "001f29ba15e4dd24de",
+      "bos__Equipment_Type__c": "Flatbed",
+      "bos__Customer_Rate__c": 1370,
+      "bos__Carrier_Rate__c": 1130,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "0012ee59d64d59f50b",
+          "bos__Scheduled_Date__c": "2026-07-15",
+          "bos__Arrival_Time__c": "2026-07-15T08:00:00.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001e014ba60a54b9e1",
+          "bos__Scheduled_Date__c": "2026-07-16",
+          "bos__Arrival_Time__c": "2026-07-15T09:00:00.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "General freight",
+          "bos__Weight__c": 24000.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 18.0
+        }
+      ],
+      "CreatedDate": "2026-07-14T14:43:00.000+0000",
+      "LastModifiedDate": "2026-07-15T10:17:00.000+0000"
+    },
+    {
+      "Id": "a0j45c3f4fa2b6a026",
+      "Name": "SHP2997674",
+      "bos__Load_Status__c": "Booked",
+      "bos__Distance_Miles__c": 201.5,
+      "bos__Customer__c": "0011ae10e48ad3fc9b",
+      "bos__Carrier__c": "001c12e60d5f11e27d",
+      "bos__Equipment_Type__c": "Reefer",
+      "bos__Customer_Rate__c": 1420,
+      "bos__Carrier_Rate__c": 1165,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "00196e525fa4ba2f67",
+          "bos__Scheduled_Date__c": "2026-07-15",
+          "bos__Arrival_Time__c": null
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001535bd7d82b17dba",
+          "bos__Scheduled_Date__c": "2026-07-16",
+          "bos__Arrival_Time__c": null
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "General freight",
+          "bos__Weight__c": 24000.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 18.0
+        }
+      ],
+      "CreatedDate": "2026-07-15T02:43:00.000+0000",
+      "LastModifiedDate": "2026-07-15T10:17:00.000+0000"
+    }
+  ],
+  "referenced_records": {
+    "0011ae10e48ad3fc9b": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Bexar Medical Supply"
+    },
+    "001f29ba15e4dd24de": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "Bastion Flatbeds",
+      "bos__MC_Number__c": "765992",
+      "bos__DOT_Number__c": "3314780",
+      "Phone": "+18175550169"
+    },
+    "0012ee59d64d59f50b": {
+      "type": "Location",
+      "Name": "Baytown Facility",
+      "bos__City__c": "Baytown",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77520"
+    },
+    "001e014ba60a54b9e1": {
+      "type": "Location",
+      "Name": "Selma Facility",
+      "bos__City__c": "Selma",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78154"
+    },
+    "001c12e60d5f11e27d": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "Conroe Cold Start",
+      "bos__MC_Number__c": "888130",
+      "bos__DOT_Number__c": "3601720",
+      "Phone": "+19365550171"
+    },
+    "00196e525fa4ba2f67": {
+      "type": "Location",
+      "Name": "Pearland Facility",
+      "bos__City__c": "Pearland",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77581"
+    },
+    "001535bd7d82b17dba": {
+      "type": "Location",
+      "Name": "New Braunfels Facility",
+      "bos__City__c": "New Braunfels",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78130"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "synced_at": "2026-07-16T05:00:00.000+0000",
+  "records": [
+    {
+      "Id": "a0j64daff20c1e0204",
+      "Name": "SHP3091967",
+      "bos__Load_Status__c": "Ready to Book",
+      "bos__Distance_Miles__c": 209.8,
+      "bos__Customer__c": "0011ae10e48ad3fc9b",
+      "bos__Carrier__c": null,
+      "bos__Equipment_Type__c": "Reefer",
+      "bos__Customer_Rate__c": 1280,
+      "bos__Carrier_Rate__c": null,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "001a7245d4f049804d",
+          "bos__Scheduled_Date__c": "2026-07-16",
+          "bos__Arrival_Time__c": null
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001e014ba60a54b9e1",
+          "bos__Scheduled_Date__c": "2026-07-17",
+          "bos__Arrival_Time__c": null
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "General freight",
+          "bos__Weight__c": 24000.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 18.0
+        }
+      ],
+      "CreatedDate": "2026-07-16T02:43:00.000+0000",
+      "LastModifiedDate": "2026-07-16T04:17:00.000+0000"
+    }
+  ],
+  "referenced_records": {
+    "0011ae10e48ad3fc9b": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Bexar Medical Supply"
+    },
+    "001a7245d4f049804d": {
+      "type": "Location",
+      "Name": "Conroe Facility",
+      "bos__City__c": "Conroe",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77301"
+    },
+    "001e014ba60a54b9e1": {
+      "type": "Location",
+      "Name": "Selma Facility",
+      "bos__City__c": "Selma",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78154"
+    }
+  }
+}

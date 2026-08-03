@@ -1,0 +1,41 @@
+{
+  "syncedAt": "2026-07-12T00:00:00-05:00",
+  "loads": [
+    {
+      "shipmentId": 127379425,
+      "status": "Booking",
+      "mileage": 217.2,
+      "totalSell": 1540,
+      "totalBuy": null,
+      "customer": {
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
+      },
+      "carrier": null,
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 24000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "SCHERTZ",
+          "state": "TX",
+          "zipCode": "78154",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "PASADENA",
+          "state": "TX",
+          "zipCode": "77502",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-11T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-11T23:17:00-05:00"
+    }
+  ]
+}

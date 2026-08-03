@@ -1,0 +1,38 @@
+{
+  "synced_at": "2026-07-16 00:00:00",
+  "loads": [
+    {
+      "load_num": "HD-2026-648885",
+      "status_code": 20,
+      "customer_code": "C-8189",
+      "customer_name": "Metroplex Auto Parts",
+      "carrier_ref": null,
+      "equip": "V",
+      "weight_kg": 10886.2,
+      "dist_km": 463.5,
+      "pu_city": "Plano",
+      "pu_state": "TX",
+      "pu_zip": "75074",
+      "pu_date": "2026-07-16",
+      "pu_departed_at": null,
+      "del_city": "New Braunfels",
+      "del_state": "TX",
+      "del_zip": "78130",
+      "del_date": "2026-07-17",
+      "del_arrived_at": null,
+      "entered_at": "2026-07-15 21:43:00",
+      "updated_at": "2026-07-15 23:17:00"
+    }
+  ],
+  "carriers": [],
+  "rates": [
+    {
+      "rate_id": 1887610,
+      "load_num": "HD-2026-648885",
+      "side": "bill",
+      "code": "LINEHAUL",
+      "amount_usd": 1420,
+      "created_at": "2026-07-15 23:17:00"
+    }
+  ]
+}

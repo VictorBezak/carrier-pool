@@ -1,23 +1,62 @@
 {
-  "synced_at": "2026-07-06T11:00:00.000+0000",
+  "synced_at": "2026-07-09T11:00:00.000+0000",
   "records": [
     {
-      "Id": "a0j72408d66f298713",
-      "Name": "SHP4878405",
-      "bos__Load_Status__c": "Booked",
+      "Id": "a0j5a98c1e4328b82c",
+      "Name": "SHP3249763",
+      "bos__Load_Status__c": "Paid",
       "bos__Distance_Miles__c": 290.3,
       "bos__Customer__c": "001b9838835c559d83",
       "bos__Carrier__c": "0010a3d8fbab4dd872",
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1687,
-      "bos__Carrier_Rate__c": 1295,
+      "bos__Customer_Rate__c": 1722,
+      "bos__Carrier_Rate__c": 1320,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
           "bos__Is_Pickup__c": true,
           "bos__Is_Dropoff__c": false,
           "bos__Location__c": "00163cd936a4f4d766",
-          "bos__Scheduled_Date__c": "2026-07-06",
+          "bos__Scheduled_Date__c": "2026-07-09",
+          "bos__Arrival_Time__c": "2026-07-09T08:00:00.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001403bf8b5f31c786",
+          "bos__Scheduled_Date__c": "2026-07-10",
+          "bos__Arrival_Time__c": "2026-07-09T09:00:00.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "General freight",
+          "bos__Weight__c": 24000.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 18.0
+        }
+      ],
+      "CreatedDate": "2026-07-08T14:43:00.000+0000",
+      "LastModifiedDate": "2026-07-09T10:17:00.000+0000"
+    },
+    {
+      "Id": "a0jbcdc4aee507d273",
+      "Name": "SHP5078581",
+      "bos__Load_Status__c": "Booked",
+      "bos__Distance_Miles__c": 290.3,
+      "bos__Customer__c": "001b9838835c559d83",
+      "bos__Carrier__c": "0010a3d8fbab4dd872",
+      "bos__Equipment_Type__c": "Reefer",
+      "bos__Customer_Rate__c": 1729,
+      "bos__Carrier_Rate__c": 1325,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "00163cd936a4f4d766",
+          "bos__Scheduled_Date__c": "2026-07-09",
           "bos__Arrival_Time__c": null
         },
         {
@@ -25,7 +64,7 @@
           "bos__Is_Pickup__c": false,
           "bos__Is_Dropoff__c": true,
           "bos__Location__c": "001403bf8b5f31c786",
-          "bos__Scheduled_Date__c": "2026-07-07",
+          "bos__Scheduled_Date__c": "2026-07-10",
           "bos__Arrival_Time__c": null
         }
       ],
@@ -37,8 +76,8 @@
           "bos__Pallet_Count__c": 18.0
         }
       ],
-      "CreatedDate": "2026-07-06T02:43:00.000+0000",
-      "LastModifiedDate": "2026-07-06T10:17:00.000+0000"
+      "CreatedDate": "2026-07-09T02:43:00.000+0000",
+      "LastModifiedDate": "2026-07-09T10:17:00.000+0000"
     }
   ],
   "referenced_records": {
