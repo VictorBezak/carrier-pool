@@ -90,6 +90,8 @@ def pool_ranking(ranking: PoolCarrierRanking, target: LoadVersion, geo: GeoIndex
         "carrier_name": ranking.carrier_name,
         "score": ranking.score,
         "confidence": ranking.confidence,
+        "pooled": ranking.pooled,
+        "components": [component(component_score) for component_score in ranking.components],
         "expected_carrier_cost_usd": ranking.expected_carrier_cost_usd,
         "reasons": ranking.reasons,
         "limitations": ranking.limitations,

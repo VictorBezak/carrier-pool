@@ -8,7 +8,7 @@ from carrier_pool.geo import GeoIndex
 from carrier_pool.ingest import BROKER_BROKEROS, BROKER_FREIGHTFLOW, BROKER_HAULDESK, ingest_data
 from carrier_pool.models import Equipment
 from carrier_pool.pool import POOL_FIELDS, pooled_facts, pool_contributions, pool_rankings, recommend, recursive_payload_keys
-from carrier_pool.ranking import active_loads
+from carrier_pool.ranking import WEIGHTS, active_loads
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
@@ -99,6 +99,42 @@ def test_pooled_payload_never_contains_broker_owned_identifiers(store):
         payload_text = repr(contribution.payload)
         assert all(load.raw_load_id not in payload_text for load in store.versions)
         assert all(load.customer_name not in payload_text for load in store.versions)
+
+
+def test_pool_carrier_reasons_describe_bucketed_history(store, geo):
+    load = _active_by_lane(store, BROKER_HAULDESK, "Seguin", "Baytown", Equipment.REEFER)
+    rankings = pool_rankings(store, load, geo, load.synced_at, {BROKER_FREIGHTFLOW, BROKER_HAULDESK})
+    assert rankings
+    first = rankings[0]
+    assert "pooled" in first.reasons[0]
+    assert "ZIP3" in first.reasons[0]
+    assert any("appointment record" in reason for reason in first.reasons)
+    assert any("raw trips stay private" in limitation for limitation in first.limitations)
+
+
+def test_pool_only_carriers_use_same_component_model_with_local_missing_priors(store, geo):
+    load = _active_by_lane(store, BROKER_HAULDESK, "Seguin", "Baytown", Equipment.REEFER)
+    rankings = pool_rankings(store, load, geo, load.synced_at, {BROKER_FREIGHTFLOW, BROKER_HAULDESK})
+    assert rankings
+    ranking = rankings[0]
+    assert [component.name for component in ranking.components] == list(WEIGHTS)
+    assert {component.name: component.weight for component in ranking.components} == WEIGHTS
+
+    price = _component(ranking, "price")
+    assert price.score == 0.5
+    assert price.evidence["basis"] == "broker_market_fallback"
+    assert price.evidence["price_effective_loads"] == 0
+
+    relationship = _component(ranking, "relationship")
+    assert relationship.score == 0
+    assert relationship.evidence["basis"] == "no_local_relationship"
+
+    customer = _component(ranking, "customer_affinity")
+    assert customer.score == pytest.approx(1 / 6, abs=0.0001)
+    assert customer.evidence["basis"] == "cold_start_prior"
+
+    assert _component(ranking, "positioning").evidence["position_pooled_observations"] > 0
+    assert _component(ranking, "reliability").evidence["pooled_observations"] >= 0
 
 
 def test_opted_out_and_brokeros_brokers_do_not_exchange_pool_data(store, geo):

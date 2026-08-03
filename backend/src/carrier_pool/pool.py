@@ -8,9 +8,19 @@ from typing import Any
 
 from .geo import GeoIndex
 from .ingest import BROKER_BROKEROS
-from .models import CanonicalStore, CarrierRanking, Equipment, LoadStatus, LoadVersion, PooledFacts, PooledStop
+from .models import CanonicalStore, CarrierRanking, ComponentScore, Equipment, LoadStatus, LoadVersion, PooledFacts, PooledStop
 from .pricing import PriceEstimate, estimate_price
-from .ranking import _fallthrough_counts, rank_carriers
+from .ranking import (
+    WEIGHTS,
+    _all_in_ppm,
+    _clip,
+    _fallthrough_counts,
+    _position_estimate,
+    _position_evidence,
+    _positioning_score,
+    _reliability_score,
+    rank_carriers,
+)
 
 POOL_FIELD_TIERS = {
     "carrier_identity": [
@@ -83,6 +93,8 @@ class PoolCarrierRanking:
     carrier_name: str
     score: float
     confidence: str
+    pooled: bool
+    components: list[ComponentScore]
     expected_carrier_cost_usd: float
     reasons: list[str]
     limitations: list[str]
@@ -132,16 +144,20 @@ def pool_rankings(
         for contribution in pool_contributions(store, broker_id, as_of):
             if _matching_local_carrier_id(store, target.broker_id, contribution.payload, as_of):
                 continue
-            score, confidence, reasons, limitations = _score_contribution(contribution.payload, target)
+            components = _pool_components(contribution.payload, target, geo, as_of, market_price)
+            score = round(sum(component.score * component.weight for component in components), 4)
+            confidence = _pool_confidence(contribution.payload, components)
             rankings.append(
                 PoolCarrierRanking(
                     carrier_id=contribution.carrier_id,
                     carrier_name=contribution.payload["carrier_name"],
                     score=score,
                     confidence=confidence,
+                    pooled=True,
+                    components=components,
                     expected_carrier_cost_usd=market_price.point_usd,
-                    reasons=reasons,
-                    limitations=limitations,
+                    reasons=_pool_reasons(contribution.payload, target, components),
+                    limitations=_pool_limitations(contribution.payload, target),
                     payload=contribution.payload,
                 )
             )
@@ -257,20 +273,185 @@ def _score_contribution(payload: dict[str, Any], target: LoadVersion) -> tuple[f
     raw = 0.45 * lane_strength + 0.20 * equipment_strength + 0.20 * on_time_strength + 0.15 * recency_strength
     confidence = "medium" if lane_strength >= 0.65 and payload["on_time_band"] in {"strong", "mixed"} else "low"
     reasons = [
-        f"pool carrier from an opted-in broker with {payload['on_time_band']} on-time history",
-        f"{payload['recency_band']} relationship activity in bucketed contribution data",
+        _lane_reason(payload["lane_cells"], target),
+        _appointment_reason(payload),
+        _equipment_reason(payload),
+        f"{payload['recency_band']} pooled carrier activity",
     ]
-    if lane_strength >= 0.65:
-        reasons.insert(0, "bucketed ZIP3 lane history matches this load")
-    else:
-        reasons.insert(0, "no exact bucketed ZIP3 lane match; treated as exploratory pool coverage")
     limitations = [
-        "pool tier uses bucketed contribution data only, never another broker's rates or load records",
+        "pooled history is bucketed to ZIP3 lanes and 6-hour ZIP5 stop sightings; raw trips stay private",
         "expected cost falls back to the requesting broker's market estimate",
     ]
     if target.equipment.value not in payload["equipment_types"]:
         limitations.append(f"pool carrier has no shared {target.equipment.value} equipment bucket")
     return round(max(0.0, min(1.0, raw)), 4), confidence, reasons, limitations
+
+
+def _pool_components(payload: dict[str, Any], target: LoadVersion, geo: GeoIndex, as_of: datetime, market_price: PriceEstimate) -> list[ComponentScore]:
+    facts = _facts_from_payload(payload)
+    position = _position_estimate([], target, geo, as_of, facts)
+    lane_effective, direct_effective, reverse_effective = _pool_lane_effective(payload["lane_cells"], target)
+    lane_score = 1 - math.exp(-lane_effective / 2.0)
+    positioning_score = _positioning_score(position, target)
+    reliability_score = _reliability_score([], facts.appointment_observations, facts.appointment_on_time)
+    price_score = 0.5
+    stability_score = max(0.0, 1.0 - 0.28 * facts.fallthrough_count)
+    price_evidence: dict[str, float | int | str] = {
+        "observed_ppm": market_price.point_ppm,
+        "shrunk_ppm": market_price.point_ppm,
+        "prior_ppm": market_price.point_ppm,
+        "price_effective_loads": 0,
+        "basis": "broker_market_fallback",
+        "point_usd": market_price.point_usd,
+    }
+    all_in = _all_in_ppm(market_price.point_usd, position.expected_deadhead_miles, target.distance_miles)
+    if all_in is not None:
+        price_evidence["all_in_ppm_with_deadhead"] = all_in
+    return [
+        ComponentScore("positioning", _clip(positioning_score), WEIGHTS["positioning"], _position_evidence(position, target, [], geo)),
+        ComponentScore(
+            "lane_familiarity",
+            _clip(lane_score),
+            WEIGHTS["lane_familiarity"],
+            {
+                "effective_loads": round(lane_effective, 2),
+                "direct": round(direct_effective, 2),
+                "reverse": round(reverse_effective, 2),
+                "pooled_lane_cells": ", ".join(payload["lane_cells"]) if payload["lane_cells"] else None,
+                "basis": "pooled_zip3_buckets",
+            },
+        ),
+        ComponentScore("price", price_score, WEIGHTS["price"], price_evidence),
+        ComponentScore(
+            "reliability",
+            _clip(reliability_score),
+            WEIGHTS["reliability"],
+            {
+                "observations": facts.appointment_observations,
+                "broker_local_observations": 0,
+                "pooled_observations": facts.appointment_observations,
+                "pooled_on_time": facts.appointment_on_time,
+                "measures": "pooled_appointment_counts",
+            },
+        ),
+        ComponentScore("relationship", 0.0, WEIGHTS["relationship"], {"total_loads": 0, "recent_loads": 0, "basis": "no_local_relationship"}),
+        ComponentScore("customer_affinity", round(1.0 / 6.0, 4), WEIGHTS["customer_affinity"], {"same_customer_loads": 0, "basis": "cold_start_prior"}),
+        ComponentScore(
+            "stability",
+            _clip(stability_score),
+            WEIGHTS["stability"],
+            {
+                "corrections": 0,
+                "fallthroughs": facts.fallthrough_count,
+                "broker_local_fallthroughs": 0,
+                "pooled_fallthroughs": facts.fallthrough_count,
+            },
+        ),
+    ]
+
+
+def _pool_lane_effective(lane_cells: list[str], target: LoadVersion) -> tuple[float, float, float]:
+    target_origin = target.pickup.zip_code[:3]
+    target_dest = target.delivery.zip_code[:3]
+    target_equipment = target.equipment.value
+    best_direct = 0.0
+    best_reverse = 0.0
+    for cell in lane_cells:
+        lane, equipment, band = cell.split(":")
+        origin, dest = lane.split(">")
+        band_strength = {"one": 0.45, "some": 1.2, "many": 2.0}[band]
+        equipment_strength = 1.0 if equipment == target_equipment else 0.5
+        if origin == target_origin and dest == target_dest:
+            best_direct = max(best_direct, band_strength * equipment_strength)
+        elif origin == target_dest and dest == target_origin:
+            best_reverse = max(best_reverse, 0.35 * band_strength * equipment_strength)
+    return max(best_direct, best_reverse), best_direct, best_reverse
+
+
+def _pool_confidence(payload: dict[str, Any], components: list[ComponentScore]) -> str:
+    component = {item.name: item for item in components}
+    lane = component["lane_familiarity"].score
+    position_observations = int(component["positioning"].evidence["position_pooled_observations"] or 0)
+    reliability_observations = int(component["reliability"].evidence["pooled_observations"] or 0)
+    equipment_match = bool(payload["equipment_types"])
+    if lane >= 0.6 and position_observations >= 4 and reliability_observations >= 8 and equipment_match and payload["recency_band"] == "recent":
+        return "high"
+    if lane >= 0.35 and reliability_observations >= 3 and equipment_match:
+        return "medium"
+    return "low"
+
+
+def _pool_reasons(payload: dict[str, Any], target: LoadVersion, components: list[ComponentScore]) -> list[str]:
+    position = next(component for component in components if component.name == "positioning")
+    price = next(component for component in components if component.name == "price")
+    expected = position.evidence["expected_deadhead_miles"]
+    reasons = [
+        _lane_reason(payload["lane_cells"], target),
+        _appointment_reason(payload),
+        _equipment_reason(payload),
+        f"expected cost uses your broker-market estimate (${price.evidence['shrunk_ppm']}/mi), not contributor rates",
+    ]
+    if isinstance(expected, (int, float)):
+        reasons.insert(1, f"pooled stop sightings estimate {expected:.0f} empty miles to pickup")
+    return reasons
+
+
+def _pool_limitations(payload: dict[str, Any], target: LoadVersion) -> list[str]:
+    limitations = [
+        "pooled history is bucketed to ZIP3 lanes and 6-hour ZIP5 stop sightings; raw trips stay private",
+        "no local relationship history with this carrier",
+        "no carrier-specific rates crossed the boundary; price uses your market estimate",
+        "no customer-specific history for this carrier",
+    ]
+    if target.equipment.value not in payload["equipment_types"]:
+        limitations.append(f"pool carrier has no shared {target.equipment.value} equipment bucket")
+    return limitations
+
+
+def _lane_reason(lane_cells: list[str], target: LoadVersion) -> str:
+    target_origin = target.pickup.zip_code[:3]
+    target_dest = target.delivery.zip_code[:3]
+    target_equipment = target.equipment.value
+    best: tuple[float, str, str, str, str, str] | None = None
+    for cell in lane_cells:
+        lane, equipment, band = cell.split(":")
+        origin, dest = lane.split(">")
+        band_strength = {"one": 0.45, "some": 0.72, "many": 1.0}[band]
+        equipment_strength = 1.0 if equipment == target_equipment else 0.5
+        if origin == target_origin and dest == target_dest:
+            candidate = (band_strength * equipment_strength, "direct", origin, dest, equipment, band)
+        elif origin == target_dest and dest == target_origin:
+            candidate = (0.35 * band_strength * equipment_strength, "reverse", origin, dest, equipment, band)
+        else:
+            continue
+        if best is None or candidate[0] > best[0]:
+            best = candidate
+    if best is None:
+        return f"no pooled ZIP3 lane match for {target_origin}>{target_dest}; treated as exploratory coverage"
+    _score, direction, origin, dest, equipment, band = best
+    direction_note = "matching" if direction == "direct" else "reverse-direction"
+    return f"{_activity_label(band)} pooled {_equipment_label(equipment)} history on {direction_note} ZIP3 lane {origin}>{dest}"
+
+
+def _appointment_reason(payload: dict[str, Any]) -> str:
+    observations = int(payload["appointment_observations"])
+    on_time = int(payload["appointment_on_time"])
+    if observations <= 0:
+        return "no pooled appointment timestamps available"
+    return f"pooled appointment record is {on_time}/{observations} on time ({payload['on_time_band']})"
+
+
+def _equipment_reason(payload: dict[str, Any]) -> str:
+    equipment = ", ".join(_equipment_label(item) for item in payload["equipment_types"]) or "unknown equipment"
+    return f"shared equipment buckets: {equipment}"
+
+
+def _activity_label(band: str) -> str:
+    return {"one": "one-load", "some": "some", "many": "many-load"}.get(band, band)
+
+
+def _equipment_label(value: str) -> str:
+    return value.replace("_", " ")
 
 
 def _lane_strength(lane_cells: list[str], target: LoadVersion) -> float:

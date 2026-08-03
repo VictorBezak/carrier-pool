@@ -118,6 +118,8 @@ export type PoolCarrierRanking = {
   carrier_name: string;
   score: number;
   confidence: Confidence;
+  pooled: boolean;
+  components: ComponentScore[];
   expected_carrier_cost_usd: number;
   reasons: string[];
   limitations: string[];

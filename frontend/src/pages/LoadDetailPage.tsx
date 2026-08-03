@@ -309,19 +309,21 @@ type CombinedCarrierRow =
 
 function buildCarrierRows(recommendation: Recommendation | null): CombinedCarrierRow[] {
   if (!recommendation) return [];
-  const localRows = recommendation.own_carriers.map((carrier, index) => ({
+  const localRows = recommendation.own_carriers.map((carrier) => ({
     kind: "local" as const,
     key: `local:${carrier.carrier_id}`,
-    rankLabel: String(index + 1),
+    rankLabel: "",
     carrier
   }));
   const poolRows = recommendation.pool_carriers.map((carrier, index) => ({
     kind: "pool" as const,
     key: `pool:${index}:${carrier.carrier_id}`,
-    rankLabel: `P${index + 1}`,
+    rankLabel: "",
     carrier
   }));
-  return [...localRows, ...poolRows];
+  return [...localRows, ...poolRows]
+    .sort(compareCarrierRows)
+    .map((row, index) => ({ ...row, rankLabel: String(index + 1) }));
 }
 
 function carrierPrice(carrier: CarrierRanking) {
@@ -340,6 +342,19 @@ function rowSource(row: CombinedCarrierRow) {
 
 function rowTopReason(row: CombinedCarrierRow) {
   return row.kind === "local" ? topReason(row.carrier) : (row.carrier.reasons[0] ?? "Additional pooled carrier capacity");
+}
+
+function compareCarrierRows(a: CombinedCarrierRow, b: CombinedCarrierRow) {
+  const scoreDelta = b.carrier.score - a.carrier.score;
+  if (scoreDelta !== 0) return scoreDelta;
+  const confidenceDelta = confidenceRank(b.carrier.confidence) - confidenceRank(a.carrier.confidence);
+  if (confidenceDelta !== 0) return confidenceDelta;
+  if (a.kind !== b.kind) return a.kind === "local" ? -1 : 1;
+  return a.carrier.carrier_name.localeCompare(b.carrier.carrier_name);
+}
+
+function confidenceRank(value: CarrierRanking["confidence"]) {
+  return { high: 3, medium: 2, low: 1 }[value];
 }
 
 function CombinedCarrierTable({
@@ -458,7 +473,7 @@ function CombinedCarrierTable({
                         setExpanded(open ? null : row.key);
                       }}
                     >
-                      {row.kind === "local" ? "Show reasoning" : "What was shared"}
+                      Show reasoning
                     </Button>
                   </TableCell>
                 </TableRow>,
@@ -488,13 +503,10 @@ function CombinedCarrierTable({
 
 function PoolEvidence({ carrier }: { carrier: PoolCarrierRanking }) {
   return (
-    <div className="border-t bg-muted/30 p-4">
+    <div>
+      <CarrierEvidence components={carrier.components} reasons={carrier.reasons} limitations={carrier.limitations} />
       <div className="flex flex-col gap-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <ReasonList label="Why this carrier" items={carrier.reasons} />
-          <ReasonList label="What we don't know" items={carrier.limitations} tone="caution" />
-        </div>
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 border-t bg-muted/30 p-4">
           <ColumnLabel>Everything that crossed the boundary</ColumnLabel>
           <div className="overflow-hidden rounded-md border bg-card">
             <Table className="text-[11.5px]">
