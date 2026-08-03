@@ -3,7 +3,7 @@
   "loads": [
     {
       "load_num": "HD-2026-678177",
-      "status_code": 30,
+      "status_code": 50,
       "customer_code": "C-1189",
       "customer_name": "Alamo Building Supply",
       "carrier_ref": 73716,
@@ -13,14 +13,14 @@
       "pu_city": "Seguin",
       "pu_state": "TX",
       "pu_zip": "78155",
-      "pu_date": "2026-07-15",
-      "pu_departed_at": null,
+      "pu_date": "2026-07-13",
+      "pu_departed_at": "2026-07-13 17:15:00",
       "del_city": "Baytown",
       "del_state": "TX",
       "del_zip": "77520",
-      "del_date": "2026-07-16",
-      "del_arrived_at": null,
-      "entered_at": "2026-07-14 09:43:00",
+      "del_date": "2026-07-14",
+      "del_arrived_at": "2026-07-14 10:00:00",
+      "entered_at": "2026-07-12 15:43:00",
       "updated_at": "2026-07-14 23:17:00"
     },
     {
@@ -46,26 +46,8 @@
       "updated_at": "2026-07-14 23:17:00"
     }
   ],
-  "carriers": [
-    {
-      "carrier_id": 73716,
-      "carrier_name": "GULFWAY FLATBED",
-      "mc_no": "715902",
-      "dot_no": "3101990",
-      "home_city": "Baytown",
-      "home_state": "TX",
-      "phone": "(832) 555-0184"
-    }
-  ],
+  "carriers": [],
   "rates": [
-    {
-      "rate_id": 1762200,
-      "load_num": "HD-2026-678177",
-      "side": "pay",
-      "code": "LINEHAUL",
-      "amount_usd": 1060.0,
-      "created_at": "2026-07-14 23:17:00"
-    },
     {
       "rate_id": 1065232,
       "load_num": "HD-2026-989157",

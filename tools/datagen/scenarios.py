@@ -103,7 +103,7 @@ def build_load_specs() -> list[LoadSpec]:
             _load("ff-deadhead-far", Broker.FREIGHTFLOW, "a_food", "a_thin_3", "schertz", "pasadena", Equipment.REEFER, 1540, 1210, 26, scenario_ids=("deadhead_isolation",), notes="Same lane economics, but ends far from the day-11 pickup."),
             _load("ff-intra-dfw-1", Broker.FREIGHTFLOW, "a_retail", "a_thin_1", "fort_worth", "plano", Equipment.DRY_VAN, 540, 430, 28, scenario_ids=("state_grouping_trap",)),
             _load("ff-intra-dfw-2", Broker.FREIGHTFLOW, "a_retail", "a_thin_2", "denton", "waxahachie", Equipment.DRY_VAN, 610, 485, 30, scenario_ids=("state_grouping_trap",)),
-            _load("ff-correction-rate", Broker.FREIGHTFLOW, "a_bev", "a_veteran_2", "irving", "sugar_land", Equipment.DRY_VAN, 1510, 1190, 32, lifecycle="full", correction_delta_usd=175, scenario_ids=("correction_moves_answer",), reassigned_carrier="a_mid_1"),
+            _load("ff-correction-rate", Broker.FREIGHTFLOW, "a_bev", "a_veteran_2", "irving", "sugar_land", Equipment.DRY_VAN, 1510, 1190, 25, lifecycle="full", correction_delta_usd=175, scenario_ids=("correction_moves_answer",), reassigned_carrier="a_mid_1"),
             _load("ff-thin-sa-dfw", Broker.FREIGHTFLOW, "a_food", "a_thin_4", "cibolo", "arlington", Equipment.FLATBED, 1260, 1085, 34, lifecycle="covered_only"),
             _load("ff-thin-dfw-sa", Broker.FREIGHTFLOW, "a_food", "a_thin_5", "plano", "new_braunfels", Equipment.FLATBED, 1320, 1110, 36),
             _load("ff-tail-slot", Broker.FREIGHTFLOW, "a_retail", "a_mid_1", "waxahachie", "baytown", Equipment.DRY_VAN, 1330, 1105, 38),
@@ -143,7 +143,7 @@ def build_load_specs() -> list[LoadSpec]:
 
     specs.extend(
         [
-            _load("hd-flatbed-history-1", Broker.HAULDESK, "b_build", "b_thin_3", "seguin", "baytown", Equipment.FLATBED, 1320, 1060, 34, lifecycle="full", scenario_ids=("equipment_constraint",), correction_delta_usd=-85, hauldesk_carrier_rename_slot=38),
+            _load("hd-flatbed-history-1", Broker.HAULDESK, "b_build", "b_thin_3", "seguin", "baytown", Equipment.FLATBED, 1320, 1060, 27, lifecycle="full", scenario_ids=("equipment_constraint",), correction_delta_usd=-85, hauldesk_carrier_rename_slot=38),
             _load("hd-flatbed-history-2", Broker.HAULDESK, "b_build", "b_thin_3", "seguin", "baytown", Equipment.FLATBED, 1340, 1075, 36, scenario_ids=("equipment_constraint",)),
             _load("hd-tail-slot", Broker.HAULDESK, "b_parts", "b_mid_1", "san_marcos", "pearland", Equipment.DRY_VAN, 1350, 1095, 38),
             _load("hd-day11-small-sample", Broker.HAULDESK, "b_parts", None, "plano", "new_braunfels", Equipment.DRY_VAN, 1420, None, 40, lifecycle="day11", scenario_ids=("small_sample_trap",)),

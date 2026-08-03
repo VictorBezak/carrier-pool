@@ -36,6 +36,48 @@
       ],
       "createdDate": "2026-07-12T21:43:00-05:00",
       "lastModifiedDate": "2026-07-12T23:17:00-05:00"
+    },
+    {
+      "shipmentId": 127259648,
+      "status": "Delivered",
+      "mileage": 255.2,
+      "totalSell": 1500.0,
+      "totalBuy": 1425.0,
+      "customer": {
+        "customerId": 885717,
+        "name": "Trinity Retail Group"
+      },
+      "carrier": {
+        "carrierMasterId": 864976,
+        "name": "DELTA PRIME, LLC",
+        "mcNumber": "884201",
+        "dotNumber": "2551377",
+        "phoneNumber": "+18305550144"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 38000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T17:45:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T12:30:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-10T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-12T17:17:00-05:00"
     }
   ]
 }

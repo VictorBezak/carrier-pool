@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -8,7 +9,8 @@ import pytest
 from carrier_pool.geo import GeoIndex
 from carrier_pool.ingest import BROKER_BROKEROS, BROKER_FREIGHTFLOW, BROKER_HAULDESK, ingest_data
 from carrier_pool.models import Equipment, LoadStatus
-from carrier_pool.ranking import active_loads, lane_weight, rank_carriers
+from carrier_pool.pricing import estimate_price
+from carrier_pool.ranking import _correction_counts, active_loads, lane_weight, rank_carriers
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
@@ -44,6 +46,18 @@ def component(ranking, name):
     return next(item for item in ranking.components if item.name == name)
 
 
+def copy_data_without(tmp_path: Path, excluded: set[str]) -> Path:
+    target = tmp_path / "data"
+    for broker_dir in DATA_DIR.glob("tms_*"):
+        copied_dir = target / broker_dir.name
+        copied_dir.mkdir(parents=True)
+        for path in broker_dir.glob("*_sync.json"):
+            rel = f"{broker_dir.name}/{path.name}"
+            if rel not in excluded:
+                shutil.copy2(path, copied_dir / path.name)
+    return target
+
+
 def test_ingests_all_generated_loads(store):
     assert len(store.current_loads) == 69
     assert len(store.versions) > len(store.current_loads)
@@ -75,6 +89,15 @@ def test_near_miss_lane_ranks_freightflow_veteran_first(store):
     assert rankings[0].carrier_name == "IBRAHIM TRANSPORT INC"
     assert rankings[0].confidence == "high"
     assert component(rankings[0], "lane_familiarity").evidence["effective_loads"] >= 5
+
+
+def test_rich_lane_price_estimate_has_high_confidence(store, geo):
+    load = active_by_lane(store, BROKER_FREIGHTFLOW, "Arlington", "Sugar Land", Equipment.DRY_VAN)
+    estimate = estimate_price(store, load, geo)
+    assert estimate.basis == "similar_lane"
+    assert estimate.confidence == "high"
+    assert estimate.effective_loads >= 5
+    assert estimate.low_usd < estimate.point_usd < estimate.high_usd
 
 
 def test_cross_broker_twin_does_not_leak_hauldesk_history(store):
@@ -111,6 +134,15 @@ def test_cold_lane_returns_low_confidence(store):
     assert any("low lane confidence" in limitation for limitation in rankings[0].limitations)
 
 
+def test_cold_lane_price_falls_back_with_low_confidence(store, geo):
+    load = active_by_lane(store, BROKER_BROKEROS, "Conroe", "Cibolo", Equipment.REEFER)
+    estimate = estimate_price(store, load, geo)
+    assert estimate.basis == "distance_band"
+    assert estimate.confidence == "low"
+    assert estimate.high_usd - estimate.low_usd > 500
+    assert any("fallback evidence" in limitation for limitation in estimate.limitations)
+
+
 def test_directionality_uses_reverse_lane_with_discount(store, geo):
     load = active_by_lane(store, BROKER_BROKEROS, "Grand Prairie", "Katy", Equipment.REEFER)
     rankings = rank_carriers(store, load)
@@ -120,10 +152,52 @@ def test_directionality_uses_reverse_lane_with_discount(store, geo):
     assert lane["reverse"] < 3
 
 
+def test_state_grouping_trap_has_low_lane_similarity(store, geo):
+    target = active_by_lane(store, BROKER_BROKEROS, "Grand Prairie", "Katy", Equipment.REEFER)
+    intra_texas = next(load for load in store.current_loads.values() if load.pickup.city == "Fort Worth" and load.delivery.city == "Plano")
+    assert target.pickup.state == target.delivery.state == intra_texas.pickup.state == intra_texas.delivery.state == "TX"
+    assert geo.miles(intra_texas.pickup.zip_code, intra_texas.delivery.zip_code) < 50
+    assert geo.miles(target.pickup.zip_code, target.delivery.zip_code) > 200
+    assert lane_weight(target, intra_texas, geo)[0] < 0.01
+
+
+def test_corrections_move_price_estimate(tmp_path, geo):
+    full_store = ingest_data(DATA_DIR)
+    without_correction = ingest_data(copy_data_without(tmp_path, {"tms_c_brokeros/2026-07-15T18-00_sync.json"}))
+    full_load = active_by_lane(full_store, BROKER_BROKEROS, "Plano", "Pearland", Equipment.DRY_VAN)
+    stale_load = active_by_lane(without_correction, BROKER_BROKEROS, "Plano", "Pearland", Equipment.DRY_VAN)
+    assert estimate_price(full_store, full_load, geo).point_usd != estimate_price(without_correction, stale_load, geo).point_usd
+
+
+def test_correction_counts_cover_all_three_brokers(store):
+    assert sum(_correction_counts(store, BROKER_FREIGHTFLOW).values()) == 1
+    assert sum(_correction_counts(store, BROKER_HAULDESK).values()) == 1
+    assert sum(_correction_counts(store, BROKER_BROKEROS).values()) == 1
+
+
 def test_price_shrinkage_collapses_single_load_outlier(store):
     load = active_by_lane(store, BROKER_HAULDESK, "Plano", "New Braunfels", Equipment.DRY_VAN)
     rankings = rank_carriers(store, load)
     comal = next(ranking for ranking in rankings if ranking.carrier_name == "COMAL CREEK FREIGHT")
     price = component(comal, "price").evidence
     assert price["shrunk_ppm"] > price["observed_ppm"]
+
+
+def test_hauldesk_local_times_parse_as_central(store):
+    actual = next(load.pickup_actual_at for load in store.versions if load.broker_id == BROKER_HAULDESK and load.pickup_actual_at is not None)
+    assert actual.utcoffset().total_seconds() == -5 * 60 * 60
+
+
+def test_brokeros_on_time_verdicts_stay_unchanged(store):
+    actuals = 0
+    late = 0
+    for load in store.versions:
+        if load.broker_id != BROKER_BROKEROS:
+            continue
+        for actual, close_at in ((load.pickup_actual_at, load.pickup_close_at), (load.delivery_actual_at, load.delivery_close_at)):
+            if actual is not None and close_at is not None:
+                actuals += 1
+                late += actual > close_at
+    assert actuals == 76
+    assert late == 0
 

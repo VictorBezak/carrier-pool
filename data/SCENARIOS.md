@@ -23,7 +23,7 @@ FreightFlow has dense Grand Prairie to Katy dry-van history.
 - `ff-rich-dfw-hou-06`: `tms_a_freightflow/2026-07-08T12-00_sync.json`, `tms_a_freightflow/2026-07-08T18-00_sync.json`, `tms_a_freightflow/2026-07-10T18-00_sync.json`, `tms_a_freightflow/2026-07-11T06-00_sync.json`
 - `ff-rich-dfw-hou-07`: `tms_a_freightflow/2026-07-09T00-00_sync.json`, `tms_a_freightflow/2026-07-09T06-00_sync.json`, `tms_a_freightflow/2026-07-10T18-00_sync.json`, `tms_a_freightflow/2026-07-11T06-00_sync.json`
 - `ff-rich-dfw-hou-08`: `tms_a_freightflow/2026-07-09T12-00_sync.json`, `tms_a_freightflow/2026-07-09T18-00_sync.json`, `tms_a_freightflow/2026-07-11T18-00_sync.json`, `tms_a_freightflow/2026-07-12T06-00_sync.json`
-- `ff-rich-dfw-hou-09`: `tms_a_freightflow/2026-07-10T00-00_sync.json`, `tms_a_freightflow/2026-07-10T06-00_sync.json`, `tms_a_freightflow/2026-07-11T18-00_sync.json`, `tms_a_freightflow/2026-07-12T06-00_sync.json`
+- `ff-rich-dfw-hou-09`: `tms_a_freightflow/2026-07-10T00-00_sync.json`, `tms_a_freightflow/2026-07-10T06-00_sync.json`, `tms_a_freightflow/2026-07-11T18-00_sync.json`, `tms_a_freightflow/2026-07-12T12-00_sync.json`
 - `ff-rich-dfw-hou-10`: `tms_a_freightflow/2026-07-10T12-00_sync.json`, `tms_a_freightflow/2026-07-10T18-00_sync.json`, `tms_a_freightflow/2026-07-12T18-00_sync.json`, `tms_a_freightflow/2026-07-13T06-00_sync.json`
 
 ## Near-miss lane
@@ -45,7 +45,7 @@ Historical cities differ from the day-11 cities, but both endpoints sit in the s
 - `ff-rich-dfw-hou-06`: `tms_a_freightflow/2026-07-08T12-00_sync.json`, `tms_a_freightflow/2026-07-08T18-00_sync.json`, `tms_a_freightflow/2026-07-10T18-00_sync.json`, `tms_a_freightflow/2026-07-11T06-00_sync.json`
 - `ff-rich-dfw-hou-07`: `tms_a_freightflow/2026-07-09T00-00_sync.json`, `tms_a_freightflow/2026-07-09T06-00_sync.json`, `tms_a_freightflow/2026-07-10T18-00_sync.json`, `tms_a_freightflow/2026-07-11T06-00_sync.json`
 - `ff-rich-dfw-hou-08`: `tms_a_freightflow/2026-07-09T12-00_sync.json`, `tms_a_freightflow/2026-07-09T18-00_sync.json`, `tms_a_freightflow/2026-07-11T18-00_sync.json`, `tms_a_freightflow/2026-07-12T06-00_sync.json`
-- `ff-rich-dfw-hou-09`: `tms_a_freightflow/2026-07-10T00-00_sync.json`, `tms_a_freightflow/2026-07-10T06-00_sync.json`, `tms_a_freightflow/2026-07-11T18-00_sync.json`, `tms_a_freightflow/2026-07-12T06-00_sync.json`
+- `ff-rich-dfw-hou-09`: `tms_a_freightflow/2026-07-10T00-00_sync.json`, `tms_a_freightflow/2026-07-10T06-00_sync.json`, `tms_a_freightflow/2026-07-11T18-00_sync.json`, `tms_a_freightflow/2026-07-12T12-00_sync.json`
 - `ff-rich-dfw-hou-10`: `tms_a_freightflow/2026-07-10T12-00_sync.json`, `tms_a_freightflow/2026-07-10T18-00_sync.json`, `tms_a_freightflow/2026-07-12T18-00_sync.json`, `tms_a_freightflow/2026-07-13T06-00_sync.json`
 
 ## Small-sample trap
@@ -63,9 +63,9 @@ One HaulDesk carrier has a single excellent DFW to SA load; another has many sol
 - `hd-small-many-solid-2`: `tms_b_hauldesk/2026-07-11T00-00_sync.json`, `tms_b_hauldesk/2026-07-11T06-00_sync.json`, `tms_b_hauldesk/2026-07-12T18-00_sync.json`, `tms_b_hauldesk/2026-07-13T06-00_sync.json`
 - `hd-small-many-solid-3`: `tms_b_hauldesk/2026-07-11T12-00_sync.json`, `tms_b_hauldesk/2026-07-11T18-00_sync.json`, `tms_b_hauldesk/2026-07-13T18-00_sync.json`, `tms_b_hauldesk/2026-07-14T06-00_sync.json`
 - `hd-small-many-solid-4`: `tms_b_hauldesk/2026-07-12T00-00_sync.json`, `tms_b_hauldesk/2026-07-12T06-00_sync.json`, `tms_b_hauldesk/2026-07-13T18-00_sync.json`, `tms_b_hauldesk/2026-07-14T06-00_sync.json`
-- `hd-small-many-solid-5`: `tms_b_hauldesk/2026-07-12T12-00_sync.json`, `tms_b_hauldesk/2026-07-12T18-00_sync.json`, `tms_b_hauldesk/2026-07-14T18-00_sync.json`, `tms_b_hauldesk/2026-07-15T06-00_sync.json`
-- `hd-small-many-solid-6`: `tms_b_hauldesk/2026-07-13T00-00_sync.json`, `tms_b_hauldesk/2026-07-13T06-00_sync.json`, `tms_b_hauldesk/2026-07-14T18-00_sync.json`, `tms_b_hauldesk/2026-07-15T06-00_sync.json`
-- `hd-small-many-solid-7`: `tms_b_hauldesk/2026-07-13T12-00_sync.json`, `tms_b_hauldesk/2026-07-13T18-00_sync.json`, `tms_b_hauldesk/2026-07-15T18-00_sync.json`, `tms_b_hauldesk/2026-07-16T06-00_sync.json`
+- `hd-small-many-solid-5`: `tms_b_hauldesk/2026-07-12T12-00_sync.json`, `tms_b_hauldesk/2026-07-13T00-00_sync.json`, `tms_b_hauldesk/2026-07-14T18-00_sync.json`, `tms_b_hauldesk/2026-07-15T06-00_sync.json`
+- `hd-small-many-solid-6`: `tms_b_hauldesk/2026-07-13T00-00_sync.json`, `tms_b_hauldesk/2026-07-13T12-00_sync.json`, `tms_b_hauldesk/2026-07-14T18-00_sync.json`, `tms_b_hauldesk/2026-07-15T06-00_sync.json`
+- `hd-small-many-solid-7`: `tms_b_hauldesk/2026-07-13T12-00_sync.json`, `tms_b_hauldesk/2026-07-14T00-00_sync.json`, `tms_b_hauldesk/2026-07-15T18-00_sync.json`, `tms_b_hauldesk/2026-07-16T06-00_sync.json`
 - `hd-small-many-solid-8`: `tms_b_hauldesk/2026-07-14T00-00_sync.json`, `tms_b_hauldesk/2026-07-14T06-00_sync.json`, `tms_b_hauldesk/2026-07-15T18-00_sync.json`, `tms_b_hauldesk/2026-07-16T06-00_sync.json`
 - `hd-small-one-great`: `tms_b_hauldesk/2026-07-10T00-00_sync.json`, `tms_b_hauldesk/2026-07-10T06-00_sync.json`, `tms_b_hauldesk/2026-07-11T18-00_sync.json`, `tms_b_hauldesk/2026-07-12T06-00_sync.json`
 
@@ -94,7 +94,7 @@ HaulDesk has flatbed history on a lane that becomes a reefer request on day 11.
 **Loads and files:**
 
 - `hd-day11-equipment`: `tms_b_hauldesk/2026-07-16T06-00_sync.json`
-- `hd-flatbed-history-1`: `tms_b_hauldesk/2026-07-14T12-00_sync.json`, `tms_b_hauldesk/2026-07-14T18-00_sync.json`, `tms_b_hauldesk/2026-07-15T00-00_sync.json`, `tms_b_hauldesk/2026-07-15T12-00_sync.json`, `tms_b_hauldesk/2026-07-15T18-00_sync.json`, `tms_b_hauldesk/2026-07-16T12-00_sync.json`
+- `hd-flatbed-history-1`: `tms_b_hauldesk/2026-07-12T18-00_sync.json`, `tms_b_hauldesk/2026-07-13T00-00_sync.json`, `tms_b_hauldesk/2026-07-13T06-00_sync.json`, `tms_b_hauldesk/2026-07-13T12-00_sync.json`, `tms_b_hauldesk/2026-07-13T18-00_sync.json`, `tms_b_hauldesk/2026-07-14T12-00_sync.json`, `tms_b_hauldesk/2026-07-14T18-00_sync.json`, `tms_b_hauldesk/2026-07-15T00-00_sync.json`, `tms_b_hauldesk/2026-07-15T12-00_sync.json`, `tms_b_hauldesk/2026-07-15T18-00_sync.json`
 - `hd-flatbed-history-2`: `tms_b_hauldesk/2026-07-15T00-00_sync.json`, `tms_b_hauldesk/2026-07-15T06-00_sync.json`
 
 ## Cold lane
@@ -127,7 +127,7 @@ FreightFlow and BrokerOS restate buy rates; HaulDesk appends a negative adjustme
 - `bo-sa-hou-5`: `tms_c_brokeros/2026-07-12T00-00_sync.json`, `tms_c_brokeros/2026-07-12T06-00_sync.json`, `tms_c_brokeros/2026-07-13T18-00_sync.json`, `tms_c_brokeros/2026-07-14T06-00_sync.json`
 - `bo-sa-hou-6`: `tms_c_brokeros/2026-07-12T12-00_sync.json`, `tms_c_brokeros/2026-07-12T18-00_sync.json`, `tms_c_brokeros/2026-07-14T18-00_sync.json`, `tms_c_brokeros/2026-07-15T06-00_sync.json`
 - `bo-silent-restatement`: `tms_c_brokeros/2026-07-13T00-00_sync.json`, `tms_c_brokeros/2026-07-13T06-00_sync.json`, `tms_c_brokeros/2026-07-13T12-00_sync.json`, `tms_c_brokeros/2026-07-14T00-00_sync.json`, `tms_c_brokeros/2026-07-14T12-00_sync.json`, `tms_c_brokeros/2026-07-14T18-00_sync.json`, `tms_c_brokeros/2026-07-15T00-00_sync.json`, `tms_c_brokeros/2026-07-15T12-00_sync.json`, `tms_c_brokeros/2026-07-15T18-00_sync.json`
-- `ff-correction-rate`: `tms_a_freightflow/2026-07-14T00-00_sync.json`, `tms_a_freightflow/2026-07-14T06-00_sync.json`, `tms_a_freightflow/2026-07-14T12-00_sync.json`, `tms_a_freightflow/2026-07-14T18-00_sync.json`, `tms_a_freightflow/2026-07-15T12-00_sync.json`, `tms_a_freightflow/2026-07-15T18-00_sync.json`, `tms_a_freightflow/2026-07-16T00-00_sync.json`, `tms_a_freightflow/2026-07-16T12-00_sync.json`
+- `ff-correction-rate`: `tms_a_freightflow/2026-07-12T06-00_sync.json`, `tms_a_freightflow/2026-07-12T12-00_sync.json`, `tms_a_freightflow/2026-07-12T18-00_sync.json`, `tms_a_freightflow/2026-07-13T06-00_sync.json`, `tms_a_freightflow/2026-07-13T12-00_sync.json`, `tms_a_freightflow/2026-07-13T18-00_sync.json`, `tms_a_freightflow/2026-07-14T12-00_sync.json`, `tms_a_freightflow/2026-07-14T18-00_sync.json`, `tms_a_freightflow/2026-07-15T00-00_sync.json`, `tms_a_freightflow/2026-07-15T12-00_sync.json`, `tms_a_freightflow/2026-07-15T18-00_sync.json`
 
 ## Directionality
 
@@ -160,8 +160,8 @@ Delta Prime appears in FreightFlow and HaulDesk with the same MC/DOT but diverge
 **Loads and files:**
 
 - `ff-day11-twin-isolation`: `tms_a_freightflow/2026-07-16T12-00_sync.json`
-- `ff-twin-bad-1`: `tms_a_freightflow/2026-07-11T00-00_sync.json`, `tms_a_freightflow/2026-07-11T06-00_sync.json`, `tms_a_freightflow/2026-07-12T18-00_sync.json`, `tms_a_freightflow/2026-07-13T06-00_sync.json`
-- `ff-twin-bad-2`: `tms_a_freightflow/2026-07-11T12-00_sync.json`, `tms_a_freightflow/2026-07-11T18-00_sync.json`, `tms_a_freightflow/2026-07-13T18-00_sync.json`, `tms_a_freightflow/2026-07-14T06-00_sync.json`
+- `ff-twin-bad-1`: `tms_a_freightflow/2026-07-11T00-00_sync.json`, `tms_a_freightflow/2026-07-11T06-00_sync.json`, `tms_a_freightflow/2026-07-13T00-00_sync.json`, `tms_a_freightflow/2026-07-13T12-00_sync.json`
+- `ff-twin-bad-2`: `tms_a_freightflow/2026-07-11T12-00_sync.json`, `tms_a_freightflow/2026-07-11T18-00_sync.json`, `tms_a_freightflow/2026-07-14T00-00_sync.json`, `tms_a_freightflow/2026-07-14T06-00_sync.json`
 - `hd-twin-good-01`: `tms_b_hauldesk/2026-07-06T00-00_sync.json`, `tms_b_hauldesk/2026-07-06T06-00_sync.json`, `tms_b_hauldesk/2026-07-07T18-00_sync.json`, `tms_b_hauldesk/2026-07-08T06-00_sync.json`
 - `hd-twin-good-02`: `tms_b_hauldesk/2026-07-06T12-00_sync.json`, `tms_b_hauldesk/2026-07-06T18-00_sync.json`, `tms_b_hauldesk/2026-07-08T18-00_sync.json`, `tms_b_hauldesk/2026-07-09T06-00_sync.json`
 - `hd-twin-good-03`: `tms_b_hauldesk/2026-07-07T00-00_sync.json`, `tms_b_hauldesk/2026-07-07T06-00_sync.json`, `tms_b_hauldesk/2026-07-08T18-00_sync.json`, `tms_b_hauldesk/2026-07-09T06-00_sync.json`

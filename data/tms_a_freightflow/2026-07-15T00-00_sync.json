@@ -2,6 +2,48 @@
   "syncedAt": "2026-07-15T00:00:00-05:00",
   "loads": [
     {
+      "shipmentId": 127738346,
+      "status": "Completed",
+      "mileage": 279.5,
+      "totalSell": 1510.0,
+      "totalBuy": 1190.0,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 918323,
+        "name": "CEDAR HILL FREIGHT",
+        "mcNumber": "902441",
+        "dotNumber": "2419988",
+        "phoneNumber": "+18175550188"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 23000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "IRVING",
+          "state": "TX",
+          "zipCode": "75062",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T15:30:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "SUGAR LAND",
+          "state": "TX",
+          "zipCode": "77478",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T11:15:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-12T03:43:00-05:00",
+      "lastModifiedDate": "2026-07-14T23:17:00-05:00"
+    },
+    {
       "shipmentId": 127315346,
       "status": "Booking",
       "mileage": 288.7,

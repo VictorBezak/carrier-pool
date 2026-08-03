@@ -5,8 +5,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from .cast import TOTAL_SLOTS, slot_filename
+from .emitters import stable_id, stable_int
 from .models import Broker
-from .scenarios import SCENARIOS
+from .scenarios import SCENARIOS, build_load_specs
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = ROOT / "data"
@@ -63,6 +64,8 @@ def main() -> None:
         missing = required - status_seen[broker]
         if missing:
             errors.append(f"{broker.value}: missing documented statuses {sorted(missing)}")
+
+    errors.extend(_correction_errors())
 
     if errors:
         raise SystemExit("Validation failed:\n" + "\n".join(errors))
@@ -253,6 +256,38 @@ def _active_count(broker: Broker, payload: dict) -> int:
     if broker == Broker.HAULDESK:
         return sum(1 for row in payload["loads"] if row["status_code"] == 20)
     return sum(1 for row in payload["records"] if row["bos__Load_Status__c"] == "Ready to Book")
+
+
+def _correction_errors() -> list[str]:
+    errors: list[str] = []
+    for spec in build_load_specs():
+        if not spec.correction_delta_usd:
+            continue
+        if spec.broker == Broker.FREIGHTFLOW:
+            load_id = 127000000 + stable_int(spec.key, 6)
+            buys = []
+            for path in sorted((DATA_DIR / spec.broker.value).glob("*_sync.json")):
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                buys.extend(row["totalBuy"] for row in payload["loads"] if row["shipmentId"] == load_id and row["totalBuy"] is not None)
+            if len(set(buys)) < 2:
+                errors.append(f"{spec.broker.value}: correction {spec.key} did not restate totalBuy")
+        elif spec.broker == Broker.HAULDESK:
+            load_num = f"HD-2026-{stable_int(spec.key, 6):06d}"
+            adjustments = []
+            for path in sorted((DATA_DIR / spec.broker.value).glob("*_sync.json")):
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                adjustments.extend(rate for rate in payload["rates"] if rate["load_num"] == load_num and rate["code"] == "ADJUSTMENT")
+            if not adjustments:
+                errors.append(f"{spec.broker.value}: correction {spec.key} did not emit an ADJUSTMENT rate")
+        else:
+            load_id = stable_id("a0j", f"load:{spec.key}")
+            buys = []
+            for path in sorted((DATA_DIR / spec.broker.value).glob("*_sync.json")):
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                buys.extend(row["bos__Carrier_Rate__c"] for row in payload["records"] if row["Id"] == load_id and row["bos__Carrier_Rate__c"] is not None)
+            if len(set(buys)) < 2:
+                errors.append(f"{spec.broker.value}: correction {spec.key} did not restate bos__Carrier_Rate__c")
+    return errors
 
 
 if __name__ == "__main__":

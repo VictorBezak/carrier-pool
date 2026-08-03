@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 from .geo import GeoIndex
 from .models import CanonicalStore, CarrierRanking, ComponentScore, Equipment, LoadStatus, LoadVersion
+from .pricing import PriceEstimate, estimate_carrier_price, estimate_price, lane_weight as weighted_lane_weight
 
 WEIGHTS = {
     "lane_familiarity": 0.28,
@@ -40,14 +41,16 @@ def rank_carriers(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | No
     geo = geo or GeoIndex.bundled()
     history = _broker_history(store, target)
     candidate_ids = _candidate_ids(history, target)
-    prior_ppm = _prior_ppm(history, target, geo)
+    market_price = estimate_price(store, target, geo)
     fallthroughs = _fallthrough_counts(store, target.broker_id)
+    corrections = _correction_counts(store, target.broker_id)
     rankings: list[CarrierRanking] = []
 
     for carrier_id in candidate_ids:
         carrier_history = [load for load in history if load.carrier_id == carrier_id]
-        evidence = _evidence(carrier_id, carrier_history, target, geo, fallthroughs.get(carrier_id, 0))
-        components = _components(evidence, carrier_history, target, geo, prior_ppm)
+        evidence = _evidence(carrier_id, carrier_history, target, geo, corrections.get(carrier_id, 0), fallthroughs.get(carrier_id, 0))
+        carrier_price = estimate_carrier_price(store, target, carrier_id, geo)
+        components = _components(evidence, carrier_history, target, geo, carrier_price, market_price)
         score = round(sum(component.score * component.weight for component in components), 4)
         confidence = _confidence(evidence)
         carrier = store.carriers[(target.broker_id, carrier_id)]
@@ -102,12 +105,10 @@ def _candidate_ids(history: list[LoadVersion], target: LoadVersion) -> list[str]
 
 
 def lane_weight(target: LoadVersion, historical: LoadVersion, geo: GeoIndex) -> tuple[float, float, float]:
-    direct = math.exp(-geo.miles(target.pickup.zip_code, historical.pickup.zip_code) / 35.0) * math.exp(-geo.miles(target.delivery.zip_code, historical.delivery.zip_code) / 35.0)
-    reverse = 0.35 * math.exp(-geo.miles(target.pickup.zip_code, historical.delivery.zip_code) / 35.0) * math.exp(-geo.miles(target.delivery.zip_code, historical.pickup.zip_code) / 35.0)
-    return max(direct, reverse), direct, reverse
+    return weighted_lane_weight(target, historical, geo)
 
 
-def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, fallthrough_count: int) -> CarrierEvidence:
+def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, correction_count: int, fallthrough_count: int) -> CarrierEvidence:
     weighted = [lane_weight(target, load, geo) for load in history]
     lane_effective = sum(item[0] for item in weighted)
     direct_effective = sum(item[1] for item in weighted)
@@ -133,15 +134,15 @@ def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, 
         price_observations=price_observations,
         last_delivery_deadhead_miles=last_deadhead,
         home_deadhead_miles=None,
-        correction_count=sum(1 for load in history if float(load.raw.get("_rate_adjustment_abs", 0.0) or 0.0) > 0.0),
+        correction_count=correction_count,
         fallthrough_count=fallthrough_count,
     )
 
 
-def _components(evidence: CarrierEvidence, history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, prior_ppm: float) -> list[ComponentScore]:
+def _components(evidence: CarrierEvidence, history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, carrier_price: PriceEstimate, market_price: PriceEstimate) -> list[ComponentScore]:
     lane_score = 1 - math.exp(-evidence.lane_effective / 2.0)
     positioning_score = _positioning_score(evidence, history, target, geo)
-    price_score, price_evidence = _price_score(evidence, history, target, geo, prior_ppm)
+    price_score, price_evidence = _price_score(carrier_price, market_price)
     reliability_score = _reliability_score(history)
     recency_score = min(1.0, 0.55 * (1 - math.exp(-evidence.total_loads / 5.0)) + 0.45 * (1 - math.exp(-evidence.recent_loads / 2.0)))
     customer_score = _customer_score(history, target)
@@ -167,42 +168,17 @@ def _positioning_score(evidence: CarrierEvidence, history: list[LoadVersion], ta
     return 0.7 * last_score + 0.3 * density_score
 
 
-def _price_score(evidence: CarrierEvidence, history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, prior_ppm: float) -> tuple[float, dict[str, float | int]]:
-    weighted_total = 0.0
-    weighted_rate = 0.0
-    for load in history:
-        if not load.carrier_rate_usd or load.distance_miles <= 0:
-            continue
-        weight = lane_weight(target, load, geo)[0]
-        if load.equipment != target.equipment:
-            weight *= 0.35
-        weighted_total += weight
-        weighted_rate += weight * (load.carrier_rate_usd / load.distance_miles)
-    observed = weighted_rate / weighted_total if weighted_total > 0 else prior_ppm
-    shrunk = ((weighted_total * observed) + (4.0 * prior_ppm)) / (weighted_total + 4.0)
-    relative = (prior_ppm - shrunk) / prior_ppm if prior_ppm else 0.0
+def _price_score(carrier_price: PriceEstimate, market_price: PriceEstimate) -> tuple[float, dict[str, float | int | str]]:
+    relative = (market_price.point_ppm - carrier_price.point_ppm) / market_price.point_ppm if market_price.point_ppm else 0.0
     score = 0.5 + relative * 2.2
-    return score, {"observed_ppm": round(observed, 2), "shrunk_ppm": round(shrunk, 2), "prior_ppm": round(prior_ppm, 2), "price_effective_loads": round(weighted_total, 2)}
-
-
-def _prior_ppm(history: list[LoadVersion], target: LoadVersion, geo: GeoIndex) -> float:
-    weighted_total = 0.0
-    weighted_rate = 0.0
-    for load in history:
-        if load.carrier_rate_usd and load.distance_miles > 0:
-            weight = max(lane_weight(target, load, geo)[0], 0.05)
-            if load.equipment == target.equipment:
-                weight *= 1.0
-            elif target.equipment == Equipment.UNKNOWN:
-                weight *= 0.6
-            else:
-                weight *= 0.25
-            weighted_total += weight
-            weighted_rate += weight * (load.carrier_rate_usd / load.distance_miles)
-    if weighted_total > 0:
-        return weighted_rate / weighted_total
-    all_rates = [load.carrier_rate_usd / load.distance_miles for load in history if load.carrier_rate_usd and load.distance_miles > 0]
-    return sum(all_rates) / len(all_rates) if all_rates else 4.0
+    return score, {
+        "observed_ppm": carrier_price.observed_ppm,
+        "shrunk_ppm": carrier_price.point_ppm,
+        "prior_ppm": market_price.point_ppm,
+        "price_effective_loads": carrier_price.effective_loads,
+        "basis": carrier_price.basis,
+        "point_usd": carrier_price.point_usd,
+    }
 
 
 def _reliability_score(history: list[LoadVersion]) -> float:
@@ -236,6 +212,26 @@ def _fallthrough_counts(store: CanonicalStore, broker_id: str) -> Counter[str]:
                 counts[previous] += 1
             if version.carrier_id:
                 previous = version.carrier_id
+    return counts
+
+
+def _correction_counts(store: CanonicalStore, broker_id: str) -> Counter[str]:
+    counts: Counter[str] = Counter()
+    by_load: dict[str, list[LoadVersion]] = defaultdict(list)
+    for version in store.versions:
+        if version.broker_id == broker_id:
+            by_load[version.raw_load_id].append(version)
+
+    for versions in by_load.values():
+        previous_rate = None
+        for version in sorted(versions, key=lambda item: item.updated_at or datetime.min.replace(tzinfo=timezone.utc)):
+            if version.carrier_rate_usd is None:
+                continue
+            adjusted = float(version.raw.get("_rate_adjustment_abs", 0.0) or 0.0) > 0.0
+            rate_changed = previous_rate is not None and not math.isclose(version.carrier_rate_usd, previous_rate)
+            if version.carrier_id and (rate_changed or adjusted):
+                counts[version.carrier_id] += 1
+            previous_rate = version.carrier_rate_usd
     return counts
 
 

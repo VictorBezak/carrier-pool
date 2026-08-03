@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +11,7 @@ from .models import CanonicalStore, Carrier, Customer, Equipment, LoadStatus, Lo
 BROKER_FREIGHTFLOW = "tms_a_freightflow"
 BROKER_HAULDESK = "tms_b_hauldesk"
 BROKER_BROKEROS = "tms_c_brokeros"
+CENTRAL = timezone(timedelta(hours=-5))
 
 
 def ingest_data(data_dir: Path) -> CanonicalStore:
@@ -198,7 +199,7 @@ def _parse_dt(value: str | None) -> datetime | None:
 
 
 def _parse_local(value: str | None) -> datetime | None:
-    return datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc) if value else None
+    return datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(tzinfo=CENTRAL) if value else None
 
 
 def _parse_crm(value: str | None) -> datetime | None:
@@ -206,7 +207,7 @@ def _parse_crm(value: str | None) -> datetime | None:
 
 
 def _central_date(value: str, hour: int) -> datetime:
-    return datetime.fromisoformat(f"{value}T{hour:02d}:00:00+00:00")
+    return datetime.combine(datetime.fromisoformat(value).date(), datetime.min.time().replace(hour=hour), CENTRAL)
 
 
 def _crm_date(value: str, hour: int) -> datetime:

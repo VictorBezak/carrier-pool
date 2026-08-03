@@ -2,6 +2,42 @@
   "syncedAt": "2026-07-12T12:00:00-05:00",
   "loads": [
     {
+      "shipmentId": 127738346,
+      "status": "Booking",
+      "mileage": 279.5,
+      "totalSell": 1510.0,
+      "totalBuy": null,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": null,
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 23000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "IRVING",
+          "state": "TX",
+          "zipCode": "75062",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "SUGAR LAND",
+          "state": "TX",
+          "zipCode": "77478",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": null
+        }
+      ],
+      "createdDate": "2026-07-12T03:43:00-05:00",
+      "lastModifiedDate": "2026-07-12T11:17:00-05:00"
+    },
+    {
       "shipmentId": 127301207,
       "status": "Booking",
       "mileage": 217.4,
@@ -36,6 +72,48 @@
       ],
       "createdDate": "2026-07-12T09:43:00-05:00",
       "lastModifiedDate": "2026-07-12T11:17:00-05:00"
+    },
+    {
+      "shipmentId": 127720325,
+      "status": "Completed",
+      "mileage": 255.2,
+      "totalSell": 1522.0,
+      "totalBuy": 1214.0,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 837428,
+        "name": "IBRAHIM TRANSPORT INC",
+        "mcNumber": "1346382",
+        "dotNumber": "3771394",
+        "phoneNumber": "+15714906959"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 35500.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-10T14:30:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T11:00:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-09T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-12T05:17:00-05:00"
     }
   ]
 }
