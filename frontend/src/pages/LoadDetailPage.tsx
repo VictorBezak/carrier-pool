@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronRight, TriangleAlert } from "lucide-react";
+import { ArrowRight, TriangleAlert } from "lucide-react";
 import { api } from "@/api/client";
 import type { CarrierRanking, LoadDetail, PoolCarrierRanking, Recommendation } from "@/api/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -9,7 +9,6 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CarrierCompositionChart } from "@/charts/CarrierCompositionChart";
@@ -17,7 +16,7 @@ import { LaneGeoMap } from "@/charts/LaneGeoMap";
 import { PriceRangeChart } from "@/charts/PriceRangeChart";
 import { CarrierEvidence } from "@/components/CarrierEvidence";
 import { VersionHistory } from "@/components/VersionHistory";
-import { ColumnLabel, ConfidenceBadge, Field, Num, ReasonList, StatusBadge } from "@/components/indicators";
+import { ColumnLabel, ConfidenceBadge, Num, ReasonList, StatusBadge } from "@/components/indicators";
 import { equipment as equipmentLabel, evidenceValue, miles, money, place, pounds, timestamp } from "@/format";
 import { basisName, evidenceName, matchScore, priceStory, topReason } from "@/labels";
 import { cn } from "@/lib/utils";
@@ -94,47 +93,55 @@ export function LoadDetailPage() {
         </div>
       </div>
 
-      <div className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-3 lg:grid-cols-6">
-        <Field label="Customer">{detail.customer.name}</Field>
-        <Field label="Equipment">
-          <span className="capitalize">{equipmentLabel(detail.equipment)}</span>
-        </Field>
-        <Field label="Weight">
-          <Num>{pounds(detail.weight_lbs)}</Num>
-        </Field>
-        <Field label="Miles">
-          <Num>{miles(detail.distance_miles)}</Num>
-        </Field>
-        <Field label="Pickup window">
-          <Num className="text-[12px]">{timestamp(detail.pickup_window.open_at)}</Num>
-        </Field>
-        <Field label="Customer rate">
-          <Num>{money(detail.customer_rate_usd)}</Num>
-        </Field>
+      <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-5 p-4">
+          <div className="flex flex-wrap items-start gap-4">
+            <Stop label="Pickup" location={place(detail.pickup)} appointment={detail.pickup_window.open_at} />
+            <ArrowRight className="mt-[26px] size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            <Stop label="Delivery" location={place(detail.delivery)} appointment={detail.delivery_window.open_at} />
+          </div>
+
+          <div className="flex flex-wrap items-start gap-x-10 gap-y-5">
+            <PrimaryField label="Equipment">
+              <span className="capitalize">{equipmentLabel(detail.equipment)}</span>
+            </PrimaryField>
+            <PrimaryField label="Customer rate">
+              <Num>{money(detail.customer_rate_usd)}</Num>
+            </PrimaryField>
+          </div>
+        </div>
+
+        <div className="grid gap-3 border-t bg-muted/30 px-4 py-3 sm:grid-cols-3 lg:grid-cols-6">
+          <SecondaryField label="Customer">{detail.customer.name}</SecondaryField>
+          <SecondaryField label="Weight">
+            <Num>{pounds(detail.weight_lbs)}</Num>
+          </SecondaryField>
+          <SecondaryField label="Miles">
+            <Num>{miles(detail.distance_miles)}</Num>
+          </SecondaryField>
+          <SecondaryField label="Carrier rate">
+            <Num>{money(detail.carrier_rate_usd)}</Num>
+          </SecondaryField>
+          <SecondaryField label="Updated">
+            <Num>{timestamp(detail.synced_at)}</Num>
+          </SecondaryField>
+          <SecondaryField label="Source file">
+            <Num className="text-[10.5px]">{detail.source_file.split("/").pop()}</Num>
+          </SecondaryField>
+        </div>
       </div>
 
       <Collapsible>
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="w-fit">
-            Load details
-            <ChevronRight />
+          <Button variant="outline" size="sm" className="w-fit">
+            Sync history
+            <Badge variant="secondary" className="font-mono text-[10px]">
+              {historySummary(detail.versions)}
+            </Badge>
           </Button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-3 lg:grid-cols-6">
-          <Field label="Pickup">{place(detail.pickup)}</Field>
-          <Field label="Delivery">{place(detail.delivery)}</Field>
-          <Field label="Delivery window">
-            <Num className="text-[12px]">{timestamp(detail.delivery_window.open_at)}</Num>
-          </Field>
-          <Field label="Carrier rate">
-            <Num>{money(detail.carrier_rate_usd)}</Num>
-          </Field>
-          <Field label="Updated">
-            <Num className="text-[12px]">{timestamp(detail.synced_at)}</Num>
-          </Field>
-          <Field label="Source file">
-            <Num className="text-[10.5px] text-muted-foreground">{detail.source_file.split("/").pop()}</Num>
-          </Field>
+        <CollapsibleContent className="pt-3">
+          <VersionHistory versions={detail.versions} />
         </CollapsibleContent>
       </Collapsible>
 
@@ -204,21 +211,39 @@ export function LoadDetailPage() {
           </Card>
         </>
       )}
+    </div>
+  );
+}
 
-      <Separator />
-      <Collapsible>
-        <CollapsibleTrigger asChild>
-          <Button variant="outline" size="sm" className="w-fit">
-            Change history
-            <Badge variant="secondary" className="font-mono text-[10px]">
-              {historySummary(detail.versions)}
-            </Badge>
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pt-3">
-          <VersionHistory versions={detail.versions} />
-        </CollapsibleContent>
-      </Collapsible>
+/**
+ * The details a coverage desk reads before it picks up the phone: where the truck has to
+ * be and when, what trailer it needs, and what the load pays. Everything else on the load
+ * is context and sits in the muted strip below.
+ */
+function Stop({ label, location, appointment }: { label: string; location: string; appointment: string | null }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <ColumnLabel>{label}</ColumnLabel>
+      <div className="text-[15px] font-medium">{location}</div>
+      <Num className="text-[12px] text-muted-foreground">{timestamp(appointment)}</Num>
+    </div>
+  );
+}
+
+function PrimaryField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <ColumnLabel>{label}</ColumnLabel>
+      <div className="text-[15px] font-medium">{children}</div>
+    </div>
+  );
+}
+
+function SecondaryField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex items-baseline gap-2">
+      <ColumnLabel>{label}</ColumnLabel>
+      <div className="text-[12px] text-muted-foreground">{children}</div>
     </div>
   );
 }
