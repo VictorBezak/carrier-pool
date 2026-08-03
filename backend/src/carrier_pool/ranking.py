@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from .geo import GeoIndex
-from .models import CanonicalStore, CarrierRanking, ComponentScore, Equipment, LoadStatus, LoadVersion
+from .models import CanonicalStore, CarrierRanking, ComponentScore, Equipment, LoadStatus, LoadVersion, PooledFacts
 from .pricing import PriceEstimate, estimate_carrier_price, estimate_price, lane_weight as weighted_lane_weight
 
 WEIGHTS = {
@@ -63,6 +63,8 @@ class PositionEstimate:
     staleness_days: float | None
     freshness: float
     observations: int
+    own_observations: int
+    pooled_observations: int
     basis: str
 
 
@@ -76,17 +78,31 @@ class CarrierEvidence:
     total_loads: int
     recent_loads: int
     reliability_observations: int
+    broker_local_reliability_observations: int
+    pooled_reliability_observations: int
+    pooled_reliability_on_time: int
     price_observations: int
     position: PositionEstimate
     correction_count: int
     fallthrough_count: int
+    broker_local_fallthrough_count: int
+    pooled_fallthrough_count: int
+    pooled_lane_cells: tuple[str, ...]
+    pooled_equipment_types: frozenset[str]
 
 
-def rank_carriers(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | None = None, as_of: datetime | None = None) -> list[CarrierRanking]:
+def rank_carriers(
+    store: CanonicalStore,
+    target: LoadVersion,
+    geo: GeoIndex | None = None,
+    as_of: datetime | None = None,
+    pooled: dict[str, PooledFacts] | None = None,
+) -> list[CarrierRanking]:
     geo = geo or GeoIndex.bundled()
     as_of = as_of or target.synced_at
+    pooled = pooled or {}
     history = _broker_history(store, target, as_of)
-    candidate_ids = _candidate_ids(history, target)
+    candidate_ids = _candidate_ids(history, target, pooled)
     market_price = estimate_price(store, target, geo, as_of=as_of)
     fallthroughs = _fallthrough_counts(store, target.broker_id, as_of)
     corrections = _correction_counts(store, target.broker_id, as_of)
@@ -94,7 +110,8 @@ def rank_carriers(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | No
 
     for carrier_id in candidate_ids:
         carrier_history = [load for load in history if load.carrier_id == carrier_id]
-        evidence = _evidence(carrier_id, carrier_history, target, geo, as_of, corrections.get(carrier_id, 0), fallthroughs.get(carrier_id, 0))
+        pooled_facts = pooled.get(carrier_id)
+        evidence = _evidence(carrier_id, carrier_history, target, geo, as_of, corrections.get(carrier_id, 0), fallthroughs.get(carrier_id, 0), pooled_facts)
         carrier_price = estimate_carrier_price(store, target, carrier_id, geo, as_of=as_of, market_prior=market_price.point_ppm)
         components = _components(evidence, carrier_history, target, geo, carrier_price, market_price)
         score = round(sum(component.score * component.weight for component in components), 4)
@@ -111,6 +128,7 @@ def rank_carriers(store: CanonicalStore, target: LoadVersion, geo: GeoIndex | No
                 components=components,
                 reasons=_reasons(components, evidence, target),
                 limitations=_limitations(evidence, target),
+                pooled=_has_pooled_evidence(evidence),
             )
         )
 
@@ -136,7 +154,8 @@ def _broker_history(store: CanonicalStore, target: LoadVersion, as_of: datetime)
     ]
 
 
-def _candidate_ids(history: list[LoadVersion], target: LoadVersion) -> list[str]:
+def _candidate_ids(history: list[LoadVersion], target: LoadVersion, pooled: dict[str, PooledFacts] | None = None) -> list[str]:
+    pooled = pooled or {}
     by_carrier: dict[str, list[LoadVersion]] = defaultdict(list)
     for load in history:
         by_carrier[load.carrier_id].append(load)
@@ -145,7 +164,8 @@ def _candidate_ids(history: list[LoadVersion], target: LoadVersion) -> list[str]
         return all_candidates
     candidates = []
     for carrier_id, loads in by_carrier.items():
-        if any(load.equipment in {target.equipment, Equipment.UNKNOWN} for load in loads):
+        pooled_equipment = pooled.get(carrier_id, PooledFacts()).equipment_types
+        if any(load.equipment in {target.equipment, Equipment.UNKNOWN} for load in loads) or target.equipment.value in pooled_equipment:
             candidates.append(carrier_id)
     return sorted(candidates) if candidates else all_candidates
 
@@ -154,14 +174,25 @@ def lane_weight(target: LoadVersion, historical: LoadVersion, geo: GeoIndex) -> 
     return weighted_lane_weight(target, historical, geo)
 
 
-def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, as_of: datetime, correction_count: int, fallthrough_count: int) -> CarrierEvidence:
+def _evidence(
+    carrier_id: str,
+    history: list[LoadVersion],
+    target: LoadVersion,
+    geo: GeoIndex,
+    as_of: datetime,
+    correction_count: int,
+    fallthrough_count: int,
+    pooled: PooledFacts | None = None,
+) -> CarrierEvidence:
+    pooled = pooled or PooledFacts()
     weighted = [lane_weight(target, load, geo) for load in history]
     lane_effective = sum(item[0] for item in weighted)
     direct_effective = sum(item[1] for item in weighted)
     reverse_effective = sum(item[2] for item in weighted)
     target_time = as_of
     recent_loads = sum(1 for load in history if load.updated_at and (target_time - load.updated_at).days <= 21)
-    reliability_observations = sum(len(_reliability_events(load)) for load in history)
+    broker_local_reliability_observations = sum(len(_reliability_events(load)) for load in history)
+    reliability_observations = broker_local_reliability_observations + pooled.appointment_observations
     price_observations = sum(1 for load in history if load.carrier_rate_usd and load.distance_miles > 0)
     return CarrierEvidence(
         carrier_id=carrier_id,
@@ -172,14 +203,21 @@ def _evidence(carrier_id: str, history: list[LoadVersion], target: LoadVersion, 
         total_loads=len(history),
         recent_loads=recent_loads,
         reliability_observations=reliability_observations,
+        broker_local_reliability_observations=broker_local_reliability_observations,
+        pooled_reliability_observations=pooled.appointment_observations,
+        pooled_reliability_on_time=pooled.appointment_on_time,
         price_observations=price_observations,
-        position=_position_estimate(history, target, geo, target_time),
+        position=_position_estimate(history, target, geo, target_time, pooled),
         correction_count=correction_count,
-        fallthrough_count=fallthrough_count,
+        fallthrough_count=fallthrough_count + pooled.fallthrough_count,
+        broker_local_fallthrough_count=fallthrough_count,
+        pooled_fallthrough_count=pooled.fallthrough_count,
+        pooled_lane_cells=pooled.lane_cells,
+        pooled_equipment_types=pooled.equipment_types,
     )
 
 
-def _position_estimate(history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, as_of: datetime) -> PositionEstimate:
+def _position_estimate(history: list[LoadVersion], target: LoadVersion, geo: GeoIndex, as_of: datetime, pooled: PooledFacts | None = None) -> PositionEstimate:
     """Estimate the empty miles this carrier would run to reach the target pickup.
 
     Two readings are combined. The last recorded delivery says where a truck actually was,
@@ -192,13 +230,17 @@ def _position_estimate(history: list[LoadVersion], target: LoadVersion, geo: Geo
     weighted_positions: list[tuple[float, float]] = []
     last_delivery_at: datetime | None = None
     last_delivery_miles: float | None = None
+    last_delivery_source = "own"
     observations = 0
+    own_observations = 0
+    pooled_observations = 0
 
     for load in history:
         delivered_at = _delivery_known_at(load)
         if delivered_at is None or delivered_at > as_of:
             continue
         observations += 1
+        own_observations += 1
         age_days = max(0.0, (reference - delivered_at).total_seconds() / 86400.0)
         weight = 0.5 ** (age_days / POSITION_RECENCY_HALFLIFE_DAYS)
         # Both stops count as places this carrier's equipment passes through. The pickup is
@@ -211,24 +253,44 @@ def _position_estimate(history: list[LoadVersion], target: LoadVersion, geo: Geo
         if last_delivery_at is None or delivered_at > last_delivery_at:
             delivery_miles = geo.miles(load.delivery.zip_code, target.pickup.zip_code)
             last_delivery_at = delivered_at
+            last_delivery_source = "own"
             # An unlocatable ZIP leaves the position unknown rather than infinitely far.
             last_delivery_miles = None if math.isinf(delivery_miles) else delivery_miles
+
+    for stop in (pooled or PooledFacts()).stops:
+        if stop.observed_at > as_of:
+            continue
+        observations += 1
+        pooled_observations += 1
+        age_days = max(0.0, (reference - stop.observed_at).total_seconds() / 86400.0)
+        weight = 0.5 ** (age_days / POSITION_RECENCY_HALFLIFE_DAYS)
+        miles = geo.miles(stop.zip_code, target.pickup.zip_code)
+        if not math.isinf(miles):
+            weighted_positions.append((weight, miles))
+        if stop.kind == "delivery" and (last_delivery_at is None or stop.observed_at > last_delivery_at):
+            last_delivery_at = stop.observed_at
+            last_delivery_source = "pooled"
+            last_delivery_miles = None if math.isinf(miles) else miles
 
     footprint_miles = _soft_min_miles(weighted_positions)
     staleness_days = max(0.0, (reference - last_delivery_at).total_seconds() / 86400.0) if last_delivery_at else None
     freshness = 0.5 ** (staleness_days / POSITION_RECENCY_HALFLIFE_DAYS) if staleness_days is not None else 0.0
 
     if last_delivery_miles is None and footprint_miles is None:
-        return PositionEstimate(None, None, None, staleness_days, 0.0, observations, "unknown")
+        return PositionEstimate(None, None, None, staleness_days, 0.0, observations, own_observations, pooled_observations, "unknown")
     if last_delivery_miles is None:
-        return PositionEstimate(footprint_miles, None, footprint_miles, staleness_days, 0.0, observations, "operating_footprint")
+        return PositionEstimate(footprint_miles, None, footprint_miles, staleness_days, 0.0, observations, own_observations, pooled_observations, "operating_footprint")
     if footprint_miles is None:
-        return PositionEstimate(last_delivery_miles, last_delivery_miles, None, staleness_days, freshness, observations, "last_delivery")
+        basis = "pooled_last_delivery" if last_delivery_source == "pooled" else "last_delivery"
+        return PositionEstimate(last_delivery_miles, last_delivery_miles, None, staleness_days, freshness, observations, own_observations, pooled_observations, basis)
 
     footprint_weight = min(POSITION_MAX_FOOTPRINT_WEIGHT, 1 - freshness)
     expected = (1 - footprint_weight) * last_delivery_miles + footprint_weight * footprint_miles
-    basis = "last_delivery" if footprint_weight < 0.2 else "blended"
-    return PositionEstimate(expected, last_delivery_miles, footprint_miles, staleness_days, freshness, observations, basis)
+    if footprint_weight < 0.2:
+        basis = "pooled_last_delivery" if last_delivery_source == "pooled" else "last_delivery"
+    else:
+        basis = "blended"
+    return PositionEstimate(expected, last_delivery_miles, footprint_miles, staleness_days, freshness, observations, own_observations, pooled_observations, basis)
 
 
 def _soft_min_miles(weighted_positions: list[tuple[float, float]]) -> float | None:
@@ -263,18 +325,53 @@ def _components(evidence: CarrierEvidence, history: list[LoadVersion], target: L
     lane_score = 1 - math.exp(-evidence.lane_effective / 2.0)
     positioning_score = _positioning_score(evidence.position, target)
     price_score, price_evidence = _price_score(carrier_price, market_price, evidence.position, target)
-    reliability_score = _reliability_score(history)
+    reliability_score = _reliability_score(
+        history,
+        evidence.pooled_reliability_observations,
+        evidence.pooled_reliability_on_time,
+    )
     relationship_score = min(1.0, 0.55 * (1 - math.exp(-evidence.total_loads / 5.0)) + 0.45 * (1 - math.exp(-evidence.recent_loads / 2.0)))
     customer_score = _customer_score(history, target)
     stability_score = max(0.0, 1.0 - 0.18 * evidence.correction_count - 0.28 * evidence.fallthrough_count)
     return [
         ComponentScore("positioning", _clip(positioning_score), WEIGHTS["positioning"], _position_evidence(evidence.position, target, history, geo)),
-        ComponentScore("lane_familiarity", _clip(lane_score), WEIGHTS["lane_familiarity"], {"effective_loads": round(evidence.lane_effective, 2), "direct": round(evidence.direct_effective, 2), "reverse": round(evidence.reverse_effective, 2)}),
+        ComponentScore(
+            "lane_familiarity",
+            _clip(lane_score),
+            WEIGHTS["lane_familiarity"],
+            {
+                "effective_loads": round(evidence.lane_effective, 2),
+                "direct": round(evidence.direct_effective, 2),
+                "reverse": round(evidence.reverse_effective, 2),
+                "pooled_lane_cells": ", ".join(evidence.pooled_lane_cells) if evidence.pooled_lane_cells else None,
+            },
+        ),
         ComponentScore("price", _clip(price_score), WEIGHTS["price"], price_evidence),
-        ComponentScore("reliability", _clip(reliability_score), WEIGHTS["reliability"], {"observations": evidence.reliability_observations, "measures": _reliability_measures(history)}),
+        ComponentScore(
+            "reliability",
+            _clip(reliability_score),
+            WEIGHTS["reliability"],
+            {
+                "observations": evidence.reliability_observations,
+                "broker_local_observations": evidence.broker_local_reliability_observations,
+                "pooled_observations": evidence.pooled_reliability_observations,
+                "pooled_on_time": evidence.pooled_reliability_on_time,
+                "measures": _reliability_measures(history),
+            },
+        ),
         ComponentScore("relationship", _clip(relationship_score), WEIGHTS["relationship"], {"total_loads": evidence.total_loads, "recent_loads": evidence.recent_loads}),
         ComponentScore("customer_affinity", _clip(customer_score), WEIGHTS["customer_affinity"], {"same_customer_loads": sum(1 for load in history if load.customer_id == target.customer_id)}),
-        ComponentScore("stability", _clip(stability_score), WEIGHTS["stability"], {"corrections": evidence.correction_count, "fallthroughs": evidence.fallthrough_count}),
+        ComponentScore(
+            "stability",
+            _clip(stability_score),
+            WEIGHTS["stability"],
+            {
+                "corrections": evidence.correction_count,
+                "fallthroughs": evidence.fallthrough_count,
+                "broker_local_fallthroughs": evidence.broker_local_fallthrough_count,
+                "pooled_fallthroughs": evidence.pooled_fallthrough_count,
+            },
+        ),
     ]
 
 
@@ -300,6 +397,8 @@ def _position_evidence(position: PositionEstimate, target: LoadVersion, history:
         "footprint_deadhead_miles": _round_optional(position.footprint_deadhead_miles),
         "position_age_days": _round_optional(position.staleness_days),
         "position_observations": position.observations,
+        "position_own_observations": position.own_observations,
+        "position_pooled_observations": position.pooled_observations,
         "pickups_within_50mi": sum(1 for load in history if geo.miles(load.pickup.zip_code, target.pickup.zip_code) <= 50.0),
         "basis": position.basis,
     }
@@ -332,9 +431,10 @@ def _all_in_ppm(point_usd: float, deadhead_miles: float | None, loaded_miles: fl
     return round(point_usd / total_miles, 2) if total_miles > 0 else None
 
 
-def _reliability_score(history: list[LoadVersion]) -> float:
+def _reliability_score(history: list[LoadVersion], pooled_observations: int = 0, pooled_on_time: int = 0) -> float:
     successes = 3.0
-    observations = 4.0
+    observations = 4.0 + pooled_observations
+    successes += pooled_on_time
     for load in history:
         for actual, close_at, _measure in _reliability_events(load):
             observations += 1
@@ -446,10 +546,14 @@ def _reasons(components: list[ComponentScore], evidence: CarrierEvidence, target
                 f"last delivery was {position.last_delivery_deadhead_miles:.0f} miles out but is {position.staleness_days:.0f} days stale, "
                 f"and this carrier routinely works within {position.footprint_deadhead_miles:.0f} miles of the pickup"
             )
+        if position.pooled_observations:
+            reasons.append(f"{position.pooled_observations} pooled stop observations sharpen this carrier's position")
     price = _component(components, "price")
     reasons.append(f"shrunk price history is ${price.evidence['shrunk_ppm']}/mi vs ${price.evidence['prior_ppm']}/mi broker benchmark")
     if target.equipment != Equipment.UNKNOWN:
         reasons.append(f"equipment-compatible history for {target.equipment.value}")
+    if evidence.pooled_reliability_observations:
+        reasons.append(f"{evidence.pooled_reliability_observations} pooled appointment checks supplement your on-time record")
     return reasons
 
 
@@ -477,16 +581,18 @@ def _limitations(evidence: CarrierEvidence, target: LoadVersion) -> list[str]:
     if evidence.reliability_observations < 3:
         limitations.append("limited reliability observations")
     measures = {measure for load in evidence.history for _actual, _close_at, measure in _reliability_events(load)}
-    if measures and all("arrival" in measure for measure in measures):
+    if measures and not evidence.pooled_reliability_observations and all("arrival" in measure for measure in measures):
         limitations.append("reliability is based on arrival timestamps only for this broker")
-    elif measures and all("departure" in measure for measure in measures):
+    elif measures and not evidence.pooled_reliability_observations and all("departure" in measure for measure in measures):
         limitations.append("reliability is based on departure timestamps only for this broker")
     if target.equipment == Equipment.UNKNOWN:
         limitations.append("target equipment is unknown, so equipment compatibility was not gated")
-    elif not any(load.equipment == target.equipment for load in evidence.history):
+    elif not any(load.equipment == target.equipment for load in evidence.history) and target.equipment.value not in evidence.pooled_equipment_types:
         limitations.append(f"no {target.equipment.value} history for this carrier; equipment evidence is a fallback")
     if evidence.reverse_effective > evidence.direct_effective and evidence.direct_effective < 0.5:
         limitations.append("mostly reverse-lane evidence, discounted from direct lane evidence")
+    if _has_pooled_evidence(evidence):
+        limitations.append("part of this carrier's evidence comes from the shared pool and cannot be traced to your sync files")
     return limitations
 
 
@@ -500,3 +606,13 @@ def _clip(value: float) -> float:
 
 def _round_optional(value: float | None) -> float | None:
     return round(value, 1) if value is not None else None
+
+
+def _has_pooled_evidence(evidence: CarrierEvidence) -> bool:
+    return bool(
+        evidence.position.pooled_observations
+        or evidence.pooled_reliability_observations
+        or evidence.pooled_fallthrough_count
+        or evidence.pooled_lane_cells
+        or evidence.pooled_equipment_types
+    )

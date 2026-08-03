@@ -49,8 +49,12 @@ assert first["carrier_name"] == "IBRAHIM TRANSPORT INC", first
 assert first["confidence"] == "high", first
 assert recommendation["price"]["confidence"] == "high", recommendation["price"]
 assert all("DELTA PRIME" not in carrier["carrier_name"].upper() for carrier in recommendation["pool_carriers"])
+delta = next(carrier for carrier in recommendation["own_carriers"] if "DELTA PRIME" in carrier["carrier_name"].upper())
+assert delta["pooled"], delta
+positioning = next(component for component in delta["components"] if component["name"] == "positioning")
+assert positioning["evidence"]["position_pooled_observations"] > 0, positioning
 
-print("Verified API path: Ibrahim first/high confidence; pool tier excludes overlapping Delta Prime.")
+print("Verified API path: Ibrahim first/high confidence; overlapping Delta Prime is enriched only in the local tier.")
 PY
 
 echo "Frontend: http://localhost:3000"

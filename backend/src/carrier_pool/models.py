@@ -106,6 +106,23 @@ class CanonicalStore:
 
 
 @dataclass(frozen=True)
+class PooledStop:
+    zip_code: str
+    observed_at: datetime
+    kind: str
+
+
+@dataclass(frozen=True)
+class PooledFacts:
+    equipment_types: frozenset[str] = frozenset()
+    stops: tuple[PooledStop, ...] = ()
+    appointment_observations: int = 0
+    appointment_on_time: int = 0
+    fallthrough_count: int = 0
+    lane_cells: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class ComponentScore:
     name: str
     score: float
@@ -124,3 +141,4 @@ class CarrierRanking:
     components: list[ComponentScore]
     reasons: list[str]
     limitations: list[str]
+    pooled: bool = False

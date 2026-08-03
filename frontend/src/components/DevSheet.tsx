@@ -110,7 +110,7 @@ export function DevSheet() {
               </div>
               {session.poolEligible ? (
                 <p className="text-[12px] text-muted-foreground">
-                  Opted-in carriers from other brokers appear as a separate, clearly labelled tier on each load.
+                  Overlapping carriers get carrier-owned facts merged into your ranking with provenance. Unknown carriers still appear as a separate tier.
                 </p>
               ) : (
                 <p className="text-[12px] text-muted-foreground">
@@ -119,22 +119,22 @@ export function DevSheet() {
               )}
               {session.poolPolicy && (
                 <div className="flex flex-col gap-2 rounded-md border bg-card p-3">
-                  <ColumnLabel>Crosses the boundary</ColumnLabel>
-                  <div className="flex flex-wrap gap-1">
-                    {session.poolPolicy.fields.map((field) => (
-                      <Badge key={field} variant="secondary" className="font-mono text-[10px]">
-                        {field}
-                      </Badge>
-                    ))}
-                  </div>
-                  <ColumnLabel>Never shared</ColumnLabel>
-                  <div className="flex flex-wrap gap-1">
-                    {session.poolPolicy.never_shared.map((field) => (
-                      <Badge key={field} variant="outline" className="border-neg/30 bg-neg/5 font-mono text-[10px] text-neg">
-                        {field}
-                      </Badge>
-                    ))}
-                  </div>
+                  {Object.entries(session.poolPolicy.field_tiers).map(([tier, fields]) => (
+                    <div key={tier} className="flex flex-col gap-1">
+                      <ColumnLabel>{tier.replace(/_/g, " ")}</ColumnLabel>
+                      <div className="flex flex-wrap gap-1">
+                        {fields.map((field) => (
+                          <Badge
+                            key={field}
+                            variant={tier.includes("never") ? "outline" : "secondary"}
+                            className={tier.includes("never") ? "border-neg/30 bg-neg/5 font-mono text-[10px] text-neg" : "font-mono text-[10px]"}
+                          >
+                            {field}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                   <p className="text-[11.5px] leading-relaxed text-muted-foreground">{session.poolPolicy.matching_rule}</p>
                 </div>
               )}

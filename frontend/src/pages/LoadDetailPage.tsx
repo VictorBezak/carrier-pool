@@ -373,6 +373,11 @@ function CarrierTable({
                   </TableCell>
                   <TableCell className="px-2.5 py-2">
                     <span className="font-medium">{carrier.carrier_name}</span>
+                    {carrier.pooled && (
+                      <Badge variant="outline" className="ml-2 border-primary/30 font-normal text-[10px]">
+                        pooled facts
+                      </Badge>
+                    )}
                     <Num className="ml-2 text-[10.5px] text-muted-foreground">{carrier.carrier_id}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">

@@ -76,6 +76,7 @@ def carrier_ranking(ranking: CarrierRanking, target: LoadVersion, history: list[
         "carrier_name": ranking.carrier_name,
         "score": ranking.score,
         "confidence": ranking.confidence,
+        "pooled": ranking.pooled,
         "components": [component(component_score) for component_score in ranking.components],
         "reasons": ranking.reasons,
         "limitations": ranking.limitations,

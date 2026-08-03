@@ -106,6 +106,7 @@ export type CarrierRanking = {
   carrier_name: string;
   score: number;
   confidence: Confidence;
+  pooled: boolean;
   components: ComponentScore[];
   reasons: string[];
   limitations: string[];
@@ -122,7 +123,7 @@ export type PoolCarrierRanking = {
   expected_carrier_cost_usd: number;
   reasons: string[];
   limitations: string[];
-  payload: Record<string, string | string[] | null>;
+  payload: Record<string, string | string[] | number | null>;
   geometry: LaneGeometry;
 };
 
@@ -135,6 +136,7 @@ export type Recommendation = {
 
 export type PoolPolicy = {
   fields: string[];
+  field_tiers: Record<string, string[]>;
   eligible_brokers: string[];
   ineligible_brokers: Record<string, string>;
   never_shared: string[];
