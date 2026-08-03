@@ -2,16 +2,24 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api } from "@/api/client";
 import type { Broker, PoolPolicy, SyncFile } from "@/api/types";
 
-const STORAGE_KEY = "carrier-pool.viewing-as";
+const BROKER_KEY = "carrier-pool.viewing-as";
+const AS_OF_KEY = "carrier-pool.as-of";
+
+/** Replay points are kept per broker, since each timestamp only indexes into that broker's syncs. */
+function readAsOfs(): Record<string, string> {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(AS_OF_KEY) ?? "{}");
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : {};
+  } catch {
+    return {};
+  }
+}
 
 type Session = {
   brokers: Broker[];
   broker: Broker | null;
   brokerId: string;
-  /** True while the operator is impersonating a broker other than the default tenant. */
-  impersonating: boolean;
   viewAs: (brokerId: string) => void;
-  resetBroker: () => void;
   syncs: SyncFile[];
   asOf: string | null;
   setAsOf: (value: string | null) => void;
@@ -28,11 +36,12 @@ const SessionContext = createContext<Session | null>(null);
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [brokers, setBrokers] = useState<Broker[]>([]);
   const [poolPolicy, setPoolPolicy] = useState<PoolPolicy | null>(null);
-  const [brokerId, setBrokerId] = useState<string>(() => localStorage.getItem(STORAGE_KEY) ?? "");
+  const [brokerId, setBrokerId] = useState<string>(() => localStorage.getItem(BROKER_KEY) ?? "");
   const [syncs, setSyncs] = useState<SyncFile[]>([]);
-  const [asOf, setAsOf] = useState<string | null>(null);
+  const [asOfByBroker, setAsOfByBroker] = useState<Record<string, string>>(readAsOfs);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const asOf = asOfByBroker[brokerId] ?? null;
 
   useEffect(() => {
     void Promise.all([api.brokers(), api.poolPolicy()])
@@ -47,25 +56,29 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!brokerId) return;
-    setAsOf(null);
+    localStorage.setItem(BROKER_KEY, brokerId);
     void api
       .syncs(brokerId)
       .then(setSyncs)
       .catch((cause: Error) => setError(cause.message));
   }, [brokerId]);
 
-  const viewAs = useCallback((next: string) => {
-    localStorage.setItem(STORAGE_KEY, next);
-    setBrokerId(next);
-  }, []);
+  useEffect(() => {
+    localStorage.setItem(AS_OF_KEY, JSON.stringify(asOfByBroker));
+  }, [asOfByBroker]);
 
-  const resetBroker = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setBrokers((current) => {
-      setBrokerId(current[0]?.broker_id ?? "");
-      return current;
-    });
-  }, []);
+  const viewAs = useCallback((next: string) => setBrokerId(next), []);
+
+  const setAsOf = useCallback(
+    (value: string | null) =>
+      setAsOfByBroker((current) => {
+        const next = { ...current };
+        if (value) next[brokerId] = value;
+        else delete next[brokerId];
+        return next;
+      }),
+    [brokerId]
+  );
 
   const setPoolOptIn = useCallback(
     async (enabled: boolean) => {
@@ -83,9 +96,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       brokers,
       broker,
       brokerId,
-      impersonating: Boolean(brokerId) && brokers.length > 0 && brokerId !== brokers[0].broker_id,
       viewAs,
-      resetBroker,
       syncs,
       asOf,
       setAsOf,
@@ -96,7 +107,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       error,
       loading
     };
-  }, [brokers, brokerId, viewAs, resetBroker, syncs, asOf, poolPolicy, setPoolOptIn, error, loading]);
+  }, [brokers, brokerId, viewAs, syncs, asOf, setAsOf, poolPolicy, setPoolOptIn, error, loading]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

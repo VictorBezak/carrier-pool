@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlaskConical, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,15 @@ import { ColumnLabel } from "@/components/indicators";
 import { timestamp } from "@/format";
 import { useSession } from "@/session";
 
+const OPEN_KEY = "carrier-pool.dev-tools-open";
+
 export function DevSheet() {
   const session = useSession();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => localStorage.getItem(OPEN_KEY) === "true");
+
+  useEffect(() => {
+    localStorage.setItem(OPEN_KEY, String(open));
+  }, [open]);
 
   const asOfIndex = session.asOf ? session.syncs.findIndex((sync) => sync.synced_at === session.asOf) : session.syncs.length;
 
@@ -58,12 +64,6 @@ export function DevSheet() {
                   ))}
                 </SelectContent>
               </Select>
-              {session.impersonating && (
-                <Button variant="ghost" size="xs" className="self-start text-dev hover:bg-dev-surface hover:text-dev" onClick={session.resetBroker}>
-                  <RotateCcw />
-                  Back to default tenant
-                </Button>
-              )}
             </section>
 
             <Separator />

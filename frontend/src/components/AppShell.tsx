@@ -1,5 +1,5 @@
 import { Link, Outlet } from "react-router-dom";
-import { Clock3, Eye, TriangleAlert } from "lucide-react";
+import { Clock3, TriangleAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -29,12 +29,6 @@ export function AppShell() {
               <Badge variant="outline" className="border-dev/40 bg-dev-surface text-dev-foreground">
                 <Clock3 />
                 As of {timestamp(session.asOf)}
-              </Badge>
-            )}
-            {session.impersonating && (
-              <Badge variant="outline" className="border-dev/40 bg-dev-surface text-dev-foreground">
-                <Eye />
-                Viewing as {session.broker?.name}
               </Badge>
             )}
             <DevSheet />
