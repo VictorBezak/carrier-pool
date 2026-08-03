@@ -1,17 +1,29 @@
-import "@fontsource/archivo/600.css";
-import "@fontsource/archivo/700.css";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/600.css";
-import "@fontsource/ibm-plex-sans/400.css";
-import "@fontsource/ibm-plex-sans/500.css";
-import "@fontsource/ibm-plex-sans/600.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App";
-import "./styles.css";
+import { Navigate, RouterProvider, createBrowserRouter } from "react-router-dom";
+import { AppShell } from "@/components/AppShell";
+import { LoadBoardPage } from "@/pages/LoadBoardPage";
+import { LoadDetailPage } from "@/pages/LoadDetailPage";
+import { SessionProvider } from "@/session";
+import "@/index.css";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <AppShell />,
+    children: [
+      { index: true, element: <Navigate to="/loads" replace /> },
+      { path: "loads", element: <LoadBoardPage /> },
+      { path: "loads/:loadId", element: <LoadDetailPage /> },
+      { path: "*", element: <Navigate to="/loads" replace /> }
+    ]
+  }
+]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <SessionProvider>
+      <RouterProvider router={router} />
+    </SessionProvider>
   </StrictMode>
 );

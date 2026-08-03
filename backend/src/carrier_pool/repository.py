@@ -45,13 +45,21 @@ def store_from_db(conn) -> CanonicalStore:
 
 def brokers(conn) -> list[dict[str, Any]]:
     with conn.cursor() as cur:
+        # Counts describe the current state of each load, not every version ever synced:
+        # a load that was ACTIVE last week and is COMPLETED today is not awaiting coverage.
+        # The distinct-on ordering mirrors CanonicalStore.add_version so DB mode and file
+        # mode agree on which version is current.
         cur.execute(
             """
             select b.broker_id, b.name, b.pool_opt_in,
-                   count(distinct lv.raw_load_id) as load_count,
-                   count(distinct case when lv.status = 'active' then lv.raw_load_id end) as active_count
+                   count(current_version.raw_load_id) as load_count,
+                   count(*) filter (where current_version.status = 'active') as active_count
             from broker b
-            left join load_version lv on lv.broker_id = b.broker_id
+            left join (
+                select distinct on (broker_id, raw_load_id) broker_id, raw_load_id, status
+                from load_version
+                order by broker_id, raw_load_id, synced_at desc, source_file desc
+            ) current_version on current_version.broker_id = b.broker_id
             group by b.broker_id, b.name, b.pool_opt_in
             order by b.broker_id
             """

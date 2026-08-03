@@ -134,6 +134,17 @@ After it finishes, open:
 - Frontend: <http://localhost:3000>
 - Backend API: <http://localhost:8000/api/brokers>
 
+### Using the dashboard
+
+The UI is scoped to one broker, the way a real tenant would see it. The load board lists that broker's book, and every `ACTIVE` load carries an expected carrier cost and the carrier to call first. Open a load for the price band, the ranked carriers with their score composition, the evidence behind each component, the price comparables, the shared pool tier, and the sync-by-sync history of that load with corrected values highlighted.
+
+Anything that a broker would not have in production lives behind **Dev tools** in the top-right corner:
+
+- **View as broker** switches tenants, which is how to check that FreightFlow, HaulDesk, and BrokerOS each answer only from their own data.
+- **As-of replay** rewinds to an earlier sync and recomputes every ranking from the history known at that moment.
+- **Shared carrier pool** toggles a broker's opt-in and lists exactly which fields cross the boundary.
+- **Request log** shows the API calls behind the current view.
+
 Useful manual commands:
 
 ```bash

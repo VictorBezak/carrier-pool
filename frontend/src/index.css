@@ -1,0 +1,144 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --font-heading: var(--font-sans);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    /* Non-production tooling is quarantined behind its own hue. */
+    --color-dev: var(--dev);
+    --color-dev-foreground: var(--dev-foreground);
+    --color-dev-surface: var(--dev-surface);
+
+    /* Money and timeliness read positive/caution/negative, never decorative. */
+    --color-pos: var(--pos);
+    --color-warn: var(--warn);
+    --color-neg: var(--neg);
+
+    /* Single-hue ramp for the weighted-contribution bar, ordered by score weight. */
+    --color-comp-1: var(--comp-1);
+    --color-comp-2: var(--comp-2);
+    --color-comp-3: var(--comp-3);
+    --color-comp-4: var(--comp-4);
+    --color-comp-5: var(--comp-5);
+    --color-comp-6: var(--comp-6);
+    --color-comp-7: var(--comp-7);
+
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    --background: #f6f7f9;
+    --foreground: #0f1418;
+    --card: #ffffff;
+    --card-foreground: #0f1418;
+    --popover: #ffffff;
+    --popover-foreground: #0f1418;
+    --primary: #1b4de4;
+    --primary-foreground: #ffffff;
+    --secondary: #eff1f5;
+    --secondary-foreground: #0f1418;
+    --muted: #f1f3f6;
+    --muted-foreground: #626c7a;
+    --accent: #e9edfb;
+    --accent-foreground: #143cb0;
+    --destructive: #b3261e;
+    --border: #e2e6ec;
+    --input: #dde2e9;
+    --ring: #1b4de4;
+    --radius: 0.25rem;
+
+    --dev: #7c3aed;
+    --dev-foreground: #4c1d95;
+    --dev-surface: #f7f3ff;
+
+    --pos: #0e7c5a;
+    --warn: #b45309;
+    --neg: #b3261e;
+
+    --comp-1: #12308c;
+    --comp-2: #1b4de4;
+    --comp-3: #4570ec;
+    --comp-4: #7c97f2;
+    --comp-5: #a8baf7;
+    --comp-6: #cbd7fb;
+    --comp-7: #e4eafd;
+
+    --chart-1: var(--comp-2);
+    --chart-2: var(--comp-3);
+    --chart-3: var(--comp-4);
+    --chart-4: var(--comp-5);
+    --chart-5: var(--comp-6);
+
+    --sidebar: #ffffff;
+    --sidebar-foreground: #0f1418;
+    --sidebar-primary: #1b4de4;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #eff1f5;
+    --sidebar-accent-foreground: #0f1418;
+    --sidebar-border: #e2e6ec;
+    --sidebar-ring: #1b4de4;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground text-[13px];
+    }
+  html {
+    @apply font-sans;
+    }
+  /* Every figure in this product is compared against another figure. */
+  table {
+    font-variant-numeric: tabular-nums;
+    }
+}

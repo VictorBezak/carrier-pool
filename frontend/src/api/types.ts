@@ -12,12 +12,14 @@ export type Location = {
   zip_code: string;
 };
 
+export type LoadStatus = "planned" | "active" | "covered" | "in_transit" | "delivered" | "completed";
+
 export type LoadSummary = {
   broker_id: string;
   load_id: string;
   source_file: string;
   synced_at: string;
-  status: string;
+  status: LoadStatus;
   customer: { id: string; name: string };
   equipment: string;
   pickup: Location;
@@ -43,20 +45,7 @@ export type SyncFile = {
   processed_at: string | null;
 };
 
-export type PriceEstimate = {
-  point_usd: number;
-  low_usd: number;
-  high_usd: number;
-  point_ppm: number;
-  observed_ppm: number;
-  prior_ppm: number;
-  basis: string;
-  effective_loads: number;
-  confidence: string;
-  comparables: Comparable[];
-  reasons: string[];
-  limitations: string[];
-};
+export type Confidence = "high" | "medium" | "low";
 
 export type Comparable = {
   load_id: string;
@@ -68,6 +57,21 @@ export type Comparable = {
   weight: number;
   ppm: number;
   carrier_rate_usd: number;
+};
+
+export type PriceEstimate = {
+  point_usd: number;
+  low_usd: number;
+  high_usd: number;
+  point_ppm: number;
+  observed_ppm: number;
+  prior_ppm: number;
+  basis: string;
+  effective_loads: number;
+  confidence: Confidence;
+  comparables: Comparable[];
+  reasons: string[];
+  limitations: string[];
 };
 
 export type ComponentScore = {
@@ -101,7 +105,7 @@ export type CarrierRanking = {
   carrier_id: string;
   carrier_name: string;
   score: number;
-  confidence: string;
+  confidence: Confidence;
   components: ComponentScore[];
   reasons: string[];
   limitations: string[];
@@ -114,7 +118,7 @@ export type PoolCarrierRanking = {
   carrier_id: string;
   carrier_name: string;
   score: number;
-  confidence: string;
+  confidence: Confidence;
   expected_carrier_cost_usd: number;
   reasons: string[];
   limitations: string[];
