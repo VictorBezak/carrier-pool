@@ -1,44 +1,6 @@
 import type { Broker, LoadDetail, LoadSummary, PoolPolicy, Recommendation, SyncFile } from "@/api/types";
 
-export type LoggedRequest = {
-  id: number;
-  url: string;
-  status: number | "error";
-  duration_ms: number;
-  at: string;
-};
-
-let entries: LoggedRequest[] = [];
-let nextId = 1;
-const listeners = new Set<() => void>();
-
-/** Every request the UI makes is recorded so the dev sheet can show what backs a view. */
-export const requestLog = {
-  snapshot: () => entries,
-  subscribe(listener: () => void) {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  },
-  clear() {
-    entries = [];
-    listeners.forEach((listener) => listener());
-  }
-};
-
-function record(url: string, status: number | "error", startedAt: number) {
-  const entry: LoggedRequest = {
-    id: nextId++,
-    url,
-    status,
-    duration_ms: Math.round(performance.now() - startedAt),
-    at: new Date().toISOString()
-  };
-  entries = [entry, ...entries].slice(0, 40);
-  listeners.forEach((listener) => listener());
-}
-
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
-  const startedAt = performance.now();
   let response: Response;
   try {
     response = await fetch(path, {
@@ -46,10 +8,8 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
       headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) }
     });
   } catch (cause) {
-    record(path, "error", startedAt);
     throw new Error(`Could not reach ${path}. Is the backend running?`, { cause });
   }
-  record(path, response.status, startedAt);
   if (!response.ok) {
     throw new Error(await response.text());
   }

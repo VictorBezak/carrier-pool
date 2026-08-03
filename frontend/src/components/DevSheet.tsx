@@ -1,6 +1,5 @@
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { FlaskConical, RotateCcw } from "lucide-react";
-import { requestLog } from "@/api/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,19 +14,23 @@ import { useSession } from "@/session";
 export function DevSheet() {
   const session = useSession();
   const [open, setOpen] = useState(false);
-  const entries = useSyncExternalStore(requestLog.subscribe, requestLog.snapshot);
 
   const asOfIndex = session.asOf ? session.syncs.findIndex((sync) => sync.synced_at === session.asOf) : session.syncs.length;
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={setOpen} modal={false}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="sm" className="border border-dashed border-dev/50 text-dev hover:bg-dev-surface hover:text-dev">
           <FlaskConical />
           Dev tools
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full gap-0 sm:max-w-md">
+      <SheetContent
+        side="right"
+        overlay={false}
+        onInteractOutside={(event) => event.preventDefault()}
+        className="w-full gap-0 sm:max-w-md"
+      >
         <SheetHeader className="border-b border-dashed border-dev/40 bg-dev-surface">
           <SheetTitle className="flex items-center gap-2 text-dev-foreground">
             <FlaskConical className="size-4" />
@@ -135,29 +138,6 @@ export function DevSheet() {
                   <p className="text-[11.5px] leading-relaxed text-muted-foreground">{session.poolPolicy.matching_rule}</p>
                 </div>
               )}
-            </section>
-
-            <Separator />
-
-            <section className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <ColumnLabel>Request log</ColumnLabel>
-                <Button variant="ghost" size="xs" onClick={requestLog.clear}>
-                  Clear
-                </Button>
-              </div>
-              <div className="flex flex-col divide-y rounded-md border bg-card">
-                {entries.length === 0 && <p className="p-3 text-[12px] text-muted-foreground">No requests yet.</p>}
-                {entries.map((entry) => (
-                  <div key={entry.id} className="flex items-baseline gap-2 px-3 py-1.5 font-mono text-[10.5px] tabular-nums">
-                    <span className={entry.status === 200 ? "text-pos" : "text-neg"}>{entry.status}</span>
-                    <span className="min-w-0 flex-1 truncate text-muted-foreground" title={entry.url}>
-                      {entry.url}
-                    </span>
-                    <span className="shrink-0 text-muted-foreground">{entry.duration_ms}ms</span>
-                  </div>
-                ))}
-              </div>
             </section>
           </div>
         </div>

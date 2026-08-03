@@ -6,17 +6,20 @@ import type { CarrierRanking, LoadDetail, PoolCarrierRanking, Recommendation } f
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CarrierCompositionChart } from "@/charts/CarrierCompositionChart";
+import { LaneGeoMap } from "@/charts/LaneGeoMap";
+import { PriceRangeChart } from "@/charts/PriceRangeChart";
 import { CarrierEvidence } from "@/components/CarrierEvidence";
-import { ContributionBar, ContributionLegend } from "@/components/ContributionBar";
-import { LaneMap, LaneMapKey } from "@/components/LaneMap";
-import { PriceBand } from "@/components/PriceBand";
 import { VersionHistory } from "@/components/VersionHistory";
 import { ColumnLabel, ConfidenceBadge, Field, Num, ReasonList, StatusBadge } from "@/components/indicators";
-import { componentLabel, equipment as equipmentLabel, evidenceValue, miles, money, place, pounds, timestamp } from "@/format";
+import { equipment as equipmentLabel, evidenceValue, miles, money, place, pounds, timestamp } from "@/format";
+import { basisName, evidenceName, matchScore, priceStory, topReason } from "@/labels";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/session";
 
@@ -26,6 +29,7 @@ export function LoadDetailPage() {
   const navigate = useNavigate();
   const [detail, setDetail] = useState<LoadDetail | null>(null);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [selectedCarrierId, setSelectedCarrierId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,9 +51,15 @@ export function LoadDetailPage() {
       .catch((cause: Error) => setError(cause.message));
   }, [session.brokerId, loadId, session.asOf, session.poolEnabled]);
 
+  useEffect(() => {
+    setSelectedCarrierId(recommendation?.own_carriers[0]?.carrier_id ?? null);
+  }, [recommendation]);
+
   if (!detail) {
     return <Skeleton className="h-64 w-full" />;
   }
+
+  const selectedCarrier = recommendation?.own_carriers.find((carrier) => carrier.carrier_id === selectedCarrierId) ?? recommendation?.own_carriers[0] ?? null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -86,33 +96,44 @@ export function LoadDetailPage() {
         <Field label="Equipment">
           <span className="capitalize">{equipmentLabel(detail.equipment)}</span>
         </Field>
-        <Field label="Pickup">{place(detail.pickup)}</Field>
-        <Field label="Delivery">{place(detail.delivery)}</Field>
-        <Field label="Distance">
-          <Num>{miles(detail.distance_miles)}</Num>
-        </Field>
         <Field label="Weight">
           <Num>{pounds(detail.weight_lbs)}</Num>
+        </Field>
+        <Field label="Miles">
+          <Num>{miles(detail.distance_miles)}</Num>
         </Field>
         <Field label="Pickup window">
           <Num className="text-[12px]">{timestamp(detail.pickup_window.open_at)}</Num>
         </Field>
-        <Field label="Delivery window">
-          <Num className="text-[12px]">{timestamp(detail.delivery_window.open_at)}</Num>
-        </Field>
         <Field label="Customer rate">
           <Num>{money(detail.customer_rate_usd)}</Num>
         </Field>
-        <Field label="Carrier rate">
-          <Num>{money(detail.carrier_rate_usd)}</Num>
-        </Field>
-        <Field label="Last sync">
-          <Num className="text-[12px]">{timestamp(detail.synced_at)}</Num>
-        </Field>
-        <Field label="Source file">
-          <Num className="text-[10.5px] text-muted-foreground">{detail.source_file.split("/").pop()}</Num>
-        </Field>
       </div>
+
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" className="w-fit">
+            Load details
+            <ChevronRight />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="grid gap-3 rounded-lg border bg-card p-4 sm:grid-cols-3 lg:grid-cols-6">
+          <Field label="Pickup">{place(detail.pickup)}</Field>
+          <Field label="Delivery">{place(detail.delivery)}</Field>
+          <Field label="Delivery window">
+            <Num className="text-[12px]">{timestamp(detail.delivery_window.open_at)}</Num>
+          </Field>
+          <Field label="Carrier rate">
+            <Num>{money(detail.carrier_rate_usd)}</Num>
+          </Field>
+          <Field label="Updated">
+            <Num className="text-[12px]">{timestamp(detail.synced_at)}</Num>
+          </Field>
+          <Field label="Source file">
+            <Num className="text-[10.5px] text-muted-foreground">{detail.source_file.split("/").pop()}</Num>
+          </Field>
+        </CollapsibleContent>
+      </Collapsible>
 
       {error && (
         <Alert variant="destructive">
@@ -126,59 +147,104 @@ export function LoadDetailPage() {
 
       {recommendation && (
         <>
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <Card size="sm">
               <CardHeader>
                 <CardTitle className="flex items-baseline justify-between gap-3">
-                  <span>Expected carrier cost</span>
+                  <span>Expected cost to book this load</span>
                   <ConfidenceBadge confidence={recommendation.price.confidence} />
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4">
                 <div className="flex items-baseline gap-2">
                   <Num className="text-3xl leading-none">{money(recommendation.price.point_usd)}</Num>
-                  <Num className="text-muted-foreground">{recommendation.price.point_ppm.toFixed(2)}/mi</Num>
                 </div>
-                <PriceBand price={recommendation.price} />
-                <div className="flex flex-wrap gap-1.5">
-                  <Badge variant="secondary" className="font-mono text-[10px]">
-                    basis {componentLabel(recommendation.price.basis)}
-                  </Badge>
-                  <Badge variant="secondary" className="font-mono text-[10px] tabular-nums">
-                    {recommendation.price.effective_loads.toFixed(1)} effective loads
-                  </Badge>
-                </div>
+                <p className="text-[12.5px] leading-relaxed text-muted-foreground">{priceStory(recommendation.price, detail)}</p>
+                <PriceRangeChart price={recommendation.price} detail={detail} />
+                <PriceMath price={recommendation.price} />
               </CardContent>
             </Card>
 
             <Card size="sm">
               <CardHeader>
-                <CardTitle>How this estimate was built</CardTitle>
+                <CardTitle>Carrier comparison</CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <ReasonList label="Reasoning" items={recommendation.price.reasons} />
-                <ReasonList label="Limitations" items={recommendation.price.limitations} tone="caution" />
-                {recommendation.price.comparables.length > 0 && <ComparablesTable price={recommendation.price} />}
+              <CardContent className="min-h-[270px]">
+                <CarrierCompositionChart carriers={recommendation.own_carriers} selectedCarrierId={selectedCarrier?.carrier_id ?? null} />
               </CardContent>
             </Card>
           </div>
 
-          <CarrierTable carriers={recommendation.own_carriers} brokerName={session.broker?.name ?? ""} />
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+            <CarrierTable
+              carriers={recommendation.own_carriers}
+              selectedCarrierId={selectedCarrier?.carrier_id ?? null}
+              onSelectCarrier={setSelectedCarrierId}
+            />
+            <Card size="sm">
+              <CardHeader>
+                <CardTitle>{selectedCarrier ? `${selectedCarrier.carrier_name}'s lane history` : "Lane history"}</CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px]">
+                {selectedCarrier ? <LaneGeoMap geometry={selectedCarrier.geometry} /> : <p className="text-sm text-muted-foreground">Select a carrier to see lane history.</p>}
+              </CardContent>
+            </Card>
+          </div>
 
           {session.poolEnabled && <PoolTable carriers={recommendation.pool_carriers} />}
         </>
       )}
 
       <Separator />
-      <VersionHistory versions={detail.versions} />
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" size="sm" className="w-fit">
+            Change history
+            <Badge variant="secondary" className="font-mono text-[10px]">
+              {historySummary(detail.versions)}
+            </Badge>
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-3">
+          <VersionHistory versions={detail.versions} />
+        </CollapsibleContent>
+      </Collapsible>
     </div>
+  );
+}
+
+function PriceMath({ price }: { price: Recommendation["price"] }) {
+  return (
+    <Collapsible>
+      <CollapsibleTrigger asChild>
+        <Button variant="outline" size="sm" className="w-fit">
+          Show the math
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-3 flex flex-col gap-4">
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="secondary" className="font-mono text-[10px]">
+            {basisName(price.basis)}
+          </Badge>
+          <Badge variant="secondary" className="font-mono text-[10px] tabular-nums">
+            {price.effective_loads.toFixed(1)} comparable loads
+          </Badge>
+          <Badge variant="secondary" className="font-mono text-[10px] tabular-nums">
+            {price.point_ppm.toFixed(2)}/mi
+          </Badge>
+        </div>
+        <ReasonList label="Why this price" items={price.reasons} />
+        <ReasonList label="Watch-outs" items={price.limitations} tone="caution" />
+        {price.comparables.length > 0 && <ComparablesTable price={price} />}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
 function ComparablesTable({ price }: { price: Recommendation["price"] }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <ColumnLabel>Comparable loads ({price.comparables.length})</ColumnLabel>
+      <ColumnLabel>Past loads used for pricing ({price.comparables.length})</ColumnLabel>
       <div className="overflow-hidden rounded-md border">
         <Table className="text-[11.5px]">
           <TableHeader className="bg-muted/60">
@@ -190,7 +256,7 @@ function ComparablesTable({ price }: { price: Recommendation["price"] }) {
                 <ColumnLabel>Lane</ColumnLabel>
               </TableHead>
               <TableHead className="h-7 px-2 text-right">
-                <ColumnLabel>Similarity</ColumnLabel>
+                <ColumnLabel>Fit</ColumnLabel>
               </TableHead>
               <TableHead className="h-7 px-2 text-right">
                 <ColumnLabel>Rate/mi</ColumnLabel>
@@ -232,20 +298,23 @@ function carrierPrice(carrier: CarrierRanking) {
   return typeof value === "number" ? value : null;
 }
 
-function CarrierTable({ carriers, brokerName }: { carriers: CarrierRanking[]; brokerName: string }) {
-  const [expanded, setExpanded] = useState<string | null>(carriers[0]?.carrier_id ?? null);
-  const legend = useMemo(() => carriers[0]?.components ?? [], [carriers]);
-
+function CarrierTable({
+  carriers,
+  selectedCarrierId,
+  onSelectCarrier
+}: {
+  carriers: CarrierRanking[];
+  selectedCarrierId: string | null;
+  onSelectCarrier: (carrierId: string) => void;
+}) {
+  const [expanded, setExpanded] = useState<string | null>(null);
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-[13px] font-medium">Call these carriers first</h2>
-          <p className="text-[12px] text-muted-foreground">
-            Ranked from {brokerName}'s own history only. The bar is the score, split into the components that earned it.
-          </p>
+          <p className="text-[12px] text-muted-foreground">Select a carrier to update the map. Open the math only when someone asks why.</p>
         </div>
-        {legend.length > 0 && <ContributionLegend components={legend} />}
       </div>
 
       <div className="overflow-hidden rounded-lg border bg-card">
@@ -259,13 +328,13 @@ function CarrierTable({ carriers, brokerName }: { carriers: CarrierRanking[]; br
                 <ColumnLabel>Carrier</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 w-20 px-2.5 text-right">
-                <ColumnLabel>Score</ColumnLabel>
-              </TableHead>
-              <TableHead className="h-8 min-w-56 px-2.5">
-                <ColumnLabel>Score composition</ColumnLabel>
+                <ColumnLabel>Match</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 px-2.5 text-right">
                 <ColumnLabel>Their price</ColumnLabel>
+              </TableHead>
+              <TableHead className="h-8 px-2.5">
+                <ColumnLabel>Why</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 px-2.5">
                 <ColumnLabel>Confidence</ColumnLabel>
@@ -289,13 +358,14 @@ function CarrierTable({ carriers, brokerName }: { carriers: CarrierRanking[]; br
                   aria-expanded={open}
                   tabIndex={0}
                   className="cursor-pointer"
-                  onClick={() => setExpanded(open ? null : carrier.carrier_id)}
+                  onClick={() => onSelectCarrier(carrier.carrier_id)}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
+                    if (event.key === "Enter") {
                       event.preventDefault();
-                      setExpanded(open ? null : carrier.carrier_id);
+                      onSelectCarrier(carrier.carrier_id);
                     }
                   }}
+                  data-state={selectedCarrierId === carrier.carrier_id ? "selected" : undefined}
                 >
                   <TableCell className="px-2.5 py-2">
                     <Num className={cn("text-muted-foreground", index === 0 && "font-medium text-primary")}>{index + 1}</Num>
@@ -305,19 +375,28 @@ function CarrierTable({ carriers, brokerName }: { carriers: CarrierRanking[]; br
                     <Num className="ml-2 text-[10.5px] text-muted-foreground">{carrier.carrier_id}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
-                    <Num className="font-medium">{carrier.score.toFixed(3)}</Num>
-                  </TableCell>
-                  <TableCell className="px-2.5 py-2">
-                    <ContributionBar components={carrier.components} />
+                    <Num className="font-medium">{matchScore(carrier.score)}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
                     <Num>{money(carrierPrice(carrier))}</Num>
+                  </TableCell>
+                  <TableCell className="max-w-[300px] px-2.5 py-2 text-muted-foreground">
+                    <span className="truncate">{topReason(carrier)}</span>
                   </TableCell>
                   <TableCell className="px-2.5 py-2">
                     <ConfidenceBadge confidence={carrier.confidence} />
                   </TableCell>
                   <TableCell className="px-2.5 py-2">
-                    <ChevronRight className={cn("size-3.5 text-muted-foreground transition-transform", open && "rotate-90")} />
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setExpanded(open ? null : carrier.carrier_id);
+                      }}
+                    >
+                      Show math
+                    </Button>
                   </TableCell>
                 </TableRow>,
                 open ? (
@@ -325,7 +404,6 @@ function CarrierTable({ carriers, brokerName }: { carriers: CarrierRanking[]; br
                     <TableCell colSpan={7} className="p-0 whitespace-normal">
                       <CarrierEvidence
                         components={carrier.components}
-                        geometry={carrier.geometry}
                         reasons={carrier.reasons}
                         limitations={carrier.limitations}
                       />
@@ -348,15 +426,12 @@ function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
     <div className="flex flex-col gap-2">
       <div>
         <h2 className="flex items-center gap-2 text-[13px] font-medium">
-          Shared pool tier
+          Additional carriers
           <Badge variant="outline" className="font-normal">
             other brokers
           </Badge>
         </h2>
-        <p className="text-[12px] text-muted-foreground">
-          Carriers this broker has never used, contributed by opted-in brokers as bucketed data. No other broker's rates or load records cross
-          the boundary.
-        </p>
+        <p className="text-[12px] text-muted-foreground">Extra carriers from opted-in brokers. Details stay hidden until you ask what was shared.</p>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-l-2 border-l-dashed border-l-primary/40 bg-card">
@@ -373,7 +448,7 @@ function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
                 <ColumnLabel>Contributed by</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 w-20 px-2.5 text-right">
-                <ColumnLabel>Score</ColumnLabel>
+                <ColumnLabel>Match</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 px-2.5 text-right">
                 <ColumnLabel>Expected cost</ColumnLabel>
@@ -415,7 +490,7 @@ function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
                   <TableCell className="px-2.5 py-2 font-medium">{carrier.carrier_name}</TableCell>
                   <TableCell className="px-2.5 py-2 text-muted-foreground">{carrier.contributor_broker_name}</TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
-                    <Num>{carrier.score.toFixed(3)}</Num>
+                    <Num>{matchScore(carrier.score)}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
                     <Num>{money(carrier.expected_carrier_cost_usd)}</Num>
@@ -424,13 +499,15 @@ function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
                     <ConfidenceBadge confidence={carrier.confidence} />
                   </TableCell>
                   <TableCell className="px-2.5 py-2">
-                    <ChevronRight className={cn("size-3.5 text-muted-foreground transition-transform", open && "rotate-90")} />
+                    <Button variant="ghost" size="xs">
+                      What was shared
+                    </Button>
                   </TableCell>
                 </TableRow>,
                 open ? (
                   <TableRow key={`${key}-evidence`} className="hover:bg-transparent">
                     <TableCell colSpan={7} className="p-0 whitespace-normal">
-                      <div className="grid gap-5 border-t bg-muted/30 p-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+                      <div className="border-t bg-muted/30 p-4">
                         <div className="flex flex-col gap-4">
                           <div className="grid gap-4 sm:grid-cols-2">
                             <ReasonList label="Why this carrier" items={carrier.reasons} />
@@ -444,7 +521,7 @@ function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
                                   {Object.entries(carrier.payload).map(([key, value]) => (
                                     <TableRow key={key}>
                                       <TableCell className="w-40 px-2 py-1">
-                                        <ColumnLabel>{componentLabel(key)}</ColumnLabel>
+                                        <ColumnLabel>{evidenceName(key)}</ColumnLabel>
                                       </TableCell>
                                       <TableCell className="px-2 py-1">
                                         <Num>{Array.isArray(value) ? value.join(", ") || "—" : evidenceValue(value ?? null)}</Num>
@@ -455,11 +532,6 @@ function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
                               </Table>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex flex-col gap-2 rounded-md border bg-card p-3">
-                          <ColumnLabel>Lane trace</ColumnLabel>
-                          <LaneMap geometry={carrier.geometry} />
-                          <LaneMapKey />
                         </div>
                       </div>
                     </TableCell>
@@ -472,4 +544,16 @@ function PoolTable({ carriers }: { carriers: PoolCarrierRanking[] }) {
       </div>
     </div>
   );
+}
+
+function historySummary(versions: LoadDetail["versions"]) {
+  if (versions.length <= 1) return "1 update";
+  let corrections = 0;
+  for (let index = 1; index < versions.length; index += 1) {
+    const previous = versions[index - 1];
+    const current = versions[index];
+    if (previous.carrier_rate_usd !== current.carrier_rate_usd && previous.carrier_rate_usd !== null) corrections += 1;
+    if (previous.customer_rate_usd !== current.customer_rate_usd && previous.customer_rate_usd !== null) corrections += 1;
+  }
+  return corrections > 0 ? `${versions.length} updates, ${corrections} rate correction${corrections === 1 ? "" : "s"}` : `${versions.length} updates`;
 }

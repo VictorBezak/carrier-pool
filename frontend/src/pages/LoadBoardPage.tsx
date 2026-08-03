@@ -7,7 +7,8 @@ import {
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
-  type SortingState
+  type SortingState,
+  type VisibilityState
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ChevronsUpDown, Search } from "lucide-react";
 import { api } from "@/api/client";
@@ -79,10 +80,25 @@ export function LoadBoardPage() {
       .map((load) => ({ ...load, recommendation: recommendations[load.load_id] }));
   }, [loads, search, status, equipmentFilter, recommendations]);
 
+  const columnVisibility = useMemo<VisibilityState>(() => {
+    const visibility: VisibilityState = {};
+    if (status === "active") {
+      visibility.carrier_rate_usd = false;
+      visibility.margin = false;
+      return visibility;
+    }
+    if (status === "covered" || status === "completed") {
+      visibility.estimate = false;
+      visibility.topCarrier = false;
+      return visibility;
+    }
+    return visibility;
+  }, [status]);
+
   const table = useReactTable({
     data: rows,
     columns: COLUMNS,
-    state: { sorting },
+    state: { sorting, columnVisibility },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -174,21 +190,21 @@ export function LoadBoardPage() {
           <TableBody>
             {error && (
               <TableRow>
-                <TableCell colSpan={COLUMNS.length} className="h-20 text-center text-muted-foreground">
+                <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-20 text-center text-muted-foreground">
                   {error}
                 </TableCell>
               </TableRow>
             )}
             {!error && pending && (
               <TableRow>
-                <TableCell colSpan={COLUMNS.length} className="h-20 text-center text-muted-foreground">
+                <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-20 text-center text-muted-foreground">
                   Loading loads
                 </TableCell>
               </TableRow>
             )}
             {!error && !pending && table.getRowModel().rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={COLUMNS.length} className="h-20 text-center text-muted-foreground">
+                <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-20 text-center text-muted-foreground">
                   No loads match these filters. Clear the search or pick another status.
                 </TableCell>
               </TableRow>
@@ -299,7 +315,7 @@ const COLUMNS: ColumnDef<Row>[] = [
   {
     id: "synced",
     accessorFn: (row) => row.synced_at,
-    header: ({ column }) => <SortHeader label="Last sync" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} sorted={column.getIsSorted()} />,
+    header: ({ column }) => <SortHeader label="Updated" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} sorted={column.getIsSorted()} />,
     cell: ({ row }) => <Num className="text-muted-foreground">{day(row.original.synced_at)}</Num>
   },
   {
