@@ -1,12 +1,13 @@
 import type { Config, Layout } from "plotly.js";
 import createPlotlyComponent from "react-plotly.js/factory";
 import Plotly from "plotly.js/lib/core";
-import bar from "plotly.js/lib/bar";
 import scatter from "plotly.js/lib/scatter";
 import scattergeo from "plotly.js/lib/scattergeo";
 import geoAssets from "plotly.js/dist/plotly-geo-assets.js";
 
-Plotly.register([bar, scatter, scattergeo]);
+// The lane map is the only remaining plot; bar traces went out with the price band and the
+// carrier composition chart, whose work is now done by CSS bars in the carrier table.
+Plotly.register([scatter, scattergeo]);
 
 // plotly-geo-assets exports its topojson rather than attaching it to the global
 // PlotlyGeoAssets that geo subplots read, so importing it for the side effect is

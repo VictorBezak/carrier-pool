@@ -136,7 +136,7 @@ After it finishes, open:
 
 ### Using the dashboard
 
-The UI is scoped to one broker, the way a real tenant would see it. The load board lists that broker's book, and every `ACTIVE` load carries an expected carrier cost and the carrier to call first. Open a load for the price band, the ranked carriers with their score composition, the evidence behind each component, the price comparables, the shared pool tier, and the sync-by-sync history of that load with corrected values highlighted.
+The UI is scoped to one broker, the way a real tenant would see it. The load board lists that broker's book, and every `ACTIVE` load carries an expected carrier cost and the carrier to call first. Open a load for the expected cost and its range, the ranked carriers with a weighted-contribution bar per row, the selected carrier's score breakdown and lane history, the evidence behind each component, the price comparables, the shared pool tier, and the sync-by-sync history of that load with corrected values highlighted.
 
 Anything that a broker would not have in production lives behind **Dev tools** in the top-right corner:
 

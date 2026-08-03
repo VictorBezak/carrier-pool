@@ -11,10 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CarrierCompositionChart } from "@/charts/CarrierCompositionChart";
 import { LaneGeoMap } from "@/charts/LaneGeoMap";
-import { PriceRangeChart } from "@/charts/PriceRangeChart";
 import { CarrierEvidence } from "@/components/CarrierEvidence";
+import { CarrierScoreBreakdown } from "@/components/CarrierScoreBreakdown";
+import { ContributionBar } from "@/components/ContributionBar";
 import { VersionHistory } from "@/components/VersionHistory";
 import { ColumnLabel, ConfidenceBadge, Num, ReasonList, StatusBadge } from "@/components/indicators";
 import { equipment as equipmentLabel, evidenceValue, margin, miles, money, percent, place, pounds, timestamp } from "@/format";
@@ -157,36 +157,29 @@ export function LoadDetailPage() {
 
       {recommendation && (
         <>
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-            <Card size="sm">
-              <CardHeader>
-                <CardTitle className="flex items-baseline justify-between gap-3">
-                  <span>Expected cost to book this load</span>
-                  <ConfidenceBadge confidence={recommendation.price.confidence} />
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <div className="flex items-baseline gap-2">
-                  <Num className="text-3xl leading-none">{money(recommendation.price.point_usd)}</Num>
-                </div>
-                <p className="text-[12.5px] leading-relaxed text-muted-foreground">{priceStory(recommendation.price, detail)}</p>
-                <PriceRangeChart price={recommendation.price} detail={detail} />
-                <PriceMath price={recommendation.price} />
-              </CardContent>
-            </Card>
-
-            <Card size="sm">
-              <CardHeader>
-                <CardTitle>Carrier comparison</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-[270px]">
-                <CarrierCompositionChart
-                  carriers={recommendation.own_carriers}
-                  selectedCarrierId={selectedCarrierRow?.kind === "local" ? selectedCarrierRow.carrier.carrier_id : null}
-                />
-              </CardContent>
-            </Card>
-          </div>
+          {/* The estimate is three numbers and a sentence, so it stays text. An earlier pass
+              plotted the same three markers this sentence already names; because the point
+              estimate is a shrunk blend of the two it was plotted against, the markers
+              collide on any lane with real history. The band's only unique content, how wide
+              the range is, now sits next to the headline where it is legible. */}
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle className="flex items-baseline justify-between gap-3">
+                <span>Expected cost to book this load</span>
+                <ConfidenceBadge confidence={recommendation.price.confidence} />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <Num className="text-3xl leading-none">{money(recommendation.price.point_usd)}</Num>
+                <Num className="text-[12px] text-muted-foreground">
+                  expected {money(recommendation.price.low_usd)} to {money(recommendation.price.high_usd)}
+                </Num>
+              </div>
+              <p className="text-[12.5px] leading-relaxed text-muted-foreground">{priceStory(recommendation.price, detail)}</p>
+              <PriceMath price={recommendation.price} />
+            </CardContent>
+          </Card>
 
           <CombinedCarrierTable
             rows={carrierRows}
@@ -195,25 +188,49 @@ export function LoadDetailPage() {
             onSelectRow={setSelectedCarrierKey}
           />
 
-          <Card size="sm">
-            <CardHeader>
-              <CardTitle>{selectedCarrierName ? `${selectedCarrierName}'s lane history` : "Lane history"}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex h-[360px] flex-col gap-2">
-              {selectedCarrierRow ? (
-                <>
-                  <div className="min-h-0 flex-1">
-                    <LaneGeoMap geometry={selectedCarrierRow.carrier.geometry} />
-                  </div>
-                  {selectedCarrierRow.kind === "pool" && (
-                    <p className="text-[12px] text-muted-foreground">Pool carriers share bucketed lane cells, not raw historical lanes.</p>
+          {/* Both cards answer questions about the selected row, so they share it: why the
+              ranker put this carrier here, and where the carrier actually runs. */}
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <Card size="sm">
+              <CardHeader>
+                <CardTitle className="flex items-baseline justify-between gap-3">
+                  <span>{selectedCarrierName ? `Why ${selectedCarrierName} ranks here` : "Score breakdown"}</span>
+                  {selectedCarrierRow && (
+                    <Num className="text-[12px] font-normal text-muted-foreground">
+                      {matchScore(selectedCarrierRow.carrier.score)} match
+                    </Num>
                   )}
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">Select a carrier to see lane history.</p>
-              )}
-            </CardContent>
-          </Card>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selectedCarrierRow ? (
+                  <CarrierScoreBreakdown components={selectedCarrierRow.carrier.components} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Select a carrier to see its score breakdown.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card size="sm">
+              <CardHeader>
+                <CardTitle>{selectedCarrierName ? `${selectedCarrierName}'s lane history` : "Lane history"}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex h-[300px] flex-col gap-2">
+                {selectedCarrierRow ? (
+                  <>
+                    <div className="min-h-0 flex-1">
+                      <LaneGeoMap geometry={selectedCarrierRow.carrier.geometry} />
+                    </div>
+                    {selectedCarrierRow.kind === "pool" && (
+                      <p className="text-[12px] text-muted-foreground">Pool carriers share bucketed lane cells, not raw historical lanes.</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Select a carrier to see lane history.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </>
       )}
     </div>
@@ -435,7 +452,7 @@ function CombinedCarrierTable({
               <TableHead className="h-8 px-2.5">
                 <ColumnLabel>Source</ColumnLabel>
               </TableHead>
-              <TableHead className="h-8 w-20 px-2.5 text-right">
+              <TableHead className="h-8 w-40 px-2.5 text-right">
                 <ColumnLabel>Match</ColumnLabel>
               </TableHead>
               <TableHead className="h-8 px-2.5 text-right">
@@ -503,8 +520,13 @@ function CombinedCarrierTable({
                       <span>{rowSource(row)}</span>
                     </span>
                   </TableCell>
-                  <TableCell className="px-2.5 py-2 text-right">
-                    <Num className="font-medium">{matchScore(carrier.score)}</Num>
+                  {/* The bar is a fixed width on every row so its length is a 0-100 scale the
+                      rows can be compared against, not a proportion of whatever space is left. */}
+                  <TableCell className="px-2.5 py-2">
+                    <div className="flex items-center justify-end gap-2">
+                      <ContributionBar components={carrier.components} className="w-24 shrink-0" />
+                      <Num className="w-6 shrink-0 text-right font-medium">{matchScore(carrier.score)}</Num>
+                    </div>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
                     <Num className={cn(deadhead === null && "text-muted-foreground")}>{deadhead === null ? "—" : miles(deadhead)}</Num>
