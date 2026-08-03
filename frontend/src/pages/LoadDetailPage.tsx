@@ -37,14 +37,15 @@ export function LoadDetailPage() {
     setDetail(null);
     setError(null);
     void api
-      .load(session.brokerId, loadId)
+      .load(session.brokerId, loadId, session.asOf)
       .then(setDetail)
       .catch(() => navigate("/loads", { replace: true }));
-  }, [session.brokerId, loadId, navigate]);
+  }, [session.brokerId, loadId, session.asOf, navigate]);
 
   useEffect(() => {
     if (!session.brokerId || !loadId) return;
     setRecommendation(null);
+    setError(null);
     void api
       .recommendation(session.brokerId, loadId, session.asOf, session.poolEnabled)
       .then(setRecommendation)

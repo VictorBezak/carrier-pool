@@ -68,17 +68,19 @@ def get_brokers() -> list[dict[str, Any]]:
 
 
 @app.get("/api/brokers/{broker_id}/loads")
-def get_loads(broker_id: str) -> list[dict[str, Any]]:
+def get_loads(broker_id: str, as_of: str | None = Query(default=None)) -> list[dict[str, Any]]:
     _validate_broker(broker_id)
-    loads = _store().broker_current_loads(broker_id)
+    cutoff = datetime.fromisoformat(as_of) if as_of else None
+    loads = _store().loads_as_of(broker_id, cutoff) if cutoff else _store().broker_current_loads(broker_id)
     loads = sorted(loads, key=lambda load: (load.status != LoadStatus.ACTIVE, load.synced_at, load.raw_load_id))
     return [load_summary(load) for load in loads]
 
 
 @app.get("/api/brokers/{broker_id}/loads/{load_id}")
-def get_load_detail(broker_id: str, load_id: str) -> dict[str, Any]:
-    load = _current_load_or_404(broker_id, load_id)
-    return load_detail(load, _versions_for_load(broker_id, load_id))
+def get_load_detail(broker_id: str, load_id: str, as_of: str | None = Query(default=None)) -> dict[str, Any]:
+    cutoff = datetime.fromisoformat(as_of) if as_of else None
+    load = _load_as_of_or_404(broker_id, load_id, cutoff)
+    return load_detail(load, _versions_for_load(broker_id, load_id, cutoff))
 
 
 @app.get("/api/brokers/{broker_id}/loads/{load_id}/recommendation")
@@ -173,14 +175,19 @@ def _current_load_or_404(broker_id: str, load_id: str) -> LoadVersion:
 def _load_as_of_or_404(broker_id: str, load_id: str, cutoff: datetime | None) -> LoadVersion:
     if cutoff is None:
         return _current_load_or_404(broker_id, load_id)
+    _validate_broker(broker_id)
     matches = [load for load in _store().loads_as_of(broker_id, cutoff) if load.raw_load_id == load_id]
     if not matches:
         raise HTTPException(status_code=404, detail=f"Load {load_id!r} was not known at {cutoff.isoformat()}")
     return matches[0]
 
 
-def _versions_for_load(broker_id: str, load_id: str) -> list[LoadVersion]:
-    return [version for version in _store().versions if version.broker_id == broker_id and version.raw_load_id == load_id]
+def _versions_for_load(broker_id: str, load_id: str, cutoff: datetime | None = None) -> list[LoadVersion]:
+    return [
+        version
+        for version in _store().versions
+        if version.broker_id == broker_id and version.raw_load_id == load_id and (cutoff is None or version.synced_at <= cutoff)
+    ]
 
 
 def _serialize_sync(row: dict[str, Any]) -> dict[str, Any]:

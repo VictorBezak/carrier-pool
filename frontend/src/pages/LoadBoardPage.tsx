@@ -53,11 +53,11 @@ export function LoadBoardPage() {
     setPending(true);
     setError(null);
     void api
-      .loads(session.brokerId)
+      .loads(session.brokerId, session.asOf)
       .then(setLoads)
       .catch((cause: Error) => setError(cause.message))
       .finally(() => setPending(false));
-  }, [session.brokerId]);
+  }, [session.brokerId, session.asOf]);
 
   const equipmentOptions = useMemo(() => [...new Set(loads.map((load) => load.equipment))].sort(), [loads]);
 
