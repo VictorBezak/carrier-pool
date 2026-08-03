@@ -418,8 +418,13 @@ function CombinedCarrierTable({
       </div>
 
       <div className="overflow-hidden rounded-lg border bg-card">
-        <Table className="text-[12.5px]">
-          <TableHeader className="bg-muted/60">
+        <Table
+          className="text-[12.5px]"
+          containerClassName="max-h-[16.5rem] overflow-y-auto overscroll-contain"
+        >
+          {/* Sticky headers need an opaque fill and a shadow border, since a collapsed
+              table border does not paint on a sticky thead. */}
+          <TableHeader className="sticky top-0 z-10 bg-muted [&_th]:shadow-[inset_0_-1px_0_var(--border)] [&_tr]:border-0">
             <TableRow className="hover:bg-transparent">
               <TableHead className="h-8 w-10 px-2.5">
                 <ColumnLabel>#</ColumnLabel>
