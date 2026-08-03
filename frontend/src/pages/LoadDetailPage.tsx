@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LaneGeoMap } from "@/charts/LaneGeoMap";
 import { CarrierEvidence } from "@/components/CarrierEvidence";
 import { CarrierScoreBreakdown } from "@/components/CarrierScoreBreakdown";
@@ -386,6 +387,15 @@ function rowPrice(row: CombinedCarrierRow) {
   return row.kind === "local" ? carrierPrice(row.carrier) : row.carrier.expected_carrier_cost_usd;
 }
 
+/**
+ * A carrier with no priced history of its own inherits the load-level estimate wholesale,
+ * so its expected cost is that one number repeated rather than a statement about this
+ * carrier. The column says so instead of passing the baseline off as a quote.
+ */
+function rowPriceIsLoadEstimate(row: CombinedCarrierRow) {
+  return row.carrier.components.find((component) => component.name === "price")?.evidence.basis === "broker_market_fallback";
+}
+
 function rowSource(row: CombinedCarrierRow) {
   if (row.kind === "pool") return "Shared pool";
   return row.carrier.pooled ? "Your network + Shared pool" : "Your network";
@@ -528,7 +538,21 @@ function CombinedCarrierTable({
                     <Num className={cn(deadhead === null && "text-muted-foreground")}>{deadhead === null ? "—" : miles(deadhead)}</Num>
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
-                    <Num>{money(rowPrice(row))}</Num>
+                    {rowPriceIsLoadEstimate(row) ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-baseline gap-1.5">
+                            <Num className="text-muted-foreground">{money(rowPrice(row))}</Num>
+                            <ColumnLabel className="text-[9.5px]">load est.</ColumnLabel>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                          No price history with this carrier, so this is the load estimate above rather than a carrier-specific price.
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Num>{money(rowPrice(row))}</Num>
+                    )}
                   </TableCell>
                   <TableCell className="px-2.5 py-2 text-right">
                     <Num>{money(rowMargin)}</Num>

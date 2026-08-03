@@ -13,7 +13,12 @@ const COMPONENT_LABELS: Record<string, string> = {
 
 const BASIS_LABELS: Record<string, string> = {
   similar_lane: "similar lanes",
+  distance_band: "loads of a similar length",
+  broker_equipment_prior: "your history for this equipment",
   carrier_similar_lane: "this carrier on similar lanes",
+  carrier_distance_band: "this carrier on loads of a similar length",
+  carrier_history_prior: "this carrier's other loads for you",
+  broker_market_fallback: "no price history with this carrier, so the load estimate",
   broker_prior: "your overall history",
   market_prior: "the broker average",
   last_delivery: "where they just delivered",
