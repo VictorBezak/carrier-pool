@@ -4,9 +4,16 @@ import Plotly from "plotly.js/lib/core";
 import bar from "plotly.js/lib/bar";
 import scatter from "plotly.js/lib/scatter";
 import scattergeo from "plotly.js/lib/scattergeo";
-import "plotly.js/dist/plotly-geo-assets.js";
+import geoAssets from "plotly.js/dist/plotly-geo-assets.js";
 
 Plotly.register([bar, scatter, scattergeo]);
+
+// plotly-geo-assets exports its topojson rather than attaching it to the global
+// PlotlyGeoAssets that geo subplots read, so importing it for the side effect is
+// not enough. Without this copy the base map layers are fetched from the Plotly
+// CDN, which renders a blank map offline and in Docker.
+window.PlotlyGeoAssets = window.PlotlyGeoAssets ?? { topojson: {} };
+Object.assign(window.PlotlyGeoAssets.topojson, geoAssets.topojson);
 
 export const Plot = createPlotlyComponent(Plotly);
 
@@ -18,6 +25,8 @@ export const CHART_CONFIG: Partial<Config> = {
 const FALLBACK_COLORS = {
   foreground: "#0f1418",
   muted: "#626c7a",
+  surface: "#f1f3f6",
+  accent: "#e9edfb",
   border: "#e2e6ec",
   primary: "#1b4de4",
   card: "#ffffff",
@@ -35,6 +44,8 @@ export function chartColors() {
   return {
     foreground: cssVar("--foreground", FALLBACK_COLORS.foreground),
     muted: cssVar("--muted-foreground", FALLBACK_COLORS.muted),
+    surface: cssVar("--muted", FALLBACK_COLORS.surface),
+    accent: cssVar("--accent", FALLBACK_COLORS.accent),
     border: cssVar("--border", FALLBACK_COLORS.border),
     primary: cssVar("--primary", FALLBACK_COLORS.primary),
     card: cssVar("--card", FALLBACK_COLORS.card),

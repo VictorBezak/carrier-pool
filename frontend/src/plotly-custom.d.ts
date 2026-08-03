@@ -26,4 +26,11 @@ declare module "plotly.js/lib/scattergeo" {
   export default trace;
 }
 
-declare module "plotly.js/dist/plotly-geo-assets.js";
+declare module "plotly.js/dist/plotly-geo-assets.js" {
+  const assets: { topojson: Record<string, unknown>; version: string };
+  export default assets;
+}
+
+interface Window {
+  PlotlyGeoAssets?: { topojson: Record<string, unknown> };
+}
