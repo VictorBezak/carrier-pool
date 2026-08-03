@@ -5,7 +5,7 @@
       "shipmentId": 127567858,
       "status": "Booking",
       "mileage": 48.3,
-      "totalSell": 540,
+      "totalSell": 540.0,
       "totalBuy": null,
       "customer": {
         "customerId": 885717,
@@ -13,15 +13,15 @@
       },
       "carrier": null,
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 18000.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "FORT WORTH",
           "state": "TX",
           "zipCode": "76102",
-          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
           "actualDepartureDateTime": null
         },
         {
@@ -29,8 +29,8 @@
           "city": "PLANO",
           "state": "TX",
           "zipCode": "75074",
-          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
           "actualDepartureDateTime": null
         }
       ],

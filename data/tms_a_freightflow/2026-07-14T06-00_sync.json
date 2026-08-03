@@ -5,38 +5,29 @@
       "shipmentId": 127738346,
       "status": "Dispatched",
       "mileage": 276.1,
-      "totalSell": 1510,
-      "totalBuy": 1190,
+      "totalSell": 1510.0,
+      "totalBuy": 1190.0,
       "customer": {
         "customerId": 975317,
         "name": "Lone Star Beverages"
       },
       "carrier": {
-        "carrierMasterId": 901459,
-        "name": "BLUE ROUTE CARRIERS",
-        "mcNumber": "550218",
-        "dotNumber": "1603301",
-        "phoneNumber": "+12815550121"
+        "carrierMasterId": 918323,
+        "name": "CEDAR HILL FREIGHT",
+        "mcNumber": "902441",
+        "dotNumber": "2419988",
+        "phoneNumber": "+18175550188"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 23000.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "IRVING",
           "state": "TX",
           "zipCode": "75062",
-          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
-          "actualDepartureDateTime": null
-        },
-        {
-          "stopType": "Stop 2",
-          "city": "PEARLAND",
-          "state": "TX",
-          "zipCode": "77581",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
           "actualDepartureDateTime": null
         },
         {
@@ -44,8 +35,8 @@
           "city": "SUGAR LAND",
           "state": "TX",
           "zipCode": "77478",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
           "actualDepartureDateTime": null
         }
       ],
@@ -53,45 +44,87 @@
       "lastModifiedDate": "2026-07-14T05:17:00-05:00"
     },
     {
-      "shipmentId": 127738720,
+      "shipmentId": 127379425,
       "status": "Completed",
-      "mileage": 70.3,
-      "totalSell": 610,
-      "totalBuy": 485,
+      "mileage": 217.2,
+      "totalSell": 1540.0,
+      "totalBuy": 1210.0,
+      "customer": {
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
+      },
+      "carrier": {
+        "carrierMasterId": 856005,
+        "name": "RIVER CITY HAULAGE",
+        "mcNumber": "771204",
+        "dotNumber": "3001552",
+        "phoneNumber": "+18305550144"
+      },
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 38000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "SCHERTZ",
+          "state": "TX",
+          "zipCode": "78154",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T14:45:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "PASADENA",
+          "state": "TX",
+          "zipCode": "77502",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T11:00:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-11T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-14T05:17:00-05:00"
+    },
+    {
+      "shipmentId": 127683780,
+      "status": "Completed",
+      "mileage": 254.8,
+      "totalSell": 1500.0,
+      "totalBuy": 1455.0,
       "customer": {
         "customerId": 885717,
         "name": "Trinity Retail Group"
       },
       "carrier": {
-        "carrierMasterId": 921117,
-        "name": "MOCKINGBIRD LOGISTICS",
-        "mcNumber": "615880",
-        "dotNumber": "2100987",
-        "phoneNumber": "+19725550190"
+        "carrierMasterId": 864976,
+        "name": "DELTA PRIME, LLC",
+        "mcNumber": "884201",
+        "dotNumber": "2551377",
+        "phoneNumber": "+18305550144"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 18000.0,
       "stops": [
         {
           "stopType": "First Pickup",
-          "city": "DENTON",
+          "city": "GRAND PRAIRIE",
           "state": "TX",
-          "zipCode": "76201",
-          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-14T04:00:00-05:00"
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T18:00:00-05:00"
         },
         {
           "stopType": "Last Drop",
-          "city": "WAXAHACHIE",
+          "city": "KATY",
           "state": "TX",
-          "zipCode": "75165",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-14T05:00:00-05:00"
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T12:45:00-05:00"
         }
       ],
-      "createdDate": "2026-07-13T09:43:00-05:00",
+      "createdDate": "2026-07-11T09:43:00-05:00",
       "lastModifiedDate": "2026-07-14T05:17:00-05:00"
     }
   ]

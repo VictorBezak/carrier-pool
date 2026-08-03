@@ -2,53 +2,53 @@
   "syncedAt": "2026-07-13T18:00:00-05:00",
   "loads": [
     {
-      "shipmentId": 127567858,
-      "status": "Completed",
-      "mileage": 48.3,
-      "totalSell": 540,
-      "totalBuy": 430,
+      "shipmentId": 127379425,
+      "status": "Delivered",
+      "mileage": 217.2,
+      "totalSell": 1540.0,
+      "totalBuy": 1210.0,
       "customer": {
-        "customerId": 885717,
-        "name": "Trinity Retail Group"
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
       },
       "carrier": {
-        "carrierMasterId": 878666,
-        "name": "PECAN VALLEY TRUCKING",
-        "mcNumber": "420018",
-        "dotNumber": "1997331",
-        "phoneNumber": "+16825550155"
+        "carrierMasterId": 856005,
+        "name": "RIVER CITY HAULAGE",
+        "mcNumber": "771204",
+        "dotNumber": "3001552",
+        "phoneNumber": "+18305550144"
       },
-      "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 38000.0,
       "stops": [
         {
           "stopType": "First Pickup",
-          "city": "FORT WORTH",
+          "city": "SCHERTZ",
           "state": "TX",
-          "zipCode": "76102",
-          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-13T16:00:00-05:00"
+          "zipCode": "78154",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T14:45:00-05:00"
         },
         {
           "stopType": "Last Drop",
-          "city": "PLANO",
+          "city": "PASADENA",
           "state": "TX",
-          "zipCode": "75074",
-          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-13T17:00:00-05:00"
+          "zipCode": "77502",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T11:00:00-05:00"
         }
       ],
-      "createdDate": "2026-07-12T21:43:00-05:00",
+      "createdDate": "2026-07-11T21:43:00-05:00",
       "lastModifiedDate": "2026-07-13T17:17:00-05:00"
     },
     {
       "shipmentId": 127738720,
       "status": "Dispatched",
       "mileage": 70.3,
-      "totalSell": 610,
-      "totalBuy": 485,
+      "totalSell": 610.0,
+      "totalBuy": 485.0,
       "customer": {
         "customerId": 885717,
         "name": "Trinity Retail Group"
@@ -61,7 +61,7 @@
         "phoneNumber": "+19725550190"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 20500.0,
       "stops": [
         {
           "stopType": "First Pickup",
@@ -83,6 +83,48 @@
         }
       ],
       "createdDate": "2026-07-13T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-13T17:17:00-05:00"
+    },
+    {
+      "shipmentId": 127683780,
+      "status": "Delivered",
+      "mileage": 254.8,
+      "totalSell": 1500.0,
+      "totalBuy": 1455.0,
+      "customer": {
+        "customerId": 885717,
+        "name": "Trinity Retail Group"
+      },
+      "carrier": {
+        "carrierMasterId": 864976,
+        "name": "DELTA PRIME, LLC",
+        "mcNumber": "884201",
+        "dotNumber": "2551377",
+        "phoneNumber": "+18305550144"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 18000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T18:00:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T12:45:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-11T09:43:00-05:00",
       "lastModifiedDate": "2026-07-13T17:17:00-05:00"
     }
   ]

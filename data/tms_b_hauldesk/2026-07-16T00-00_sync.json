@@ -8,7 +8,7 @@
       "customer_name": "Metroplex Auto Parts",
       "carrier_ref": null,
       "equip": "V",
-      "weight_kg": 10886.2,
+      "weight_kg": 17236.5,
       "dist_km": 463.5,
       "pu_city": "Plano",
       "pu_state": "TX",
@@ -22,17 +22,57 @@
       "del_arrived_at": null,
       "entered_at": "2026-07-15 21:43:00",
       "updated_at": "2026-07-15 23:17:00"
+    },
+    {
+      "load_num": "HD-2026-570786",
+      "status_code": 30,
+      "customer_code": "C-8189",
+      "customer_name": "Metroplex Auto Parts",
+      "carrier_ref": 73291,
+      "equip": "V",
+      "weight_kg": 8164.7,
+      "dist_km": 305.5,
+      "pu_city": "San Marcos",
+      "pu_state": "TX",
+      "pu_zip": "78666",
+      "pu_date": "2026-07-16",
+      "pu_departed_at": null,
+      "del_city": "Pearland",
+      "del_state": "TX",
+      "del_zip": "77581",
+      "del_date": "2026-07-17",
+      "del_arrived_at": null,
+      "entered_at": "2026-07-15 09:43:00",
+      "updated_at": "2026-07-15 17:17:00"
     }
   ],
-  "carriers": [],
+  "carriers": [
+    {
+      "carrier_id": 73291,
+      "carrier_name": "ALAMO LINEHAUL",
+      "mc_no": "620488",
+      "dot_no": "2440101",
+      "home_city": "New Braunfels",
+      "home_state": "TX",
+      "phone": "(210) 555-0172"
+    }
+  ],
   "rates": [
     {
       "rate_id": 1887610,
       "load_num": "HD-2026-648885",
       "side": "bill",
       "code": "LINEHAUL",
-      "amount_usd": 1420,
+      "amount_usd": 1420.0,
       "created_at": "2026-07-15 23:17:00"
+    },
+    {
+      "rate_id": 1295742,
+      "load_num": "HD-2026-570786",
+      "side": "pay",
+      "code": "LINEHAUL",
+      "amount_usd": 1095.0,
+      "created_at": "2026-07-15 17:17:00"
     }
   ]
 }

@@ -8,7 +8,7 @@
       "customer_name": "Metroplex Auto Parts",
       "carrier_ref": null,
       "equip": "V",
-      "weight_kg": 10886.2,
+      "weight_kg": 12700.6,
       "dist_km": 452.9,
       "pu_city": "Irving",
       "pu_state": "TX",
@@ -31,7 +31,7 @@
       "load_num": "HD-2026-483919",
       "side": "bill",
       "code": "LINEHAUL",
-      "amount_usd": 1412,
+      "amount_usd": 1412.0,
       "created_at": "2026-07-11 11:17:00"
     }
   ]

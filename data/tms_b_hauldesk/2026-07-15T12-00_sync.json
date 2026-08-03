@@ -3,25 +3,25 @@
   "loads": [
     {
       "load_num": "HD-2026-678177",
-      "status_code": 90,
+      "status_code": 40,
       "customer_code": "C-1189",
       "customer_name": "Alamo Building Supply",
       "carrier_ref": 73716,
       "equip": "F",
-      "weight_kg": 10886.2,
+      "weight_kg": 14968.5,
       "dist_km": 341.3,
       "pu_city": "Seguin",
       "pu_state": "TX",
       "pu_zip": "78155",
       "pu_date": "2026-07-15",
-      "pu_departed_at": "2026-07-15 10:00:00",
+      "pu_departed_at": null,
       "del_city": "Baytown",
       "del_state": "TX",
       "del_zip": "77520",
       "del_date": "2026-07-16",
-      "del_arrived_at": "2026-07-15 11:00:00",
+      "del_arrived_at": null,
       "entered_at": "2026-07-14 09:43:00",
-      "updated_at": "2026-07-15 11:41:00"
+      "updated_at": "2026-07-15 11:17:00"
     },
     {
       "load_num": "HD-2026-570786",
@@ -30,7 +30,7 @@
       "customer_name": "Metroplex Auto Parts",
       "carrier_ref": null,
       "equip": "V",
-      "weight_kg": 10886.2,
+      "weight_kg": 8164.7,
       "dist_km": 305.5,
       "pu_city": "San Marcos",
       "pu_state": "TX",
@@ -59,19 +59,11 @@
   ],
   "rates": [
     {
-      "rate_id": 1594782,
-      "load_num": "HD-2026-678177",
-      "side": "pay",
-      "code": "ADJUSTMENT",
-      "amount_usd": -85,
-      "created_at": "2026-07-15 11:41:00"
-    },
-    {
       "rate_id": 1696554,
       "load_num": "HD-2026-570786",
       "side": "bill",
       "code": "LINEHAUL",
-      "amount_usd": 1350,
+      "amount_usd": 1350.0,
       "created_at": "2026-07-15 11:17:00"
     }
   ]

@@ -2,53 +2,11 @@
   "syncedAt": "2026-07-12T18:00:00-05:00",
   "loads": [
     {
-      "shipmentId": 127379425,
-      "status": "Completed",
-      "mileage": 217.2,
-      "totalSell": 1540,
-      "totalBuy": 1210,
-      "customer": {
-        "customerId": 962163,
-        "name": "Bluebonnet Foods"
-      },
-      "carrier": {
-        "carrierMasterId": 856005,
-        "name": "RIVER CITY HAULAGE",
-        "mcNumber": "771204",
-        "dotNumber": "3001552",
-        "phoneNumber": "+18305550144"
-      },
-      "equipment": "53 ft Van | Reefer",
-      "weightTotal": 24000.0,
-      "stops": [
-        {
-          "stopType": "First Pickup",
-          "city": "SCHERTZ",
-          "state": "TX",
-          "zipCode": "78154",
-          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-12T16:00:00-05:00"
-        },
-        {
-          "stopType": "Last Drop",
-          "city": "PASADENA",
-          "state": "TX",
-          "zipCode": "77502",
-          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-12T17:00:00-05:00"
-        }
-      ],
-      "createdDate": "2026-07-11T21:43:00-05:00",
-      "lastModifiedDate": "2026-07-12T17:17:00-05:00"
-    },
-    {
       "shipmentId": 127301207,
       "status": "Dispatched",
       "mileage": 217.2,
-      "totalSell": 1540,
-      "totalBuy": 1210,
+      "totalSell": 1540.0,
+      "totalBuy": 1210.0,
       "customer": {
         "customerId": 962163,
         "name": "Bluebonnet Foods"
@@ -61,7 +19,7 @@
         "phoneNumber": "+17135550110"
       },
       "equipment": "53 ft Van | Reefer",
-      "weightTotal": 24000.0,
+      "weightTotal": 25500.0,
       "stops": [
         {
           "stopType": "First Pickup",
@@ -83,6 +41,90 @@
         }
       ],
       "createdDate": "2026-07-12T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-12T17:17:00-05:00"
+    },
+    {
+      "shipmentId": 127937766,
+      "status": "Delivered",
+      "mileage": 254.8,
+      "totalSell": 1530.0,
+      "totalBuy": 1220.0,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 837428,
+        "name": "IBRAHIM TRANSPORT INC",
+        "mcNumber": "1346382",
+        "dotNumber": "3771394",
+        "phoneNumber": "+15714906959"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 38000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T13:45:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T10:15:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-10T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-12T17:17:00-05:00"
+    },
+    {
+      "shipmentId": 127259648,
+      "status": "Delivered",
+      "mileage": 254.8,
+      "totalSell": 1500.0,
+      "totalBuy": 1425.0,
+      "customer": {
+        "customerId": 885717,
+        "name": "Trinity Retail Group"
+      },
+      "carrier": {
+        "carrierMasterId": 864976,
+        "name": "DELTA PRIME, LLC",
+        "mcNumber": "884201",
+        "dotNumber": "2551377",
+        "phoneNumber": "+18305550144"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 38000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T17:45:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-12T12:30:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-10T21:43:00-05:00",
       "lastModifiedDate": "2026-07-12T17:17:00-05:00"
     }
   ]

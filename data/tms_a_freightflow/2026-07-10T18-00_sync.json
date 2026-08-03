@@ -2,11 +2,11 @@
   "syncedAt": "2026-07-10T18:00:00-05:00",
   "loads": [
     {
-      "shipmentId": 127720325,
-      "status": "Completed",
+      "shipmentId": 127437744,
+      "status": "Delivered",
       "mileage": 254.8,
-      "totalSell": 1522,
-      "totalBuy": 1214,
+      "totalSell": 1498.0,
+      "totalBuy": 1196.0,
       "customer": {
         "customerId": 975317,
         "name": "Lone Star Beverages"
@@ -19,36 +19,36 @@
         "phoneNumber": "+15714906959"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 28000.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "GRAND PRAIRIE",
           "state": "TX",
           "zipCode": "75050",
-          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-10T16:00:00-05:00"
+          "estimatedReadyDateTime": "2026-07-09T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-09T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-09T13:45:00-05:00"
         },
         {
           "stopType": "Last Drop",
           "city": "KATY",
           "state": "TX",
           "zipCode": "77449",
-          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-10T17:00:00-05:00"
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-10T10:15:00-05:00"
         }
       ],
-      "createdDate": "2026-07-09T21:43:00-05:00",
+      "createdDate": "2026-07-08T09:43:00-05:00",
       "lastModifiedDate": "2026-07-10T17:17:00-05:00"
     },
     {
-      "shipmentId": 127937766,
-      "status": "Dispatched",
+      "shipmentId": 127862199,
+      "status": "Delivered",
       "mileage": 254.8,
-      "totalSell": 1530,
-      "totalBuy": 1220,
+      "totalSell": 1506.0,
+      "totalBuy": 1202.0,
       "customer": {
         "customerId": 975317,
         "name": "Lone Star Beverages"
@@ -61,7 +61,49 @@
         "phoneNumber": "+15714906959"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 30500.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-09T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-09T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-09T14:00:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-10T10:30:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-08T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-10T17:17:00-05:00"
+    },
+    {
+      "shipmentId": 127937766,
+      "status": "Dispatched",
+      "mileage": 254.8,
+      "totalSell": 1530.0,
+      "totalBuy": 1220.0,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 837428,
+        "name": "IBRAHIM TRANSPORT INC",
+        "mcNumber": "1346382",
+        "dotNumber": "3771394",
+        "phoneNumber": "+15714906959"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 38000.0,
       "stops": [
         {
           "stopType": "First Pickup",

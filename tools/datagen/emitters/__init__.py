@@ -70,30 +70,42 @@ def _equipment_brokeros(spec: LoadSpec) -> str | None:
 
 def _freightflow_status(status: CanonicalStatus) -> str:
     return {
+        CanonicalStatus.PLANNED: "Quoting",
         CanonicalStatus.ACTIVE: "Booking",
         CanonicalStatus.COVERED: "Dispatched",
+        CanonicalStatus.AT_SHIPPER: "At Shipper",
         CanonicalStatus.IN_TRANSIT: "En Route",
+        CanonicalStatus.AT_RECEIVER: "At Receiver",
         CanonicalStatus.DELIVERED: "Delivered",
+        CanonicalStatus.INVOICED: "Completed",
         CanonicalStatus.COMPLETED: "Completed",
     }[status]
 
 
 def _hauldesk_status(status: CanonicalStatus) -> int:
     return {
+        CanonicalStatus.PLANNED: 10,
         CanonicalStatus.ACTIVE: 20,
         CanonicalStatus.COVERED: 30,
+        CanonicalStatus.AT_SHIPPER: 40,
         CanonicalStatus.IN_TRANSIT: 40,
+        CanonicalStatus.AT_RECEIVER: 40,
         CanonicalStatus.DELIVERED: 50,
+        CanonicalStatus.INVOICED: 50,
         CanonicalStatus.COMPLETED: 90,
     }[status]
 
 
 def _brokeros_status(status: CanonicalStatus) -> str:
     return {
+        CanonicalStatus.PLANNED: "Quotes Requested",
         CanonicalStatus.ACTIVE: "Ready to Book",
         CanonicalStatus.COVERED: "Booked",
+        CanonicalStatus.AT_SHIPPER: "In Transit",
         CanonicalStatus.IN_TRANSIT: "In Transit",
+        CanonicalStatus.AT_RECEIVER: "Delivered",
         CanonicalStatus.DELIVERED: "Delivered",
+        CanonicalStatus.INVOICED: "Invoiced",
         CanonicalStatus.COMPLETED: "Paid",
     }[status]
 
@@ -112,25 +124,26 @@ def _emit_freightflow(slot: int, events: list[LoadEvent]) -> dict[str, Any]:
 def _freightflow_load(event: LoadEvent) -> dict[str, Any]:
     spec = event.spec
     customer = CUSTOMERS[spec.customer]
-    carrier = CARRIERS[spec.carrier] if spec.carrier and event.status != CanonicalStatus.ACTIVE else None
+    carrier = CARRIERS[event.carrier_key] if event.carrier_key else None
     stop_rows = []
-    for index, place in enumerate(_stops(spec), start=1):
+    # FreightFlow's documented stopType vocabulary only covers first pickup and last drop.
+    freightflow_stops = [PLACES[spec.pickup], PLACES[spec.delivery]]
+    for index, place in enumerate(freightflow_stops, start=1):
         pickup = index == 1
-        delivery = index == len(_stops(spec))
-        ready = event.created_at.date() + timedelta(days=index)
+        delivery = index == len(freightflow_stops)
         departed = None
-        if pickup and event.status in {CanonicalStatus.IN_TRANSIT, CanonicalStatus.DELIVERED, CanonicalStatus.COMPLETED}:
-            departed = _iso_central(slot_datetime(event.slot) - timedelta(hours=2))
-        if delivery and event.status in {CanonicalStatus.DELIVERED, CanonicalStatus.COMPLETED}:
-            departed = _iso_central(slot_datetime(event.slot) - timedelta(hours=1))
+        if pickup and event.status in {CanonicalStatus.IN_TRANSIT, CanonicalStatus.AT_RECEIVER, CanonicalStatus.DELIVERED, CanonicalStatus.INVOICED, CanonicalStatus.COMPLETED}:
+            departed = _iso_central(event.pickup_departed_at)
+        if delivery and event.status in {CanonicalStatus.AT_RECEIVER, CanonicalStatus.DELIVERED, CanonicalStatus.INVOICED, CanonicalStatus.COMPLETED}:
+            departed = _iso_central(event.delivery_arrived_at + timedelta(hours=2))
         stop_rows.append(
             {
                 "stopType": "First Pickup" if pickup else "Last Drop" if delivery else f"Stop {index}",
                 "city": place.city.upper(),
                 "state": place.state,
                 "zipCode": place.zip_code,
-                "estimatedReadyDateTime": _iso_central(slot_datetime(event.slot).replace(hour=8) + timedelta(days=index)),
-                "estimatedCloseDateTime": _iso_central(slot_datetime(event.slot).replace(hour=16) + timedelta(days=index)),
+                "estimatedReadyDateTime": _iso_central(event.pickup_open_at if pickup else event.delivery_open_at),
+                "estimatedCloseDateTime": _iso_central(event.pickup_close_at if pickup else event.delivery_close_at),
                 "actualDepartureDateTime": departed,
             }
         )
@@ -138,9 +151,9 @@ def _freightflow_load(event: LoadEvent) -> dict[str, Any]:
     return {
         "shipmentId": 127000000 + stable_int(spec.key, 6),
         "status": _freightflow_status(event.status),
-        "mileage": road_miles(spec.pickup, spec.delivery),
-        "totalSell": round(spec.sell_usd, 2),
-        "totalBuy": round(event.buy_usd, 2) if event.buy_usd is not None else None,
+        "mileage": float(road_miles(spec.pickup, spec.delivery)),
+        "totalSell": float(round(spec.sell_usd, 2)),
+        "totalBuy": float(round(event.buy_usd, 2)) if event.buy_usd is not None else None,
         "customer": {"customerId": 880000 + stable_int(spec.customer, 5), "name": customer.name},
         "carrier": None
         if carrier is None
@@ -152,7 +165,7 @@ def _freightflow_load(event: LoadEvent) -> dict[str, Any]:
             "phoneNumber": carrier.phone,
         },
         "equipment": _equipment_freightflow(spec.equipment),
-        "weightTotal": spec.weight_lbs,
+        "weightTotal": float(spec.weight_lbs),
         "stops": stop_rows,
         "createdDate": _iso_central(event.created_at),
         "lastModifiedDate": _iso_central(event.modified_at),
@@ -163,9 +176,9 @@ def _emit_hauldesk(slot: int, events: list[LoadEvent]) -> dict[str, Any]:
     carrier_rows = []
     seen_carriers = set()
     for event in events:
-        if event.spec.carrier and event.status != CanonicalStatus.ACTIVE and event.spec.carrier not in seen_carriers:
-            seen_carriers.add(event.spec.carrier)
-            carrier_rows.append(_hauldesk_carrier(event.spec, slot))
+        if event.carrier_key and _should_emit_hauldesk_carrier(event, slot) and event.carrier_key not in seen_carriers:
+            seen_carriers.add(event.carrier_key)
+            carrier_rows.append(_hauldesk_carrier(event, slot))
 
     return {
         "synced_at": _naive_central(slot_datetime(slot)),
@@ -179,7 +192,7 @@ def _hauldesk_load(event: LoadEvent) -> dict[str, Any]:
     spec = event.spec
     pickup = PLACES[spec.pickup]
     delivery = PLACES[spec.delivery]
-    carrier_ref = 66000 + stable_int(spec.carrier, 4) if spec.carrier and event.status != CanonicalStatus.ACTIVE else None
+    carrier_ref = 66000 + stable_int(event.carrier_key, 4) if event.carrier_key else None
     return {
         "load_num": f"HD-2026-{stable_int(spec.key, 6):06d}",
         "status_code": _hauldesk_status(event.status),
@@ -187,25 +200,32 @@ def _hauldesk_load(event: LoadEvent) -> dict[str, Any]:
         "customer_name": CUSTOMERS[spec.customer].name,
         "carrier_ref": carrier_ref,
         "equip": _equipment_hauldesk(spec.equipment),
-        "weight_kg": round(spec.weight_lbs * 0.45359237, 1),
-        "dist_km": round(road_miles(spec.pickup, spec.delivery) * 1.609344, 1),
+        "weight_kg": float(round(spec.weight_lbs * 0.45359237, 1)),
+        "dist_km": float(round(road_miles(spec.pickup, spec.delivery) * 1.609344, 1)),
         "pu_city": pickup.city,
         "pu_state": pickup.state,
         "pu_zip": pickup.zip_code,
-        "pu_date": (event.created_at.date() + timedelta(days=1)).isoformat(),
-        "pu_departed_at": _naive_central(slot_datetime(event.slot) - timedelta(hours=2)) if event.status in {CanonicalStatus.IN_TRANSIT, CanonicalStatus.DELIVERED, CanonicalStatus.COMPLETED} else None,
+        "pu_date": event.pickup_open_at.date().isoformat(),
+        "pu_departed_at": _naive_central(event.pickup_departed_at) if event.status in {CanonicalStatus.IN_TRANSIT, CanonicalStatus.AT_RECEIVER, CanonicalStatus.DELIVERED, CanonicalStatus.INVOICED, CanonicalStatus.COMPLETED} else None,
         "del_city": delivery.city,
         "del_state": delivery.state,
         "del_zip": delivery.zip_code,
-        "del_date": (event.created_at.date() + timedelta(days=2)).isoformat(),
-        "del_arrived_at": _naive_central(slot_datetime(event.slot) - timedelta(hours=1)) if event.status in {CanonicalStatus.DELIVERED, CanonicalStatus.COMPLETED} else None,
+        "del_date": event.delivery_open_at.date().isoformat(),
+        "del_arrived_at": _naive_central(event.delivery_arrived_at) if event.status in {CanonicalStatus.AT_RECEIVER, CanonicalStatus.DELIVERED, CanonicalStatus.INVOICED, CanonicalStatus.COMPLETED} else None,
         "entered_at": _naive_central(event.created_at),
         "updated_at": _naive_central(event.modified_at),
     }
 
 
-def _hauldesk_carrier(spec: LoadSpec, slot: int) -> dict[str, Any]:
-    carrier = CARRIERS[spec.carrier]
+def _should_emit_hauldesk_carrier(event: LoadEvent, slot: int) -> bool:
+    if event.status == CanonicalStatus.COVERED:
+        return True
+    return event.spec.hauldesk_carrier_rename_slot is not None and slot >= event.spec.hauldesk_carrier_rename_slot
+
+
+def _hauldesk_carrier(event: LoadEvent, slot: int) -> dict[str, Any]:
+    spec = event.spec
+    carrier = CARRIERS[event.carrier_key]
     renamed = spec.hauldesk_carrier_rename_slot is not None and slot >= spec.hauldesk_carrier_rename_slot
     name = f"{carrier.name} DBA GULFWAY" if renamed else carrier.name
     home = PLACES[carrier.home]
@@ -227,7 +247,7 @@ def _hauldesk_rates(event: LoadEvent) -> list[dict[str, Any]]:
     if event.status == CanonicalStatus.ACTIVE:
         rows.append(_rate_row(spec.key, load_num, "bill", "LINEHAUL", spec.sell_usd, event.modified_at, "bill"))
     elif event.status == CanonicalStatus.COVERED and event.buy_usd is not None:
-        rows.append(_rate_row(spec.key, load_num, "pay", "LINEHAUL", event.buy_usd, event.modified_at, "pay"))
+        rows.append(_rate_row(spec.key, load_num, "pay", "LINEHAUL", event.buy_usd, event.modified_at, f"pay:{event.carrier_key}"))
     elif event.is_correction:
         rows.append(_rate_row(spec.key, load_num, "pay", "ADJUSTMENT", event.correction_delta_usd, event.modified_at, "adjustment"))
     return rows
@@ -239,7 +259,7 @@ def _rate_row(spec_key: str, load_num: str, side: str, code: str, amount: float,
         "load_num": load_num,
         "side": side,
         "code": code,
-        "amount_usd": round(amount, 2),
+        "amount_usd": float(round(amount, 2)),
         "created_at": _naive_central(created_at),
     }
 
@@ -260,16 +280,13 @@ def _brokeros_load(event: LoadEvent) -> tuple[dict[str, Any], dict[str, Any]]:
     customer_id = stable_id("001", f"customer:{spec.customer}")
     refs[customer_id] = {"type": "Account", "record_type": "Customer", "Name": CUSTOMERS[spec.customer].name}
     carrier_id = None
-    if spec.carrier and event.status != CanonicalStatus.ACTIVE:
-        carrier = CARRIERS[spec.carrier]
+    if event.carrier_key:
+        carrier = CARRIERS[event.carrier_key]
         carrier_id = stable_id("001", f"carrier:{carrier.key}")
         refs[carrier_id] = {
             "type": "Account",
             "record_type": "Carrier",
             "Name": carrier.name,
-            "bos__MC_Number__c": carrier.mc,
-            "bos__DOT_Number__c": carrier.dot,
-            "Phone": carrier.phone,
         }
 
     stop_rows = []
@@ -285,17 +302,17 @@ def _brokeros_load(event: LoadEvent) -> tuple[dict[str, Any], dict[str, Any]]:
         is_pickup = index == 1
         is_dropoff = index == len(_stops(spec))
         arrival = None
-        if is_pickup and event.status in {CanonicalStatus.IN_TRANSIT, CanonicalStatus.DELIVERED, CanonicalStatus.COMPLETED}:
-            arrival = _iso_utc_crm(slot_datetime(event.slot) - timedelta(hours=3))
-        if is_dropoff and event.status in {CanonicalStatus.DELIVERED, CanonicalStatus.COMPLETED}:
-            arrival = _iso_utc_crm(slot_datetime(event.slot) - timedelta(hours=2))
+        if is_pickup and event.status in {CanonicalStatus.AT_SHIPPER, CanonicalStatus.IN_TRANSIT, CanonicalStatus.AT_RECEIVER, CanonicalStatus.DELIVERED, CanonicalStatus.INVOICED, CanonicalStatus.COMPLETED}:
+            arrival = _iso_utc_crm(event.pickup_arrived_at)
+        if is_dropoff and event.status in {CanonicalStatus.AT_RECEIVER, CanonicalStatus.DELIVERED, CanonicalStatus.INVOICED, CanonicalStatus.COMPLETED}:
+            arrival = _iso_utc_crm(event.delivery_arrived_at)
         stop_rows.append(
             {
                 "bos__Number__c": float(index),
                 "bos__Is_Pickup__c": is_pickup,
                 "bos__Is_Dropoff__c": is_dropoff,
                 "bos__Location__c": location_id,
-                "bos__Scheduled_Date__c": (event.created_at.date() + timedelta(days=index)).isoformat(),
+                "bos__Scheduled_Date__c": (event.pickup_open_at if is_pickup else event.delivery_open_at).date().isoformat(),
                 "bos__Arrival_Time__c": arrival,
             }
         )
@@ -310,19 +327,19 @@ def _brokeros_load(event: LoadEvent) -> tuple[dict[str, Any], dict[str, Any]]:
             "Id": stable_id("a0j", f"load:{spec.key}"),
             "Name": f"SHP{stable_int(spec.key, 7):07d}",
             "bos__Load_Status__c": _brokeros_status(event.status),
-            "bos__Distance_Miles__c": road_miles(spec.pickup, spec.delivery),
+            "bos__Distance_Miles__c": float(road_miles(spec.pickup, spec.delivery)),
             "bos__Customer__c": customer_id,
             "bos__Carrier__c": carrier_id,
             "bos__Equipment_Type__c": _equipment_brokeros(spec),
-            "bos__Customer_Rate__c": round(spec.sell_usd, 2),
-            "bos__Carrier_Rate__c": round(event.buy_usd, 2) if event.buy_usd is not None else None,
+            "bos__Customer_Rate__c": float(round(spec.sell_usd, 2)),
+            "bos__Carrier_Rate__c": float(round(event.buy_usd, 2)) if event.buy_usd is not None else None,
             "bos__Stops__r": stop_rows,
             "bos__Line_Items__r": [
                 {
-                    "bos__Commodity__c": "General freight",
-                    "bos__Weight__c": weight,
+                    "bos__Commodity__c": spec.commodity,
+                    "bos__Weight__c": float(weight),
                     "bos__Weight_Units__c": units,
-                    "bos__Pallet_Count__c": 18.0,
+                    "bos__Pallet_Count__c": float(spec.pallet_count),
                 }
             ],
             "CreatedDate": _iso_utc_crm(event.created_at),

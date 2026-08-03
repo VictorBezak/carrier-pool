@@ -19,10 +19,14 @@ class Equipment(str, Enum):
 
 
 class CanonicalStatus(str, Enum):
+    PLANNED = "PLANNED"
     ACTIVE = "ACTIVE"
     COVERED = "COVERED"
+    AT_SHIPPER = "AT_SHIPPER"
     IN_TRANSIT = "IN_TRANSIT"
+    AT_RECEIVER = "AT_RECEIVER"
     DELIVERED = "DELIVERED"
+    INVOICED = "INVOICED"
     COMPLETED = "COMPLETED"
 
 
@@ -72,10 +76,13 @@ class LoadSpec:
     scenario_ids: tuple[str, ...] = ()
     notes: str = ""
     intermediate_stops: tuple[str, ...] = ()
+    commodity: str = "General freight"
+    pallet_count: float = 18.0
     correction_delta_usd: float = 0.0
     brokeros_weight_units: str = "lbs"
     brokeros_null_equipment: bool = False
     hauldesk_carrier_rename_slot: int | None = None
+    reassigned_carrier: str | None = None
 
 
 @dataclass(frozen=True)
@@ -83,11 +90,19 @@ class LoadEvent:
     spec: LoadSpec
     slot: int
     status: CanonicalStatus
+    carrier_key: str | None
     buy_usd: float | None
     is_correction: bool = False
     correction_delta_usd: float = 0.0
     created_at: datetime | None = None
     modified_at: datetime | None = None
+    pickup_open_at: datetime | None = None
+    pickup_close_at: datetime | None = None
+    pickup_arrived_at: datetime | None = None
+    pickup_departed_at: datetime | None = None
+    delivery_open_at: datetime | None = None
+    delivery_close_at: datetime | None = None
+    delivery_arrived_at: datetime | None = None
 
 
 @dataclass(frozen=True)

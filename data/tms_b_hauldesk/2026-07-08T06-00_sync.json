@@ -2,25 +2,25 @@
   "synced_at": "2026-07-08 06:00:00",
   "loads": [
     {
-      "load_num": "HD-2026-122671",
+      "load_num": "HD-2026-753800",
       "status_code": 90,
       "customer_code": "C-1189",
       "customer_name": "Alamo Building Supply",
       "carrier_ref": 69639,
       "equip": "V",
-      "weight_kg": 10886.2,
+      "weight_kg": 14968.5,
       "dist_km": 332.3,
       "pu_city": "New Braunfels",
       "pu_state": "TX",
       "pu_zip": "78130",
-      "pu_date": "2026-07-08",
-      "pu_departed_at": "2026-07-08 04:00:00",
+      "pu_date": "2026-07-06",
+      "pu_departed_at": "2026-07-06 14:15:00",
       "del_city": "Pasadena",
       "del_state": "TX",
       "del_zip": "77502",
-      "del_date": "2026-07-09",
-      "del_arrived_at": "2026-07-08 05:00:00",
-      "entered_at": "2026-07-07 09:43:00",
+      "del_date": "2026-07-07",
+      "del_arrived_at": "2026-07-07 08:30:00",
+      "entered_at": "2026-07-05 21:43:00",
       "updated_at": "2026-07-08 05:17:00"
     },
     {
@@ -30,7 +30,7 @@
       "customer_name": "Alamo Building Supply",
       "carrier_ref": 69639,
       "equip": "V",
-      "weight_kg": 10886.2,
+      "weight_kg": 9298.6,
       "dist_km": 332.3,
       "pu_city": "New Braunfels",
       "pu_state": "TX",
@@ -46,24 +46,14 @@
       "updated_at": "2026-07-08 05:17:00"
     }
   ],
-  "carriers": [
-    {
-      "carrier_id": 69639,
-      "carrier_name": "DELTA PRIME LLC",
-      "mc_no": "884201",
-      "dot_no": "2551377",
-      "home_city": "Seguin",
-      "home_state": "TX",
-      "phone": "(830) 555-0144"
-    }
-  ],
+  "carriers": [],
   "rates": [
     {
-      "rate_id": 1591263,
+      "rate_id": 1710437,
       "load_num": "HD-2026-378392",
       "side": "pay",
       "code": "LINEHAUL",
-      "amount_usd": 1035,
+      "amount_usd": 1035.0,
       "created_at": "2026-07-08 05:17:00"
     }
   ]

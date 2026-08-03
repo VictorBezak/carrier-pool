@@ -9,7 +9,7 @@
       "bos__Customer__c": "001b9838835c559d83",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1701,
+      "bos__Customer_Rate__c": 1701.0,
       "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {
@@ -31,10 +31,10 @@
       ],
       "bos__Line_Items__r": [
         {
-          "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 10886.2,
+          "bos__Commodity__c": "Building materials",
+          "bos__Weight__c": 13834.6,
           "bos__Weight_Units__c": "kg",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 21.0
         }
       ],
       "CreatedDate": "2026-07-07T02:43:00.000+0000",

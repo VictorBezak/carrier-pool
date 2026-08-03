@@ -9,7 +9,7 @@
       "bos__Customer__c": "001b9838835c559d83",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1694,
+      "bos__Customer_Rate__c": 1694.0,
       "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {
@@ -31,10 +31,10 @@
       ],
       "bos__Line_Items__r": [
         {
-          "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Commodity__c": "Packaged foods",
+          "bos__Weight__c": 28000.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 20.0
         }
       ],
       "CreatedDate": "2026-07-06T14:43:00.000+0000",

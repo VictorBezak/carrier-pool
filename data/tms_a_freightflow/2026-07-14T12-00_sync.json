@@ -3,10 +3,10 @@
   "loads": [
     {
       "shipmentId": 127738346,
-      "status": "En Route",
+      "status": "At Shipper",
       "mileage": 276.1,
-      "totalSell": 1510,
-      "totalBuy": 1190,
+      "totalSell": 1510.0,
+      "totalBuy": 1190.0,
       "customer": {
         "customerId": 975317,
         "name": "Lone Star Beverages"
@@ -19,24 +19,15 @@
         "phoneNumber": "+12815550121"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 23000.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "IRVING",
           "state": "TX",
           "zipCode": "75062",
-          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-14T10:00:00-05:00"
-        },
-        {
-          "stopType": "Stop 2",
-          "city": "PEARLAND",
-          "state": "TX",
-          "zipCode": "77581",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
           "actualDepartureDateTime": null
         },
         {
@@ -44,8 +35,8 @@
           "city": "SUGAR LAND",
           "state": "TX",
           "zipCode": "77478",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
           "actualDepartureDateTime": null
         }
       ],
@@ -54,17 +45,23 @@
     },
     {
       "shipmentId": 127461251,
-      "status": "Booking",
+      "status": "Dispatched",
       "mileage": 270.2,
-      "totalSell": 1260,
-      "totalBuy": null,
+      "totalSell": 1260.0,
+      "totalBuy": 1085.0,
       "customer": {
         "customerId": 962163,
         "name": "Bluebonnet Foods"
       },
-      "carrier": null,
+      "carrier": {
+        "carrierMasterId": 918324,
+        "name": "MISSION CITY FREIGHT",
+        "mcNumber": "631145",
+        "dotNumber": "2881440",
+        "phoneNumber": "+12105550133"
+      },
       "equipment": "48 ft Flatbed",
-      "weightTotal": 24000.0,
+      "weightTotal": 23000.0,
       "stops": [
         {
           "stopType": "First Pickup",

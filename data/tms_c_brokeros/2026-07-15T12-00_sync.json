@@ -2,6 +2,53 @@
   "synced_at": "2026-07-15T17:00:00.000+0000",
   "records": [
     {
+      "Id": "a0j6503e29639ac5b2",
+      "Name": "SHP4576978",
+      "bos__Load_Status__c": "Paid",
+      "bos__Distance_Miles__c": 298.5,
+      "bos__Customer__c": "001dfc3a9c4c0a02e0",
+      "bos__Carrier__c": "001ea00b4d355bde92",
+      "bos__Equipment_Type__c": "Dry Van",
+      "bos__Customer_Rate__c": 1490.0,
+      "bos__Carrier_Rate__c": 1180.0,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "0013b7a9a06b6afd8e",
+          "bos__Scheduled_Date__c": "2026-07-13",
+          "bos__Arrival_Time__c": "2026-07-13T13:37:30.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "0012ee59d64d59f50b",
+          "bos__Scheduled_Date__c": "2026-07-14",
+          "bos__Arrival_Time__c": null
+        },
+        {
+          "bos__Number__c": 3.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "00196e525fa4ba2f67",
+          "bos__Scheduled_Date__c": "2026-07-14",
+          "bos__Arrival_Time__c": "2026-07-14T13:45:00.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "General freight",
+          "bos__Weight__c": 38000.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 18.0
+        }
+      ],
+      "CreatedDate": "2026-07-13T02:43:00.000+0000",
+      "LastModifiedDate": "2026-07-15T16:17:00.000+0000"
+    },
+    {
       "Id": "a0ja8e27a7106e2a16",
       "Name": "SHP5440056",
       "bos__Load_Status__c": "Ready to Book",
@@ -9,7 +56,7 @@
       "bos__Customer__c": "001b9838835c559d83",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1440,
+      "bos__Customer_Rate__c": 1440.0,
       "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {
@@ -32,9 +79,9 @@
       "bos__Line_Items__r": [
         {
           "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Weight__c": 30500.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 12.0
         }
       ],
       "CreatedDate": "2026-07-15T14:43:00.000+0000",
@@ -42,6 +89,37 @@
     }
   ],
   "referenced_records": {
+    "001dfc3a9c4c0a02e0": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Triangle Home Goods"
+    },
+    "001ea00b4d355bde92": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "Pearland Produce Express"
+    },
+    "0013b7a9a06b6afd8e": {
+      "type": "Location",
+      "Name": "Plano Facility",
+      "bos__City__c": "Plano",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "75074"
+    },
+    "0012ee59d64d59f50b": {
+      "type": "Location",
+      "Name": "Baytown Facility",
+      "bos__City__c": "Baytown",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77520"
+    },
+    "00196e525fa4ba2f67": {
+      "type": "Location",
+      "Name": "Pearland Facility",
+      "bos__City__c": "Pearland",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77581"
+    },
     "001b9838835c559d83": {
       "type": "Account",
       "record_type": "Customer",

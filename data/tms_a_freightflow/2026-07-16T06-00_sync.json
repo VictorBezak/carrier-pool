@@ -5,7 +5,7 @@
       "shipmentId": 127636617,
       "status": "Booking",
       "mileage": 206.5,
-      "totalSell": 1560,
+      "totalSell": 1560.0,
       "totalBuy": null,
       "customer": {
         "customerId": 962163,
@@ -13,7 +13,7 @@
       },
       "carrier": null,
       "equipment": "53 ft Van | Reefer",
-      "weightTotal": 24000.0,
+      "weightTotal": 35500.0,
       "stops": [
         {
           "stopType": "First Pickup",
@@ -38,45 +38,45 @@
       "lastModifiedDate": "2026-07-16T05:17:00-05:00"
     },
     {
-      "shipmentId": 127932767,
+      "shipmentId": 127738720,
       "status": "Completed",
-      "mileage": 252.6,
-      "totalSell": 1330,
-      "totalBuy": 1105,
+      "mileage": 70.3,
+      "totalSell": 610.0,
+      "totalBuy": 485.0,
       "customer": {
         "customerId": 885717,
         "name": "Trinity Retail Group"
       },
       "carrier": {
-        "carrierMasterId": 918323,
-        "name": "CEDAR HILL FREIGHT",
-        "mcNumber": "902441",
-        "dotNumber": "2419988",
-        "phoneNumber": "+18175550188"
+        "carrierMasterId": 921117,
+        "name": "MOCKINGBIRD LOGISTICS",
+        "mcNumber": "615880",
+        "dotNumber": "2100987",
+        "phoneNumber": "+19725550190"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 20500.0,
       "stops": [
         {
           "stopType": "First Pickup",
-          "city": "WAXAHACHIE",
+          "city": "DENTON",
           "state": "TX",
-          "zipCode": "75165",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-16T04:00:00-05:00"
+          "zipCode": "76201",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T16:30:00-05:00"
         },
         {
           "stopType": "Last Drop",
-          "city": "BAYTOWN",
+          "city": "WAXAHACHIE",
           "state": "TX",
-          "zipCode": "77520",
-          "estimatedReadyDateTime": "2026-07-18T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-18T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-16T05:00:00-05:00"
+          "zipCode": "75165",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-15T11:45:00-05:00"
         }
       ],
-      "createdDate": "2026-07-15T09:43:00-05:00",
+      "createdDate": "2026-07-13T09:43:00-05:00",
       "lastModifiedDate": "2026-07-16T05:17:00-05:00"
     }
   ]

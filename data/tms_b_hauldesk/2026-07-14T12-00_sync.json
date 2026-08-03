@@ -3,12 +3,12 @@
   "loads": [
     {
       "load_num": "HD-2026-678177",
-      "status_code": 20,
+      "status_code": 10,
       "customer_code": "C-1189",
       "customer_name": "Alamo Building Supply",
       "carrier_ref": null,
       "equip": "F",
-      "weight_kg": 10886.2,
+      "weight_kg": 14968.5,
       "dist_km": 341.3,
       "pu_city": "Seguin",
       "pu_state": "TX",
@@ -25,14 +25,5 @@
     }
   ],
   "carriers": [],
-  "rates": [
-    {
-      "rate_id": 1060323,
-      "load_num": "HD-2026-678177",
-      "side": "bill",
-      "code": "LINEHAUL",
-      "amount_usd": 1320,
-      "created_at": "2026-07-14 11:17:00"
-    }
-  ]
+  "rates": []
 }

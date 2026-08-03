@@ -2,11 +2,11 @@
   "syncedAt": "2026-07-09T06:00:00-05:00",
   "loads": [
     {
-      "shipmentId": 127437744,
+      "shipmentId": 127714209,
       "status": "Completed",
       "mileage": 254.8,
-      "totalSell": 1498,
-      "totalBuy": 1196,
+      "totalSell": 1466.0,
+      "totalBuy": 1172.0,
       "customer": {
         "customerId": 975317,
         "name": "Lone Star Beverages"
@@ -19,36 +19,36 @@
         "phoneNumber": "+15714906959"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 18000.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "GRAND PRAIRIE",
           "state": "TX",
           "zipCode": "75050",
-          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-09T04:00:00-05:00"
+          "estimatedReadyDateTime": "2026-07-07T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-07T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-07T14:00:00-05:00"
         },
         {
           "stopType": "Last Drop",
           "city": "KATY",
           "state": "TX",
           "zipCode": "77449",
-          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-09T05:00:00-05:00"
+          "estimatedReadyDateTime": "2026-07-08T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-08T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-08T10:30:00-05:00"
         }
       ],
-      "createdDate": "2026-07-08T09:43:00-05:00",
+      "createdDate": "2026-07-06T09:43:00-05:00",
       "lastModifiedDate": "2026-07-09T05:17:00-05:00"
     },
     {
-      "shipmentId": 127862199,
-      "status": "Dispatched",
+      "shipmentId": 127424170,
+      "status": "Completed",
       "mileage": 254.8,
-      "totalSell": 1506,
-      "totalBuy": 1202,
+      "totalSell": 1474.0,
+      "totalBuy": 1178.0,
       "customer": {
         "customerId": 975317,
         "name": "Lone Star Beverages"
@@ -61,15 +61,57 @@
         "phoneNumber": "+15714906959"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 20500.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "GRAND PRAIRIE",
           "state": "TX",
           "zipCode": "75050",
-          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-07T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-07T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-07T14:15:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-08T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-08T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-08T10:45:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-06T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-09T05:17:00-05:00"
+    },
+    {
+      "shipmentId": 127862199,
+      "status": "Dispatched",
+      "mileage": 254.8,
+      "totalSell": 1506.0,
+      "totalBuy": 1202.0,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 837428,
+        "name": "IBRAHIM TRANSPORT INC",
+        "mcNumber": "1346382",
+        "dotNumber": "3771394",
+        "phoneNumber": "+15714906959"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 30500.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-09T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-09T16:00:00-05:00",
           "actualDepartureDateTime": null
         },
         {
@@ -77,8 +119,8 @@
           "city": "KATY",
           "state": "TX",
           "zipCode": "77449",
-          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
           "actualDepartureDateTime": null
         }
       ],

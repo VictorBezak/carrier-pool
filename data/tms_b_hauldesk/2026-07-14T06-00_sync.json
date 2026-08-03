@@ -2,25 +2,47 @@
   "synced_at": "2026-07-14 06:00:00",
   "loads": [
     {
-      "load_num": "HD-2026-680412",
+      "load_num": "HD-2026-483919",
       "status_code": 90,
       "customer_code": "C-8189",
       "customer_name": "Metroplex Auto Parts",
       "carrier_ref": 75320,
       "equip": "V",
-      "weight_kg": 10886.2,
+      "weight_kg": 12700.6,
       "dist_km": 452.9,
       "pu_city": "Irving",
       "pu_state": "TX",
       "pu_zip": "75062",
-      "pu_date": "2026-07-14",
-      "pu_departed_at": "2026-07-14 04:00:00",
+      "pu_date": "2026-07-12",
+      "pu_departed_at": "2026-07-12 15:15:00",
       "del_city": "Schertz",
       "del_state": "TX",
       "del_zip": "78154",
-      "del_date": "2026-07-15",
-      "del_arrived_at": "2026-07-14 05:00:00",
-      "entered_at": "2026-07-13 09:43:00",
+      "del_date": "2026-07-13",
+      "del_arrived_at": "2026-07-13 09:15:00",
+      "entered_at": "2026-07-11 09:43:00",
+      "updated_at": "2026-07-14 05:17:00"
+    },
+    {
+      "load_num": "HD-2026-377054",
+      "status_code": 90,
+      "customer_code": "C-8189",
+      "customer_name": "Metroplex Auto Parts",
+      "carrier_ref": 75320,
+      "equip": "V",
+      "weight_kg": 13834.6,
+      "dist_km": 452.9,
+      "pu_city": "Irving",
+      "pu_state": "TX",
+      "pu_zip": "75062",
+      "pu_date": "2026-07-12",
+      "pu_departed_at": "2026-07-12 15:30:00",
+      "del_city": "Schertz",
+      "del_state": "TX",
+      "del_zip": "78154",
+      "del_date": "2026-07-13",
+      "del_arrived_at": "2026-07-13 09:30:00",
+      "entered_at": "2026-07-11 21:43:00",
       "updated_at": "2026-07-14 05:17:00"
     },
     {
@@ -30,7 +52,7 @@
       "customer_name": "Metroplex Auto Parts",
       "carrier_ref": 75320,
       "equip": "V",
-      "weight_kg": 10886.2,
+      "weight_kg": 8164.7,
       "dist_km": 452.9,
       "pu_city": "Irving",
       "pu_state": "TX",
@@ -46,24 +68,14 @@
       "updated_at": "2026-07-14 05:17:00"
     }
   ],
-  "carriers": [
-    {
-      "carrier_id": 75320,
-      "carrier_name": "BRAZOS CARRIER GROUP",
-      "mc_no": "700441",
-      "dot_no": "3102245",
-      "home_city": "Pasadena",
-      "home_state": "TX",
-      "phone": "(713) 555-0150"
-    }
-  ],
+  "carriers": [],
   "rates": [
     {
-      "rate_id": 1552419,
+      "rate_id": 913976,
       "load_num": "HD-2026-873337",
       "side": "pay",
       "code": "LINEHAUL",
-      "amount_usd": 1004,
+      "amount_usd": 1004.0,
       "created_at": "2026-07-14 05:17:00"
     }
   ]

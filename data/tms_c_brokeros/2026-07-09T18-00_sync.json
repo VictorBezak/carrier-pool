@@ -2,42 +2,81 @@
   "synced_at": "2026-07-09T23:00:00.000+0000",
   "records": [
     {
-      "Id": "a0jbcdc4aee507d273",
-      "Name": "SHP5078581",
-      "bos__Load_Status__c": "Paid",
+      "Id": "a0j543ed0a5e161624",
+      "Name": "SHP1422398",
+      "bos__Load_Status__c": "Delivered",
       "bos__Distance_Miles__c": 290.3,
       "bos__Customer__c": "001b9838835c559d83",
       "bos__Carrier__c": "0010a3d8fbab4dd872",
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1729,
-      "bos__Carrier_Rate__c": 1325,
+      "bos__Customer_Rate__c": 1708.0,
+      "bos__Carrier_Rate__c": 1310.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
           "bos__Is_Pickup__c": true,
           "bos__Is_Dropoff__c": false,
           "bos__Location__c": "00163cd936a4f4d766",
-          "bos__Scheduled_Date__c": "2026-07-09",
-          "bos__Arrival_Time__c": "2026-07-09T20:00:00.000+0000"
+          "bos__Scheduled_Date__c": "2026-07-08",
+          "bos__Arrival_Time__c": "2026-07-08T14:03:45.000+0000"
         },
         {
           "bos__Number__c": 2.0,
           "bos__Is_Pickup__c": false,
           "bos__Is_Dropoff__c": true,
           "bos__Location__c": "001403bf8b5f31c786",
-          "bos__Scheduled_Date__c": "2026-07-10",
-          "bos__Arrival_Time__c": "2026-07-09T21:00:00.000+0000"
+          "bos__Scheduled_Date__c": "2026-07-09",
+          "bos__Arrival_Time__c": "2026-07-09T13:52:30.000+0000"
         }
       ],
       "bos__Line_Items__r": [
         {
-          "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Commodity__c": "Retail goods",
+          "bos__Weight__c": 33000.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 22.0
         }
       ],
-      "CreatedDate": "2026-07-09T02:43:00.000+0000",
+      "CreatedDate": "2026-07-07T14:43:00.000+0000",
+      "LastModifiedDate": "2026-07-09T22:17:00.000+0000"
+    },
+    {
+      "Id": "a0jb38b2011ed8389b",
+      "Name": "SHP5421468",
+      "bos__Load_Status__c": "Delivered",
+      "bos__Distance_Miles__c": 290.3,
+      "bos__Customer__c": "001b9838835c559d83",
+      "bos__Carrier__c": "0010a3d8fbab4dd872",
+      "bos__Equipment_Type__c": "Reefer",
+      "bos__Customer_Rate__c": 1715.0,
+      "bos__Carrier_Rate__c": 1315.0,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "00163cd936a4f4d766",
+          "bos__Scheduled_Date__c": "2026-07-08",
+          "bos__Arrival_Time__c": "2026-07-08T14:18:45.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001403bf8b5f31c786",
+          "bos__Scheduled_Date__c": "2026-07-09",
+          "bos__Arrival_Time__c": "2026-07-09T14:07:30.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Medical supplies",
+          "bos__Weight__c": 35500.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 23.0
+        }
+      ],
+      "CreatedDate": "2026-07-08T02:43:00.000+0000",
       "LastModifiedDate": "2026-07-09T22:17:00.000+0000"
     },
     {
@@ -48,8 +87,8 @@
       "bos__Customer__c": "001b9838835c559d83",
       "bos__Carrier__c": "0010a3d8fbab4dd872",
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1736,
-      "bos__Carrier_Rate__c": 1330,
+      "bos__Customer_Rate__c": 1736.0,
+      "bos__Carrier_Rate__c": 1330.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
@@ -70,10 +109,10 @@
       ],
       "bos__Line_Items__r": [
         {
-          "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Commodity__c": "Building materials",
+          "bos__Weight__c": 20500.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 26.0
         }
       ],
       "CreatedDate": "2026-07-09T14:43:00.000+0000",
@@ -89,10 +128,7 @@
     "0010a3d8fbab4dd872": {
       "type": "Account",
       "record_type": "Carrier",
-      "Name": "Lone Pine Logistics",
-      "bos__MC_Number__c": "930114",
-      "bos__DOT_Number__c": "4102221",
-      "Phone": "+17135550123"
+      "Name": "Lone Pine Logistics"
     },
     "00163cd936a4f4d766": {
       "type": "Location",

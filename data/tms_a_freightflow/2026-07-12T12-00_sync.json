@@ -5,7 +5,7 @@
       "shipmentId": 127301207,
       "status": "Booking",
       "mileage": 217.2,
-      "totalSell": 1540,
+      "totalSell": 1540.0,
       "totalBuy": null,
       "customer": {
         "customerId": 962163,
@@ -13,7 +13,7 @@
       },
       "carrier": null,
       "equipment": "53 ft Van | Reefer",
-      "weightTotal": 24000.0,
+      "weightTotal": 25500.0,
       "stops": [
         {
           "stopType": "First Pickup",

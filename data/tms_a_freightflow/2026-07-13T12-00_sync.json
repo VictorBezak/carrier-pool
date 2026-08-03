@@ -5,7 +5,7 @@
       "shipmentId": 127738720,
       "status": "Booking",
       "mileage": 70.3,
-      "totalSell": 610,
+      "totalSell": 610.0,
       "totalBuy": null,
       "customer": {
         "customerId": 885717,
@@ -13,7 +13,7 @@
       },
       "carrier": null,
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 20500.0,
       "stops": [
         {
           "stopType": "First Pickup",

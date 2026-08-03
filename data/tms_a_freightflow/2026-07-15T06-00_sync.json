@@ -2,62 +2,95 @@
   "syncedAt": "2026-07-15T06:00:00-05:00",
   "loads": [
     {
-      "shipmentId": 127738346,
+      "shipmentId": 127301207,
       "status": "Completed",
-      "mileage": 276.1,
-      "totalSell": 1510,
-      "totalBuy": 1365,
+      "mileage": 217.2,
+      "totalSell": 1540.0,
+      "totalBuy": 1210.0,
       "customer": {
-        "customerId": 975317,
-        "name": "Lone Star Beverages"
+        "customerId": 962163,
+        "name": "Bluebonnet Foods"
       },
       "carrier": {
-        "carrierMasterId": 901459,
-        "name": "BLUE ROUTE CARRIERS",
-        "mcNumber": "550218",
-        "dotNumber": "1603301",
-        "phoneNumber": "+12815550121"
+        "carrierMasterId": 890663,
+        "name": "BAYOU BEND EXPRESS",
+        "mcNumber": "740221",
+        "dotNumber": "3099101",
+        "phoneNumber": "+17135550110"
       },
-      "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "equipment": "53 ft Van | Reefer",
+      "weightTotal": 25500.0,
       "stops": [
         {
           "stopType": "First Pickup",
-          "city": "IRVING",
+          "city": "SCHERTZ",
           "state": "TX",
-          "zipCode": "75062",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-15T04:00:00-05:00"
-        },
-        {
-          "stopType": "Stop 2",
-          "city": "PEARLAND",
-          "state": "TX",
-          "zipCode": "77581",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
-          "actualDepartureDateTime": null
+          "zipCode": "78154",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T17:00:00-05:00"
         },
         {
           "stopType": "Last Drop",
-          "city": "SUGAR LAND",
+          "city": "PASADENA",
           "state": "TX",
-          "zipCode": "77478",
-          "estimatedReadyDateTime": "2026-07-18T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-18T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-15T05:00:00-05:00"
+          "zipCode": "77502",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T12:00:00-05:00"
         }
       ],
-      "createdDate": "2026-07-13T21:43:00-05:00",
-      "lastModifiedDate": "2026-07-15T05:41:00-05:00"
+      "createdDate": "2026-07-12T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T05:17:00-05:00"
+    },
+    {
+      "shipmentId": 127567858,
+      "status": "Completed",
+      "mileage": 48.3,
+      "totalSell": 540.0,
+      "totalBuy": 430.0,
+      "customer": {
+        "customerId": 885717,
+        "name": "Trinity Retail Group"
+      },
+      "carrier": {
+        "carrierMasterId": 878666,
+        "name": "PECAN VALLEY TRUCKING",
+        "mcNumber": "420018",
+        "dotNumber": "1997331",
+        "phoneNumber": "+16825550155"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 18000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "FORT WORTH",
+          "state": "TX",
+          "zipCode": "76102",
+          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-13T18:15:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "PLANO",
+          "state": "TX",
+          "zipCode": "75074",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T12:30:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-12T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T05:17:00-05:00"
     },
     {
       "shipmentId": 127315346,
       "status": "Dispatched",
       "mileage": 288.0,
-      "totalSell": 1320,
-      "totalBuy": 1110,
+      "totalSell": 1320.0,
+      "totalBuy": 1110.0,
       "customer": {
         "customerId": 962163,
         "name": "Bluebonnet Foods"
@@ -70,15 +103,15 @@
         "phoneNumber": "+19405550177"
       },
       "equipment": "48 ft Flatbed",
-      "weightTotal": 24000.0,
+      "weightTotal": 23000.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "PLANO",
           "state": "TX",
           "zipCode": "75074",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
           "actualDepartureDateTime": null
         },
         {
@@ -86,54 +119,12 @@
           "city": "NEW BRAUNFELS",
           "state": "TX",
           "zipCode": "78130",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
           "actualDepartureDateTime": null
         }
       ],
       "createdDate": "2026-07-14T21:43:00-05:00",
-      "lastModifiedDate": "2026-07-15T05:17:00-05:00"
-    },
-    {
-      "shipmentId": 127461251,
-      "status": "Completed",
-      "mileage": 270.2,
-      "totalSell": 1260,
-      "totalBuy": 1085,
-      "customer": {
-        "customerId": 962163,
-        "name": "Bluebonnet Foods"
-      },
-      "carrier": {
-        "carrierMasterId": 918324,
-        "name": "MISSION CITY FREIGHT",
-        "mcNumber": "631145",
-        "dotNumber": "2881440",
-        "phoneNumber": "+12105550133"
-      },
-      "equipment": "48 ft Flatbed",
-      "weightTotal": 24000.0,
-      "stops": [
-        {
-          "stopType": "First Pickup",
-          "city": "SELMA",
-          "state": "TX",
-          "zipCode": "78154",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-15T04:00:00-05:00"
-        },
-        {
-          "stopType": "Last Drop",
-          "city": "ARLINGTON",
-          "state": "TX",
-          "zipCode": "76010",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-15T05:00:00-05:00"
-        }
-      ],
-      "createdDate": "2026-07-14T09:43:00-05:00",
       "lastModifiedDate": "2026-07-15T05:17:00-05:00"
     }
   ]

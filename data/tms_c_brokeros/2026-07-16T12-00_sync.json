@@ -9,7 +9,7 @@
       "bos__Customer__c": "001dfc3a9c4c0a02e0",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Dry Van",
-      "bos__Customer_Rate__c": 1515,
+      "bos__Customer_Rate__c": 1515.0,
       "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {
@@ -32,9 +32,9 @@
       "bos__Line_Items__r": [
         {
           "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Weight__c": 28000.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 20.0
         }
       ],
       "CreatedDate": "2026-07-16T14:43:00.000+0000",

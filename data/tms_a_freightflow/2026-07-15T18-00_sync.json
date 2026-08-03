@@ -2,11 +2,95 @@
   "syncedAt": "2026-07-15T18:00:00-05:00",
   "loads": [
     {
+      "shipmentId": 127738346,
+      "status": "Delivered",
+      "mileage": 276.1,
+      "totalSell": 1510.0,
+      "totalBuy": 1190.0,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 918323,
+        "name": "CEDAR HILL FREIGHT",
+        "mcNumber": "902441",
+        "dotNumber": "2419988",
+        "phoneNumber": "+18175550188"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 23000.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "IRVING",
+          "state": "TX",
+          "zipCode": "75062",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T15:30:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "SUGAR LAND",
+          "state": "TX",
+          "zipCode": "77478",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-15T11:15:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-13T21:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T17:17:00-05:00"
+    },
+    {
+      "shipmentId": 127738720,
+      "status": "Delivered",
+      "mileage": 70.3,
+      "totalSell": 610.0,
+      "totalBuy": 485.0,
+      "customer": {
+        "customerId": 885717,
+        "name": "Trinity Retail Group"
+      },
+      "carrier": {
+        "carrierMasterId": 921117,
+        "name": "MOCKINGBIRD LOGISTICS",
+        "mcNumber": "615880",
+        "dotNumber": "2100987",
+        "phoneNumber": "+19725550190"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 20500.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "DENTON",
+          "state": "TX",
+          "zipCode": "76201",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-14T16:30:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "WAXAHACHIE",
+          "state": "TX",
+          "zipCode": "75165",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-15T11:45:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-13T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-15T17:17:00-05:00"
+    },
+    {
       "shipmentId": 127932767,
       "status": "Dispatched",
       "mileage": 252.6,
-      "totalSell": 1330,
-      "totalBuy": 1105,
+      "totalSell": 1330.0,
+      "totalBuy": 1105.0,
       "customer": {
         "customerId": 885717,
         "name": "Trinity Retail Group"
@@ -19,7 +103,7 @@
         "phoneNumber": "+18175550188"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 18000.0,
       "stops": [
         {
           "stopType": "First Pickup",
@@ -41,48 +125,6 @@
         }
       ],
       "createdDate": "2026-07-15T09:43:00-05:00",
-      "lastModifiedDate": "2026-07-15T17:17:00-05:00"
-    },
-    {
-      "shipmentId": 127315346,
-      "status": "Completed",
-      "mileage": 288.0,
-      "totalSell": 1320,
-      "totalBuy": 1110,
-      "customer": {
-        "customerId": 962163,
-        "name": "Bluebonnet Foods"
-      },
-      "carrier": {
-        "carrierMasterId": 872528,
-        "name": "LARIAT LINEHAUL",
-        "mcNumber": "501004",
-        "dotNumber": "1800442",
-        "phoneNumber": "+19405550177"
-      },
-      "equipment": "48 ft Flatbed",
-      "weightTotal": 24000.0,
-      "stops": [
-        {
-          "stopType": "First Pickup",
-          "city": "PLANO",
-          "state": "TX",
-          "zipCode": "75074",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-15T16:00:00-05:00"
-        },
-        {
-          "stopType": "Last Drop",
-          "city": "NEW BRAUNFELS",
-          "state": "TX",
-          "zipCode": "78130",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-15T17:00:00-05:00"
-        }
-      ],
-      "createdDate": "2026-07-14T21:43:00-05:00",
       "lastModifiedDate": "2026-07-15T17:17:00-05:00"
     }
   ]

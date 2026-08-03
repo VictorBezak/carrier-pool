@@ -9,7 +9,7 @@
       "bos__Customer__c": "001b9838835c559d83",
       "bos__Carrier__c": null,
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1700,
+      "bos__Customer_Rate__c": 1700.0,
       "bos__Carrier_Rate__c": null,
       "bos__Stops__r": [
         {
@@ -31,52 +31,91 @@
       ],
       "bos__Line_Items__r": [
         {
-          "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Commodity__c": "Packaged foods",
+          "bos__Weight__c": 23000.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 20.0
         }
       ],
       "CreatedDate": "2026-07-16T08:43:00.000+0000",
       "LastModifiedDate": "2026-07-16T10:17:00.000+0000"
     },
     {
-      "Id": "a0ja8e27a7106e2a16",
-      "Name": "SHP5440056",
+      "Id": "a0j1f2eb6290aba3fb",
+      "Name": "SHP7386221",
       "bos__Load_Status__c": "Paid",
-      "bos__Distance_Miles__c": 164.7,
-      "bos__Customer__c": "001b9838835c559d83",
-      "bos__Carrier__c": "001ea00b4d355bde92",
-      "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1440,
-      "bos__Carrier_Rate__c": 1175,
+      "bos__Distance_Miles__c": 48.3,
+      "bos__Customer__c": "001dfc3a9c4c0a02e0",
+      "bos__Carrier__c": "001e9546fce2b334fe",
+      "bos__Equipment_Type__c": "Dry Van",
+      "bos__Customer_Rate__c": 520.0,
+      "bos__Carrier_Rate__c": 410.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
           "bos__Is_Pickup__c": true,
           "bos__Is_Dropoff__c": false,
-          "bos__Location__c": "001c5ecc39e2ee8064",
-          "bos__Scheduled_Date__c": "2026-07-16",
-          "bos__Arrival_Time__c": "2026-07-16T08:00:00.000+0000"
+          "bos__Location__c": "001403bf8b5f31c786",
+          "bos__Scheduled_Date__c": "2026-07-14",
+          "bos__Arrival_Time__c": "2026-07-14T13:45:00.000+0000"
         },
         {
           "bos__Number__c": 2.0,
           "bos__Is_Pickup__c": false,
           "bos__Is_Dropoff__c": true,
-          "bos__Location__c": "0015043b88d9af9e12",
-          "bos__Scheduled_Date__c": "2026-07-17",
-          "bos__Arrival_Time__c": "2026-07-16T09:00:00.000+0000"
+          "bos__Location__c": "0013b7a9a06b6afd8e",
+          "bos__Scheduled_Date__c": "2026-07-15",
+          "bos__Arrival_Time__c": "2026-07-15T14:00:00.000+0000"
         }
       ],
       "bos__Line_Items__r": [
         {
           "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Weight__c": 28000.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 23.0
         }
       ],
-      "CreatedDate": "2026-07-15T14:43:00.000+0000",
+      "CreatedDate": "2026-07-14T02:43:00.000+0000",
+      "LastModifiedDate": "2026-07-16T10:17:00.000+0000"
+    },
+    {
+      "Id": "a0j96416eb972baec2",
+      "Name": "SHP2532957",
+      "bos__Load_Status__c": "Paid",
+      "bos__Distance_Miles__c": 174.3,
+      "bos__Customer__c": "001dfc3a9c4c0a02e0",
+      "bos__Carrier__c": "001eb947c0db08cd87",
+      "bos__Equipment_Type__c": null,
+      "bos__Customer_Rate__c": 1340.0,
+      "bos__Carrier_Rate__c": 1090.0,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "00189ce0373863be05",
+          "bos__Scheduled_Date__c": "2026-07-14",
+          "bos__Arrival_Time__c": "2026-07-14T14:00:00.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001f79b168e68e9fba",
+          "bos__Scheduled_Date__c": "2026-07-15",
+          "bos__Arrival_Time__c": "2026-07-15T14:15:00.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Packaged foods",
+          "bos__Weight__c": 35500.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 19.0
+        }
+      ],
+      "CreatedDate": "2026-07-13T14:43:00.000+0000",
       "LastModifiedDate": "2026-07-16T10:17:00.000+0000"
     }
   ],
@@ -100,27 +139,41 @@
       "bos__State__c": "TX",
       "bos__Postal_Code__c": "77449"
     },
-    "001ea00b4d355bde92": {
+    "001dfc3a9c4c0a02e0": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Triangle Home Goods"
+    },
+    "001e9546fce2b334fe": {
       "type": "Account",
       "record_type": "Carrier",
-      "Name": "Pearland Produce Express",
-      "bos__MC_Number__c": "609871",
-      "bos__DOT_Number__c": "2509441",
-      "Phone": "+12815550165"
+      "Name": "Waxahachie Way"
     },
-    "001c5ecc39e2ee8064": {
+    "001403bf8b5f31c786": {
       "type": "Location",
-      "Name": "Sugar Land Facility",
-      "bos__City__c": "Sugar Land",
+      "Name": "Fort Worth Facility",
+      "bos__City__c": "Fort Worth",
       "bos__State__c": "TX",
-      "bos__Postal_Code__c": "77478"
+      "bos__Postal_Code__c": "76102"
     },
-    "0015043b88d9af9e12": {
+    "0013b7a9a06b6afd8e": {
       "type": "Location",
-      "Name": "San Marcos Facility",
-      "bos__City__c": "San Marcos",
+      "Name": "Plano Facility",
+      "bos__City__c": "Plano",
       "bos__State__c": "TX",
-      "bos__Postal_Code__c": "78666"
+      "bos__Postal_Code__c": "75074"
+    },
+    "001eb947c0db08cd87": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "Guadalupe Freight Co"
+    },
+    "00189ce0373863be05": {
+      "type": "Location",
+      "Name": "Schertz Facility",
+      "bos__City__c": "Schertz",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "78154"
     }
   }
 }

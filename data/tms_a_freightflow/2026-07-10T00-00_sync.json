@@ -5,7 +5,7 @@
       "shipmentId": 127720325,
       "status": "Booking",
       "mileage": 254.8,
-      "totalSell": 1522,
+      "totalSell": 1522.0,
       "totalBuy": null,
       "customer": {
         "customerId": 975317,
@@ -13,15 +13,15 @@
       },
       "carrier": null,
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 35500.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "GRAND PRAIRIE",
           "state": "TX",
           "zipCode": "75050",
-          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
           "actualDepartureDateTime": null
         },
         {
@@ -29,8 +29,8 @@
           "city": "KATY",
           "state": "TX",
           "zipCode": "77449",
-          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
           "actualDepartureDateTime": null
         }
       ],

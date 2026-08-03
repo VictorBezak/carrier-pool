@@ -25,12 +25,26 @@ def main() -> None:
         broker_dir.mkdir(parents=True, exist_ok=True)
         for existing in broker_dir.glob("*_sync.json"):
             existing.unlink()
+        hauldesk_carriers_seen: dict[int, str] = {}
         for slot in range(TOTAL_SLOTS):
             payload = emit_sync(broker, slot, packed[broker][slot])
+            if broker == Broker.HAULDESK:
+                payload["carriers"] = _first_seen_or_changed_carriers(payload["carriers"], hauldesk_carriers_seen)
             path = broker_dir / slot_filename(slot)
             path.write_text(json.dumps(payload, indent=2, sort_keys=False) + "\n", encoding="utf-8")
 
     (DATA_DIR / "SCENARIOS.md").write_text(_manifest(specs, packed), encoding="utf-8")
+
+
+def _first_seen_or_changed_carriers(rows: list[dict], seen: dict[int, str]) -> list[dict]:
+    emitted: list[dict] = []
+    for row in rows:
+        carrier_id = row["carrier_id"]
+        signature = json.dumps(row, sort_keys=True)
+        if seen.get(carrier_id) != signature:
+            emitted.append(row)
+            seen[carrier_id] = signature
+    return emitted
 
 
 def _manifest(specs, packed: dict[Broker, dict[int, list[LoadEvent]]]) -> str:

@@ -99,6 +99,42 @@ CARRIERS: dict[str, Carrier] = {
 }
 
 
+# Hours added to the planned midpoint of each appointment. Negative/low values
+# create consistently punctual carriers; high values create visible late actuals.
+RELIABILITY_BIAS_HOURS: dict[str, float] = {
+    "a_veteran_1": -1.0,
+    "a_veteran_2": 0.0,
+    "a_mid_1": 0.5,
+    "a_mid_2": -0.5,
+    "a_mid_3": 2.5,
+    "a_thin_1": 3.5,
+    "a_thin_2": 1.5,
+    "a_thin_3": 2.0,
+    "a_thin_4": 1.0,
+    "a_thin_5": 0.5,
+    "b_veteran_1": -0.5,
+    "b_veteran_2": 0.0,
+    "b_mid_1": 0.5,
+    "b_mid_2": 1.0,
+    "b_mid_3": -0.25,
+    "b_thin_1": 3.0,
+    "b_thin_2": 2.0,
+    "b_thin_3": 2.5,
+    "b_thin_4": 1.5,
+    "b_thin_5": 1.0,
+    "c_veteran_1": -0.75,
+    "c_veteran_2": -0.25,
+    "c_mid_1": 1.0,
+    "c_mid_2": 1.5,
+    "c_mid_3": 0.5,
+    "c_thin_1": 2.0,
+    "c_thin_2": 3.0,
+    "c_thin_3": 1.5,
+    "c_thin_4": 2.5,
+    "c_thin_5": 1.0,
+}
+
+
 def road_miles(origin_key: str, destination_key: str) -> float:
     origin = PLACES[origin_key]
     destination = PLACES[destination_key]

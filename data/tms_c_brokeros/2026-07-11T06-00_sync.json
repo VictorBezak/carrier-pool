@@ -2,42 +2,81 @@
   "synced_at": "2026-07-11T11:00:00.000+0000",
   "records": [
     {
-      "Id": "a0jf6b24e5a83be14b",
-      "Name": "SHP7160243",
+      "Id": "a0j5a98c1e4328b82c",
+      "Name": "SHP3249763",
       "bos__Load_Status__c": "Paid",
-      "bos__Distance_Miles__c": 164.7,
-      "bos__Customer__c": "0011ae10e48ad3fc9b",
-      "bos__Carrier__c": "0016660c0a1080f674",
+      "bos__Distance_Miles__c": 290.3,
+      "bos__Customer__c": "001b9838835c559d83",
+      "bos__Carrier__c": "0010a3d8fbab4dd872",
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1516,
-      "bos__Carrier_Rate__c": 1202,
+      "bos__Customer_Rate__c": 1722.0,
+      "bos__Carrier_Rate__c": 1320.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
           "bos__Is_Pickup__c": true,
           "bos__Is_Dropoff__c": false,
-          "bos__Location__c": "0015043b88d9af9e12",
-          "bos__Scheduled_Date__c": "2026-07-11",
-          "bos__Arrival_Time__c": "2026-07-11T08:00:00.000+0000"
+          "bos__Location__c": "00163cd936a4f4d766",
+          "bos__Scheduled_Date__c": "2026-07-09",
+          "bos__Arrival_Time__c": "2026-07-09T13:18:45.000+0000"
         },
         {
           "bos__Number__c": 2.0,
           "bos__Is_Pickup__c": false,
           "bos__Is_Dropoff__c": true,
-          "bos__Location__c": "001c5ecc39e2ee8064",
-          "bos__Scheduled_Date__c": "2026-07-12",
-          "bos__Arrival_Time__c": "2026-07-11T09:00:00.000+0000"
+          "bos__Location__c": "001403bf8b5f31c786",
+          "bos__Scheduled_Date__c": "2026-07-10",
+          "bos__Arrival_Time__c": "2026-07-10T13:07:30.000+0000"
         }
       ],
       "bos__Line_Items__r": [
         {
           "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Weight__c": 38000.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 24.0
         }
       ],
-      "CreatedDate": "2026-07-10T14:43:00.000+0000",
+      "CreatedDate": "2026-07-08T14:43:00.000+0000",
+      "LastModifiedDate": "2026-07-11T10:17:00.000+0000"
+    },
+    {
+      "Id": "a0jbcdc4aee507d273",
+      "Name": "SHP5078581",
+      "bos__Load_Status__c": "Paid",
+      "bos__Distance_Miles__c": 290.3,
+      "bos__Customer__c": "001b9838835c559d83",
+      "bos__Carrier__c": "0010a3d8fbab4dd872",
+      "bos__Equipment_Type__c": "Reefer",
+      "bos__Customer_Rate__c": 1729.0,
+      "bos__Carrier_Rate__c": 1325.0,
+      "bos__Stops__r": [
+        {
+          "bos__Number__c": 1.0,
+          "bos__Is_Pickup__c": true,
+          "bos__Is_Dropoff__c": false,
+          "bos__Location__c": "00163cd936a4f4d766",
+          "bos__Scheduled_Date__c": "2026-07-09",
+          "bos__Arrival_Time__c": "2026-07-09T13:33:45.000+0000"
+        },
+        {
+          "bos__Number__c": 2.0,
+          "bos__Is_Pickup__c": false,
+          "bos__Is_Dropoff__c": true,
+          "bos__Location__c": "001403bf8b5f31c786",
+          "bos__Scheduled_Date__c": "2026-07-10",
+          "bos__Arrival_Time__c": "2026-07-10T13:22:30.000+0000"
+        }
+      ],
+      "bos__Line_Items__r": [
+        {
+          "bos__Commodity__c": "Packaged foods",
+          "bos__Weight__c": 18000.0,
+          "bos__Weight_Units__c": "lbs",
+          "bos__Pallet_Count__c": 25.0
+        }
+      ],
+      "CreatedDate": "2026-07-09T02:43:00.000+0000",
       "LastModifiedDate": "2026-07-11T10:17:00.000+0000"
     },
     {
@@ -48,8 +87,8 @@
       "bos__Customer__c": "0011ae10e48ad3fc9b",
       "bos__Carrier__c": "0016660c0a1080f674",
       "bos__Equipment_Type__c": "Reefer",
-      "bos__Customer_Rate__c": 1524,
-      "bos__Carrier_Rate__c": 1208,
+      "bos__Customer_Rate__c": 1524.0,
+      "bos__Carrier_Rate__c": 1208.0,
       "bos__Stops__r": [
         {
           "bos__Number__c": 1.0,
@@ -70,10 +109,10 @@
       ],
       "bos__Line_Items__r": [
         {
-          "bos__Commodity__c": "General freight",
-          "bos__Weight__c": 24000.0,
+          "bos__Commodity__c": "Medical supplies",
+          "bos__Weight__c": 25500.0,
           "bos__Weight_Units__c": "lbs",
-          "bos__Pallet_Count__c": 18.0
+          "bos__Pallet_Count__c": 14.0
         }
       ],
       "CreatedDate": "2026-07-11T02:43:00.000+0000",
@@ -81,6 +120,30 @@
     }
   ],
   "referenced_records": {
+    "001b9838835c559d83": {
+      "type": "Account",
+      "record_type": "Customer",
+      "Name": "Gulf Coast Foods"
+    },
+    "0010a3d8fbab4dd872": {
+      "type": "Account",
+      "record_type": "Carrier",
+      "Name": "Lone Pine Logistics"
+    },
+    "00163cd936a4f4d766": {
+      "type": "Location",
+      "Name": "Pasadena Facility",
+      "bos__City__c": "Pasadena",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "77502"
+    },
+    "001403bf8b5f31c786": {
+      "type": "Location",
+      "Name": "Fort Worth Facility",
+      "bos__City__c": "Fort Worth",
+      "bos__State__c": "TX",
+      "bos__Postal_Code__c": "76102"
+    },
     "0011ae10e48ad3fc9b": {
       "type": "Account",
       "record_type": "Customer",
@@ -89,10 +152,7 @@
     "0016660c0a1080f674": {
       "type": "Account",
       "record_type": "Carrier",
-      "Name": "Hill Country Refrigerated",
-      "bos__MC_Number__c": "830225",
-      "bos__DOT_Number__c": "3980102",
-      "Phone": "+15125550191"
+      "Name": "Hill Country Refrigerated"
     },
     "0015043b88d9af9e12": {
       "type": "Location",

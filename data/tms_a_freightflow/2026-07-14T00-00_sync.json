@@ -3,9 +3,9 @@
   "loads": [
     {
       "shipmentId": 127738346,
-      "status": "Booking",
+      "status": "Quoting",
       "mileage": 276.1,
-      "totalSell": 1510,
+      "totalSell": 1510.0,
       "totalBuy": null,
       "customer": {
         "customerId": 975317,
@@ -13,24 +13,15 @@
       },
       "carrier": null,
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 23000.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "IRVING",
           "state": "TX",
           "zipCode": "75062",
-          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
-          "actualDepartureDateTime": null
-        },
-        {
-          "stopType": "Stop 2",
-          "city": "PEARLAND",
-          "state": "TX",
-          "zipCode": "77581",
-          "estimatedReadyDateTime": "2026-07-16T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-16T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-14T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-14T16:00:00-05:00",
           "actualDepartureDateTime": null
         },
         {
@@ -38,8 +29,8 @@
           "city": "SUGAR LAND",
           "state": "TX",
           "zipCode": "77478",
-          "estimatedReadyDateTime": "2026-07-17T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-17T16:00:00-05:00",
+          "estimatedReadyDateTime": "2026-07-15T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-15T16:00:00-05:00",
           "actualDepartureDateTime": null
         }
       ],

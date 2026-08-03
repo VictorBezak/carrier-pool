@@ -2,53 +2,95 @@
   "syncedAt": "2026-07-11T18:00:00-05:00",
   "loads": [
     {
-      "shipmentId": 127259648,
-      "status": "Completed",
+      "shipmentId": 127313126,
+      "status": "Delivered",
       "mileage": 254.8,
-      "totalSell": 1500,
-      "totalBuy": 1425,
+      "totalSell": 1514.0,
+      "totalBuy": 1208.0,
       "customer": {
-        "customerId": 885717,
-        "name": "Trinity Retail Group"
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
       },
       "carrier": {
-        "carrierMasterId": 864976,
-        "name": "DELTA PRIME, LLC",
-        "mcNumber": "884201",
-        "dotNumber": "2551377",
-        "phoneNumber": "+18305550144"
+        "carrierMasterId": 837428,
+        "name": "IBRAHIM TRANSPORT INC",
+        "mcNumber": "1346382",
+        "dotNumber": "3771394",
+        "phoneNumber": "+15714906959"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 33000.0,
       "stops": [
         {
           "stopType": "First Pickup",
           "city": "GRAND PRAIRIE",
           "state": "TX",
           "zipCode": "75050",
-          "estimatedReadyDateTime": "2026-07-12T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-12T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-11T16:00:00-05:00"
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-10T14:15:00-05:00"
         },
         {
           "stopType": "Last Drop",
           "city": "KATY",
           "state": "TX",
           "zipCode": "77449",
-          "estimatedReadyDateTime": "2026-07-13T08:00:00-05:00",
-          "estimatedCloseDateTime": "2026-07-13T16:00:00-05:00",
-          "actualDepartureDateTime": "2026-07-11T17:00:00-05:00"
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T10:45:00-05:00"
         }
       ],
-      "createdDate": "2026-07-10T21:43:00-05:00",
+      "createdDate": "2026-07-09T09:43:00-05:00",
+      "lastModifiedDate": "2026-07-11T17:17:00-05:00"
+    },
+    {
+      "shipmentId": 127720325,
+      "status": "Delivered",
+      "mileage": 254.8,
+      "totalSell": 1522.0,
+      "totalBuy": 1214.0,
+      "customer": {
+        "customerId": 975317,
+        "name": "Lone Star Beverages"
+      },
+      "carrier": {
+        "carrierMasterId": 837428,
+        "name": "IBRAHIM TRANSPORT INC",
+        "mcNumber": "1346382",
+        "dotNumber": "3771394",
+        "phoneNumber": "+15714906959"
+      },
+      "equipment": "53 ft Van | Dry",
+      "weightTotal": 35500.0,
+      "stops": [
+        {
+          "stopType": "First Pickup",
+          "city": "GRAND PRAIRIE",
+          "state": "TX",
+          "zipCode": "75050",
+          "estimatedReadyDateTime": "2026-07-10T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-10T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-10T14:30:00-05:00"
+        },
+        {
+          "stopType": "Last Drop",
+          "city": "KATY",
+          "state": "TX",
+          "zipCode": "77449",
+          "estimatedReadyDateTime": "2026-07-11T08:00:00-05:00",
+          "estimatedCloseDateTime": "2026-07-11T16:00:00-05:00",
+          "actualDepartureDateTime": "2026-07-11T11:00:00-05:00"
+        }
+      ],
+      "createdDate": "2026-07-09T21:43:00-05:00",
       "lastModifiedDate": "2026-07-11T17:17:00-05:00"
     },
     {
       "shipmentId": 127683780,
       "status": "Dispatched",
       "mileage": 254.8,
-      "totalSell": 1500,
-      "totalBuy": 1455,
+      "totalSell": 1500.0,
+      "totalBuy": 1455.0,
       "customer": {
         "customerId": 885717,
         "name": "Trinity Retail Group"
@@ -61,7 +103,7 @@
         "phoneNumber": "+18305550144"
       },
       "equipment": "53 ft Van | Dry",
-      "weightTotal": 24000.0,
+      "weightTotal": 18000.0,
       "stops": [
         {
           "stopType": "First Pickup",
