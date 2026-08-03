@@ -9,6 +9,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LaneGeoMap } from "@/charts/LaneGeoMap";
@@ -424,7 +425,8 @@ function CombinedCarrierTable({
   selectedRowKey: string | null;
   onSelectRow: (rowKey: string) => void;
 }) {
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [reasoningRowKey, setReasoningRowKey] = useState<string | null>(null);
+  const reasoningRow = rows.find((row) => row.key === reasoningRowKey) ?? null;
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-end justify-between gap-2">
@@ -483,18 +485,17 @@ function CombinedCarrierTable({
             )}
             {rows.map((row) => {
               const carrier = row.carrier;
-              const open = expanded === row.key;
               const deadhead = rowDeadheadMiles(row);
               const rowMargin = margin(customerRate, rowPrice(row));
-              return [
+              return (
                 <TableRow
                   key={row.key}
-                  aria-expanded={open}
                   tabIndex={0}
                   className="cursor-pointer"
                   onClick={() => onSelectRow(row.key)}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter") {
+                    // Enter on the row's own Reasoning button must stay with the button.
+                    if (event.key === "Enter" && event.target === event.currentTarget) {
                       event.preventDefault();
                       onSelectRow(row.key);
                     }
@@ -542,63 +543,90 @@ function CombinedCarrierTable({
                     <Button
                       variant="ghost"
                       size="xs"
+                      className="cursor-pointer"
                       onClick={(event) => {
                         event.stopPropagation();
-                        setExpanded(open ? null : row.key);
+                        onSelectRow(row.key);
+                        setReasoningRowKey(row.key);
                       }}
                     >
                       Reasoning
                     </Button>
                   </TableCell>
-                </TableRow>,
-                open ? (
-                  <TableRow key={`${row.key}-evidence`} className="hover:bg-transparent">
-                    <TableCell colSpan={9} className="p-0 whitespace-normal">
-                      {row.kind === "local" ? (
-                        <CarrierEvidence
-                          components={row.carrier.components}
-                          reasons={row.carrier.reasons}
-                          limitations={row.carrier.limitations}
-                        />
-                      ) : (
-                        <PoolEvidence carrier={row.carrier} />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ) : null
-              ];
+                </TableRow>
+              );
             })}
           </TableBody>
         </Table>
       </div>
+
+      <CarrierReasoningSheet row={reasoningRow} onClose={() => setReasoningRowKey(null)} />
     </div>
   );
 }
 
-function PoolEvidence({ carrier }: { carrier: PoolCarrierRanking }) {
+/**
+ * Reasoning flies out beside the table instead of expanding a row inside it: the evidence
+ * for one carrier is a five-column table plus two prose lists, and inline it pushed the
+ * rows a broker is comparing off screen mid-read.
+ */
+function CarrierReasoningSheet({ row, onClose }: { row: CombinedCarrierRow | null; onClose: () => void }) {
   return (
-    <div>
-      <CarrierEvidence components={carrier.components} reasons={carrier.reasons} limitations={carrier.limitations} />
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5 border-t bg-muted/30 p-4">
-          <ColumnLabel>Everything that crossed the boundary</ColumnLabel>
-          <div className="overflow-hidden rounded-md border bg-card">
-            <Table className="text-[11.5px]">
-              <TableBody>
-                {Object.entries(carrier.payload).map(([key, value]) => (
-                  <TableRow key={key}>
-                    <TableCell className="w-40 px-2 py-1">
-                      <ColumnLabel>{evidenceName(key)}</ColumnLabel>
-                    </TableCell>
-                    <TableCell className="px-2 py-1">
-                      <Num>{Array.isArray(value) ? value.join(", ") || "—" : evidenceValue(value ?? null)}</Num>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+    <Sheet open={row !== null} onOpenChange={(next) => !next && onClose()}>
+      {/* Three quarters of the viewport: the evidence table is five columns wide, and the
+          sliver of ranked rows left behind is enough to keep your place. */}
+      <SheetContent
+        side="right"
+        className="gap-0 data-[side=right]:w-full data-[side=right]:sm:w-3/4 data-[side=right]:sm:max-w-none"
+      >
+        {row && (
+          <>
+            <SheetHeader className="border-b">
+              <SheetTitle className="flex items-center gap-2 pr-8">
+                <span className="truncate">{row.carrier.carrier_name}</span>
+                <ConfidenceBadge confidence={row.carrier.confidence} />
+              </SheetTitle>
+              <SheetDescription className="text-[12px]">
+                Ranked {row.rankLabel} for this load with a {matchScore(row.carrier.score)} match, from {rowSource(row).toLowerCase()}.
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="flex flex-col gap-5 p-4">
+                <CarrierEvidence
+                  components={row.carrier.components}
+                  reasons={row.carrier.reasons}
+                  limitations={row.carrier.limitations}
+                />
+                {row.kind === "pool" && <PoolPayload carrier={row.carrier} />}
+              </div>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function PoolPayload({ carrier }: { carrier: PoolCarrierRanking }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <ColumnLabel>Everything that crossed the boundary</ColumnLabel>
+      <div className="overflow-hidden rounded-md border bg-card">
+        <Table className="text-[11.5px]">
+          <TableBody>
+            {Object.entries(carrier.payload).map(([key, value]) => (
+              <TableRow key={key}>
+                <TableCell className="w-40 px-2 py-1">
+                  <ColumnLabel>{evidenceName(key)}</ColumnLabel>
+                </TableCell>
+                <TableCell className="px-2 py-1">
+                  <Num>{Array.isArray(value) ? value.join(", ") || "—" : evidenceValue(value ?? null)}</Num>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

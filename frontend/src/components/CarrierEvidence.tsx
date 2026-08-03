@@ -13,7 +13,7 @@ export function CarrierEvidence({
   limitations: string[];
 }) {
   return (
-    <div className="flex flex-col gap-4 border-t bg-muted/30 p-4">
+    <div className="flex flex-col gap-4">
       {components.length > 0 && <ComponentTable components={components} />}
       <div className="grid gap-4 sm:grid-cols-2">
         <ReasonList label="Why this carrier" items={reasons} />

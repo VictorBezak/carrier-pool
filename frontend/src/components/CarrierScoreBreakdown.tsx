@@ -29,7 +29,7 @@ export function CarrierScoreBreakdown({ components }: { components: ComponentSco
         ))}
       </div>
       <p className="text-[11.5px] leading-relaxed text-muted-foreground">
-        Bar length is how much a component can move the score; the filled part is what this carrier earned. Expand the
+        Bar length is how much a component can move the score; the filled part is what this carrier earned. Open the
         carrier's reasoning for the evidence behind each one.
       </p>
     </div>
