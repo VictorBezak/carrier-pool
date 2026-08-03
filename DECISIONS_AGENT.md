@@ -1,0 +1,64 @@
+# Decisions
+
+The judgment calls, the alternatives rejected, and the limits we know about.
+
+[Q&A.md](Q&A.md) covers *what* the system answers, with live numbers. [WIP_NOTES.md](WIP_NOTES.md) is the chronological trail, including the passes that were wrong and got reversed. This is the distilled version.
+
+---
+
+## What we scoped in, and what we cut
+
+The depth went into three things: the ranking and pricing model with its explanations, correction handling, and the shared-pool boundary. Cut on purpose:
+
+- **Auth, sessions, user management.** The broker is a path parameter. Nothing about isolation depends on that, because isolation lives in how statistics are keyed rather than in a query filter — see below.
+- **Incremental analytics.** Every answer replays that broker's history from the append-only log. This is the honest form of "rebuild, never patch", and it is also the single thing in the system that would not survive scale. Named again under limitations.
+- **An acceptance model.** None of the three TMS feeds record who was called, tendered, or declined, so there is nothing to train on. We rank observable fit and say so in the UI rather than implying we predict who says yes.
+- **Routed mileage.** Deadhead and lane proximity are great-circle distances between ZIP centroids; a load's paid miles come from the TMS feed. A routing engine would move numbers, not conclusions.
+- **Visual polish.** Two Plotly charts were built and then deleted (WIP note 24). The brief says polish counts for nothing, and one of the charts was reading a different data source than the table below it.
+
+## Judgment calls
+
+**A lane is a distance kernel, not a bucket.** History counts in proportion to how close its endpoints are to this load's, fading over about 35 miles at each end, with reverse-direction credit discounted to 35%. We rejected city buckets, state buckets, and metro/CBSA buckets: every bucket has an edge, and the brief's own examples sit on the wrong side of it — Newark and NYC differ in both city *and* state, while Texas → Texas as one lane is meaningless. Geohash or H3 tiles have the same edge problem with less interpretability. The cost is that there is no crisp "this is the lane" object to name in the UI, which is why the load page draws a lane map instead.
+
+**Geography comes from an outside authority.** ZIP coordinates are the 2020 Census Gazetteer ZCTA centroids, all 33,144, vendored into the repo. This replaced a hand-authored 17-row table whose coordinates had been copied from the data generator's own place roster — the ranker's geography was defined by the same table that synthesized the data it was ranking, so it was structurally incapable of being wrong. The generator now reads the same vendored file. Vendored rather than fetched so tests stay hermetic and offline.
+
+**Rank by observable fit, and report rather than decide.** Seven weighted components, each with its evidence attached: empty miles 30%, lane experience 24%, price 16%, on-time record 12%, relationship depth 10%, customer history 4%, rate and fall-through stability 4%. We rejected a single opaque score — a broker who cannot see why will not trust it twice — and we rejected filtering thin carriers out of the list, because on a cold lane the best available option is still worth showing, flagged.
+
+**Deadhead is the heaviest component, but it does not outrank a proven record.** The most-revised decision in the project (WIP notes 15 through 20, worth reading in full). Three real defects surfaced: empty miles were counted in absolute terms only, so 165 miles scored the same on a 209-mile load as on a 1,200-mile one; a "starts loads near the pickup" term was quietly refunding the penalty using the same historical loads that had already earned the carrier its lane points, so one fact was paid for twice; and the component had no small-sample shrinkage while every other component had it, so one six-day-old delivery scored a flat 100. Empty miles are now estimated from the last observed delivery blended with a recency-weighted operating footprint, capped so an inference can never fully override an observation, and scored against both a flat allowance and a share of paid miles, judged by whichever is kinder.
+
+We deliberately did *not* turn the curve up far enough to beat a proven carrier. At roughly $2.00/mile operating cost, the badly-positioned carrier on the reference load nets about 20% less than the close one — real, but both clear cost, and outranking the incumbent would have meant recommending a carrier that was late on both of the only two appointments it has ever been measured on. A late pickup costs the broker a customer, not just a phone call. Instead, the evidence reports how many deliveries back the position estimate and a watch-out fires under three, so a broker who wants to gamble on the close unproven truck can see exactly what they are gambling on.
+
+**Deadhead stays out of the price estimate.** The estimate answers "what is this lane worth", which should not move based on who we happen to be calling. The deadhead-adjusted figure is reported per carrier instead, as what they actually earn per mile turned — which is usually the reason a poorly-positioned carrier declines or asks for more.
+
+**Price walks a ladder and names the rung it landed on.** Similar lanes, then distance band on the same equipment, then equipment prior, with whatever it finds pulled toward the broker's general rate so one weird load cannot set the price. We rejected declining to quote cold lanes, which is useless to the broker who most needs a number, and we rejected a single fitted model: there is nothing to fit it against here, and it could not explain itself. The range widening on thin evidence is doing the work a refusal would have done.
+
+**Shrink every statistic, and keep confidence independent of score.** Price shrinks toward a k=4 prior, reliability uses a four-observation Beta-style prior, positioning a two-observation prior, customer affinity heavily. The rejected alternative was a minimum-history threshold, which hides thin carriers rather than pricing their thinness. Folding confidence into the score was also rejected, because "how good is this fit" and "how much do we know" are different questions; collapsing them means a broker can no longer read "best available option, thin evidence" off the screen. A carrier ranking first with a low-confidence badge is the intended output, not a contradiction.
+
+**Never patch a derived number.** A correction arrives as a new version of the load in an append-only log and the answer is recomputed, so there is no stale aggregate to go hunting for. Patching derived aggregates on correction was the rejected alternative, and it is the one that would have been faster. Rebuilding also gave as-of replay nearly for free — and that had to be threaded through the whole read path, not just the ranking, or a replayed board silently serves live rows (WIP note 14).
+
+**Tenant isolation is structural, and tested adversarially.** Every statistic is keyed by *(broker, carrier)*, so there is no code path where one broker's numbers reach another's ranking; MC/DOT is identity metadata only. Rather than trusting that, a test re-ingests each broker's directory with the other two literally absent from disk and asserts the rankings, scores, confidence, and prices come out identical. We rejected leaning on `WHERE broker_id = ...` discipline, which is one forgotten clause away from a leak and cannot be proven by a test.
+
+**The pool shares carrier-owned facts, never broker-owned ones.** Both sides opt in, carriers match on MC/DOT, and the crossing payload is an explicit allowlist: name, authority number, home city/state, equipment buckets, bucketed stop sightings, on-time counts, lane cells. Rates, margins, customers, load IDs, source files, exact counts and timestamps, and raw payloads never cross. Tests walk the serialized output recursively to assert nothing outside the allowlist appears, and the UI shows the broker the entire payload that crossed.
+
+Two reversals inside this one. The original rule suppressed every overlapping carrier — if you already knew the carrier, you learned nothing (WIP note 1). That threw away the signal that mattered most, since two brokers see the same authority from different angles and neither has the full picture of where its trucks are. Overlapping carriers now merge carrier-owned facts into the requesting broker's own ranking with provenance labelled. Separately, pool-only carriers were first kept in a segregated tier because their scores were not comparable; once they were given the same seven components, with missing local evidence scored honestly at zero relationship and a cold-start customer prior, sorting every row together became the more truthful presentation. A pool carrier can now outrank one of yours, but only after paying the score cost of having no history with you.
+
+**The UI is single-tenant.** An earlier pass put the three brokers in top-level tabs, which framed the product as a tenant switcher and made it easy to miss that each answer comes from one broker's data alone. Broker impersonation, as-of replay, the pool toggle, and the request log now sit behind a quarantined **Dev tools** sheet. That sheet is deliberately *not* gated on a dev build: reviewers run the production Docker image, and hiding the tenant switcher there would remove the fastest way to check that data does not leak.
+
+## Honest limitations
+
+- **Replaying a broker's full history per request will not scale.** It is fine for this corpus and would die at millions of loads. This is the cost of rebuild-not-patch, taken knowingly.
+- **Pool anonymity is fiction at this size.** With two eligible brokers, each can infer the contributor. And the pool does reveal coarse physical carrier movement observed through someone else's book — we allow ZIP5 stop sightings because ZIP3 error is about the same size as the deadhead effect we are trying to measure, which is a real privacy cost accepted for a real accuracy gain.
+- **BrokerOS cannot join the pool at all**, because its documented export has no MC/DOT field to match carriers on. We would rather say that than invent an identifier.
+- **Absent data outranks bad data.** A carrier with no delivery actuals scores the unknown-position prior, which beats a carrier we *know* is 228 empty miles away. That is correct expected-value reasoning, but a broker could reasonably read it as the platform rewarding carriers it knows nothing about.
+- **The footprint estimate assumes more than one truck.** Fair for the multi-load rotations in this corpus, unfair to a genuine owner-operator. Real dispatch software would use equipment counts and truck-level availability; no provided schema carries either.
+- **The constants are legible, not fitted.** The 45-mile allowance, the 15% ratio, the 4-day freshness half-life, the 35-mile lane decay, the shrinkage priors and the confidence thresholds were all chosen to be defensible in a sentence. With no acceptance or rejection data there is nothing to fit them against, and confidence is an evidence-depth heuristic rather than a calibrated probability.
+- **Distances are straight-line.** ZIP centroid to ZIP centroid, and ZIPs with no ZCTA fall back to the ZIP3 centroid. A handful of point-ZIPs cannot be located at all; those earn no geographic credit instead of aborting the ranking, but they are silently invisible to the model.
+- **We wrote the test cases and we wrote the data.** The corpus is designed around the scenarios in [data/SCENARIOS.md](data/SCENARIOS.md), so the system is demonstrably right about the situations we thought of. One of those scenarios turned out not to test what it claimed — both of the deadhead loads ran the same direction, so any deadhead regression would have passed (WIP note 18) — which is the argument for assuming there are others.
+
+## What we would do next
+
+1. **Materialized per-broker, per-lane feature tables, invalidated by affected load-version keys.** Same rebuild-not-patch principle, made incremental — this is the direct answer to the scaling limitation above and the first thing we would build.
+2. **A ZIP-to-ZCTA crosswalk and real routed mileage**, which together remove the quietest source of error in the deadhead model.
+3. **Capture the missing signal.** Everything the ranker cannot do traces back to no feed recording calls, tenders, and declines. Logging broker outcomes inside our own platform turns fit scoring into acceptance modelling and gives the constants something to be fitted against.
+4. **Truck-level availability**, if any TMS will supply it, to replace the multi-truck inference in the footprint.
+5. **Grow the pool past the point where anonymity is real**, with differential-privacy-style noise on the bucketed counts before that claim is made to anyone.

@@ -238,7 +238,7 @@ def test_positioning_shrinks_toward_the_prior_on_thin_evidence(store):
 
     Brazos has eight consistent Schertz drops; Comal Creek has one, six days old. Both sit
     inside the free-mileage allowance, so both max the raw curve, but they must not score the
-    same. Every other component already shrinks small samples this way (DECISIONS 5).
+    same. Every other component already shrinks small samples this way (WIP_NOTES 5).
     """
     load = active_by_lane(store, BROKER_HAULDESK, "Seguin", "Baytown", Equipment.REEFER)
     rankings = rank_carriers(store, load)

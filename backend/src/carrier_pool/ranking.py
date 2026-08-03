@@ -48,7 +48,7 @@ POSITION_MAX_FOOTPRINT_WEIGHT = 0.5
 # believe". They are different uncertainties and both apply. One six-day-old delivery and
 # eight consistent ones pointing at the same town are not the same evidence that a truck can
 # be had near the pickup tomorrow, so positioning shrinks toward the unknown-position prior
-# like every other component does (see DECISIONS 5). With no observations at all the formula
+# like every other component does (see WIP_NOTES 5). With no observations at all the formula
 # collapses to the prior, so the unknown case needs no separate branch.
 POSITION_PRIOR_OBSERVATIONS = 2.0
 
