@@ -2,7 +2,7 @@
 
 Ranked carrier recommendations and price estimates for freight brokers, derived only from each broker's own TMS history.
 
-The task is in [PROJECT_BRIEF.md](PROJECT_BRIEF.md), the reasoning in [DECISIONS.md](DECISIONS.md), and a demo walkthrough in [Q&A.md](Q&A.md).
+The original task prompt is in [PROJECT_BRIEF.md](PROJECT_BRIEF.md), some of the work-in-progress reasonings in [DECISIONS.md](DECISIONS.md), and a [Q&A.md](Q&A.md) doc to aid in live-demo discussion.
 
 ## Run it
 
@@ -17,7 +17,7 @@ Builds the stack, waits for `/health`, opts two brokers into the shared pool, an
 
 Postgres holds an append-only sync log, the backend ingests one sync file at a time in chronological order, and nginx serves the React build.
 
-## What you're looking at
+## App Experience
 
 The UI is scoped to a single broker, the way a real tenant would see it.
 
