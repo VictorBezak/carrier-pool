@@ -1,4 +1,4 @@
-# Decisions
+# Decisions (as noted by our coding agent)
 
 The judgment calls, the alternatives rejected, and the limits we know about.
 
