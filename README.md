@@ -2,7 +2,7 @@
 
 Ranked carrier recommendations and price estimates for freight brokers, derived only from each broker's own TMS history.
 
-The original task prompt is in [PROJECT_BRIEF.md](PROJECT_BRIEF.md), some of the work-in-progress thoughts in [WIP_NOTES.md](WIP_NOTES.md), a [DECISIONS_AGENT.md](DECISIONS_AGENT.md) to document some of our overarching decisions & trade-offs, a [DECISIONS_AGENT.md](DECISIONS_AGENT.md) to give a less technical & comprehensive but more personalized and candid take on our decisions and tradeoffs, and a [Q&A.md](Q&A.md) doc to aid in live-demo discussion.
+The original task prompt is in [PROJECT_BRIEF.md](PROJECT_BRIEF.md), some of the work-in-progress thoughts in [WIP_NOTES.md](WIP_NOTES.md), a [DECISIONS_AGENT.md](DECISIONS_AGENT.md) to document some of our overarching decisions & trade-offs, a [DECISIONS_OPERATOR.md](DECISIONS_OPERATOR.md) to give a less technical & comprehensive but more personalized and candid take on our decisions and tradeoffs, and a [Q&A.md](Q&A.md) doc to aid in live-demo discussion.
 
 ## Run it
 
